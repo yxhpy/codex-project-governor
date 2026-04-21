@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/usr/bin/python3"
+PY = sys.executable
 
 
 class ProjectGovernorSelfTest(unittest.TestCase):
