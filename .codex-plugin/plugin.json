@@ -5,7 +5,18 @@
   "author": {
     "name": "yxhpy"
   },
+  "homepage": "https://github.com/yxhpy/codex-project-governor",
+  "repository": "https://github.com/yxhpy/codex-project-governor",
   "license": "MIT",
+  "keywords": [
+    "codex",
+    "governance",
+    "memory",
+    "skills",
+    "plugin",
+    "project-template",
+    "code-review"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
@@ -14,6 +25,7 @@
     "longDescription": "A Codex governance plugin that initializes empty or existing repositories, mines conventions, enforces iteration-first development, runs subagent audits, checks style and architecture drift, and compacts project memory on demand or on a schedule.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
+    "websiteURL": "https://github.com/yxhpy/codex-project-governor",
     "capabilities": [
       "Read",
       "Write"

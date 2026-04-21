@@ -196,11 +196,14 @@ python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-c
 python3 tests/selftest.py
 ```
 
+You can also run the same check through `make test`.
+
 The tests validate:
 
 - plugin manifest shape
 - every skill has `SKILL.md` and metadata
 - templates contain the required governance files
+- `.codex/rules/project.rules` uses Codex-supported rule decisions
 - deterministic initialization does not overwrite existing application code
 - implementation guard detects rewrite risk, dependency changes, and unjustified new files
 - style drift check detects raw colors and unregistered components

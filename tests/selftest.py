@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -47,6 +48,12 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         ]
         for rel in required:
             self.assertTrue((ROOT / "templates" / rel).exists(), rel)
+
+    def test_project_rules_use_valid_decisions(self) -> None:
+        rules = (ROOT / "templates" / ".codex" / "rules" / "project.rules").read_text(encoding="utf-8")
+        decisions = re.findall(r'decision="([^"]+)"', rules)
+        self.assertGreater(len(decisions), 0)
+        self.assertEqual(set(decisions) - {"allow", "deny", "prompt"}, set())
 
     def test_init_project_preserves_application_code(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
