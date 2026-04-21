@@ -1,0 +1,85 @@
+{
+  "project": "codex-project-governor",
+  "generated_at": "2026-04-21",
+  "project_needs": ["memory", "subagents", "research", "automation", "governance"],
+  "candidates": [
+    {
+      "id": "research-radar-skill",
+      "title": "Research Radar skill",
+      "source_type": "official_docs",
+      "source": "https://developers.openai.com/codex/skills",
+      "summary": "Package repeatable research workflows as a Codex skill with structured source quality, risk, and relevance scoring.",
+      "tags": ["research", "governance", "skills"],
+      "risk": "low",
+      "maturity": "available",
+      "breaking": false,
+      "implementation_cost": "low",
+      "evidence": [
+        "Codex skills package instructions, resources, and optional scripts for reusable workflows.",
+        "Skills use progressive disclosure, so rich workflows can stay available without bloating context upfront."
+      ],
+      "concerns": []
+    },
+    {
+      "id": "codex-subagent-audit-profiles",
+      "title": "Codex subagent audit profiles",
+      "source_type": "official_docs",
+      "source": "https://developers.openai.com/codex/subagents",
+      "summary": "Define read-only research and audit subagents for official docs, compatibility risk, implementation fit, alternatives, and roadmap synthesis.",
+      "tags": ["subagents", "parallel", "research", "governance"],
+      "risk": "medium",
+      "maturity": "available",
+      "breaking": false,
+      "implementation_cost": "medium",
+      "evidence": [
+        "Codex can spawn specialized agents in parallel and collect results in one response.",
+        "Codex only spawns subagents when explicitly asked."
+      ],
+      "concerns": ["Subagent workflows consume more tokens than comparable single-agent runs."]
+    },
+    {
+      "id": "sleep-curator-trigger-pack",
+      "title": "Sleep Curator trigger pack",
+      "source_type": "official_docs",
+      "source": "https://developers.openai.com/codex/app/automations",
+      "summary": "Use Codex Automations and worktrees to schedule memory compaction and reflection tasks.",
+      "tags": ["memory", "automation", "worktree", "governance"],
+      "risk": "medium",
+      "maturity": "available",
+      "breaking": false,
+      "implementation_cost": "medium",
+      "evidence": [
+        "Codex Automations can use plugins and skills, and project automations can run in a dedicated worktree."
+      ],
+      "concerns": ["Background automation with broad write access carries elevated risk."]
+    },
+    {
+      "id": "strict-hooks-mode",
+      "title": "Strict hooks mode",
+      "source_type": "official_docs",
+      "source": "https://developers.openai.com/codex/hooks",
+      "summary": "Make governance hooks blocking by default for iteration compliance and drift checks.",
+      "tags": ["security", "governance", "hooks"],
+      "risk": "high",
+      "maturity": "experimental",
+      "breaking": true,
+      "implementation_cost": "medium",
+      "evidence": ["Codex hooks can run deterministic scripts during lifecycle events."],
+      "concerns": ["Hooks are experimental and may create workflow friction."]
+    },
+    {
+      "id": "local-memory-as-source-of-truth",
+      "title": "Local memories as source of truth",
+      "source_type": "official_docs",
+      "source": "https://developers.openai.com/codex/memories",
+      "summary": "Use local memories as the primary enforcement layer for team project rules.",
+      "tags": ["memory", "governance"],
+      "risk": "high",
+      "maturity": "available",
+      "breaking": true,
+      "implementation_cost": "low",
+      "evidence": ["Codex Memories are useful as a local recall layer."],
+      "concerns": ["Required team guidance should remain in AGENTS.md or checked-in documentation."]
+    }
+  ]
+}

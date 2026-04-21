@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "0.2.0",
-  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, subagent audits, drift checks, upgrade advice, and scheduled memory compaction.",
+  "version": "0.3.0",
+  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, research gates, subagent audits, drift checks, upgrade advice, and scheduled memory compaction.",
   "author": {
     "name": "yxhpy"
   },
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Project Governor",
     "shortDescription": "Project initialization, memory, and governance for Codex",
-    "longDescription": "A Codex governance plugin that initializes empty or existing repositories, mines conventions, enforces iteration-first development, runs subagent audits, checks style and architecture drift, advises on user-selectable upgrades, and compacts project memory on demand or on a schedule.",
+    "longDescription": "A Codex governance plugin that initializes empty or existing repositories, researches candidate capabilities and releases before implementation, mines conventions, enforces iteration-first development, runs subagent audits, checks style and architecture drift, compacts project memory, and advises on upgrades before applying them.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
@@ -35,7 +35,9 @@
       "Use Project Governor to create a memory and iteration governance system for this project.",
       "Use Project Governor to plan this change as an iteration, not a rewrite.",
       "Use Project Governor to compact recent project activity into durable project memory.",
-      "Use Project Governor to advise whether project dependencies or tools should be upgraded before this change."
+      "Use Project Governor to advise whether project dependencies or tools should be upgraded before this change.",
+      "Use Project Governor to research a candidate capability, compare evidence, and recommend whether to adopt, spike, watch, or reject it before implementation.",
+      "Use Project Governor to research candidate release versions before upgrade advice, including skipped versions, evidence quality, relevance, and risk."
     ]
   }
 }

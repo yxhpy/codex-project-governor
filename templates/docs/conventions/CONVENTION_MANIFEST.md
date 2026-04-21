@@ -12,5 +12,9 @@
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
 - Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
 - Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
+- Research policy: `docs/research/RESEARCH_POLICY.md`
+- Research register: `docs/research/RESEARCH_REGISTER.md`
+- Release research policy: `docs/upgrades/RELEASE_RESEARCH_POLICY.md`
+- Release research report: `docs/upgrades/RELEASE_RESEARCH_REPORT.md`
 
 If implementation conflicts with these files, create or update a decision record first.

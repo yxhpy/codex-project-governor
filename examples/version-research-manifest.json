@@ -1,0 +1,52 @@
+{
+  "subject": "codex-project-governor",
+  "current_version": "0.2.0",
+  "project_context": "The project needs better upgrade decisions, release research, memory governance, and subagent-based audits.",
+  "candidate_versions": [
+    {
+      "version": "0.3.0",
+      "date": "2026-04-21",
+      "title": "Version researcher",
+      "summary": "Adds release research before upgrade advice, including skipped-version distance, evidence quality, relevance mapping, and user choice gates.",
+      "tags": ["version_research", "upgrade", "governance"],
+      "changes": [
+        "Adds version-researcher skill for release note analysis before upgrades.",
+        "Adds release research policy and report templates.",
+        "Connects research output to upgrade-advisor decisions."
+      ],
+      "breaking_changes": [],
+      "migration_steps": [],
+      "risks": [
+        {"level": "low", "description": "Advisory-only workflow; no manifest or lockfile edits."}
+      ],
+      "evidence": [
+        {"type": "official_changelog", "source": "CHANGELOG.md#0.3.0", "summary": "Release adds version research and upgrade evidence workflow."}
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-05-01",
+      "title": "Governance runtime",
+      "summary": "Preview of a stricter governance runtime with hook orchestration and default blocking checks.",
+      "tags": ["hooks", "rules", "governance"],
+      "changes": [
+        "Changes default hook behavior.",
+        "Adds stricter blocking rules for upgrade and implementation workflows."
+      ],
+      "breaking_changes": [
+        "Projects must explicitly opt in to hook enforcement config.",
+        "Some previous advisory checks become blocking by default."
+      ],
+      "migration_steps": [
+        "Review .codex/hooks.json.",
+        "Re-run init-existing-project to regenerate governance files."
+      ],
+      "risks": [
+        {"level": "high", "description": "Breaking governance defaults may block existing workflows."}
+      ],
+      "evidence": [
+        {"type": "rfc", "source": "docs/rfcs/governance-runtime.md", "summary": "Runtime proposal is not final."}
+      ]
+    }
+  ]
+}

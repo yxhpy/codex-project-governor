@@ -82,3 +82,9 @@ For broad audits, PR governance, or existing-project initialization, use read-on
 
 Before final response, run relevant tests, lint, typecheck, implementation guard, style drift check, and architecture drift check.
 If a command cannot run, explain why and what was verified instead.
+
+## Research policy
+
+Before adopting new capabilities, libraries, governance rules, agent patterns, or plugin features, run `research-radar` in advisory mode.
+Before version upgrades, run `version-researcher` before `upgrade-advisor` when release evidence is unclear or multiple versions are available.
+Do not implement or upgrade until the user selects a path.

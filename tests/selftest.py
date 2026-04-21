@@ -11,19 +11,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PY = sys.executable
+TIMEOUT = 10
 
 
 class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
+        self.assertEqual(manifest["version"], "0.3.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 11)
+        self.assertGreaterEqual(len(skill_dirs), 13)
+        names = {p.name for p in skill_dirs}
+        self.assertIn("version-researcher", names)
+        self.assertIn("research-radar", names)
         for skill_dir in skill_dirs:
             skill_md = skill_dir / "SKILL.md"
             self.assertTrue(skill_md.exists(), skill_dir)
@@ -48,6 +53,12 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/hooks/check_iteration_compliance.py",
             "docs/upgrades/UPGRADE_POLICY.md",
             "docs/upgrades/UPGRADE_REGISTER.md",
+            "docs/research/RESEARCH_POLICY.md",
+            "docs/research/RESEARCH_REGISTER.md",
+            "docs/upgrades/RELEASE_RESEARCH_POLICY.md",
+            "docs/upgrades/RELEASE_RESEARCH_REPORT.md",
+            ".codex/prompts/research-radar.md",
+            ".codex/prompts/version-researcher.md",
         ]
         for rel in required:
             self.assertTrue((ROOT / "templates" / rel).exists(), rel)
@@ -99,7 +110,6 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("raw_color_literals", types)
         self.assertIn("unapproved_style_systems", types)
 
-
     def test_upgrade_advisor(self) -> None:
         proc = subprocess.run(
             [PY, str(ROOT / "skills" / "upgrade-advisor" / "scripts" / "analyze_upgrade_candidates.py"), str(ROOT / "examples" / "upgrade-candidates.json")],
@@ -149,6 +159,63 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             self.assertIn("TypeScript", data["languages"])
             self.assertIn("src", data["source_roots"])
             self.assertIn({"name": "pnpm", "evidence": "pnpm-lock.yaml"}, data["package_manager"])
+
+    def test_version_researcher(self) -> None:
+        proc = subprocess.run(
+            [
+                PY,
+                str(ROOT / "skills" / "version-researcher" / "scripts" / "research_versions.py"),
+                "--manifest",
+                str(ROOT / "examples" / "version-research-manifest.json"),
+                "--request",
+                "研究下个版本是否值得升级，尤其要支持版本研究和升级建议",
+            ],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        data = json.loads(proc.stdout)
+        self.assertEqual(data["current_version"], "0.2.0")
+        self.assertEqual(data["versions_behind"], 2)
+        self.assertEqual(data["overall_recommendation"]["action"], "recommend_upgrade")
+        self.assertEqual(data["overall_recommendation"]["target_version"], "0.3.0")
+        candidates = {item["version"]: item for item in data["candidate_versions"]}
+        self.assertEqual(candidates["0.3.0"]["evidence_quality"]["label"], "primary")
+        self.assertIn("version_research", candidates["0.3.0"]["matched_needs"])
+        self.assertEqual(candidates["1.0.0"]["recommendation"], "preview_in_isolation")
+        choices = {choice["id"] for choice in data["user_choices"]}
+        self.assertIn("preview", choices)
+        self.assertIn("plan", choices)
+
+    def test_research_radar(self) -> None:
+        proc = subprocess.run(
+            [
+                PY,
+                str(ROOT / "skills" / "research-radar" / "scripts" / "score_research_candidates.py"),
+                "--manifest",
+                str(ROOT / "examples" / "research-candidates.json"),
+                "--need",
+                "memory",
+                "--need",
+                "subagents",
+                "--need",
+                "research",
+            ],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        data = json.loads(proc.stdout)
+        recommendations = {item["id"]: item["recommendation"] for item in data["candidates"]}
+        self.assertEqual(recommendations["research-radar-skill"], "adopt_now")
+        self.assertIn(recommendations["codex-subagent-audit-profiles"], {"adopt_now", "spike"})
+        self.assertIn(recommendations["strict-hooks-mode"], {"spike", "watch"})
+        self.assertIn("research-radar-skill", data["summary"]["adopt_now"])
+        labels = {choice["id"] for choice in data["user_choices"]}
+        self.assertIn("1", labels)
+        self.assertIn("4", labels)
 
 
 if __name__ == "__main__":

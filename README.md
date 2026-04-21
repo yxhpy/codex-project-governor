@@ -1,15 +1,15 @@
 # codex-project-governor
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, uses subagents for parallel audits, advises on upgrades, and supports scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, uses subagents for parallel audits, advises on upgrades, and supports scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 11 bundled Codex skills under `skills/`.
+- 13 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
-- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, and memory classification.
+- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -29,6 +29,8 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `memory-compact` | Compact recent activity into durable project memory. |
 | `release-retro` | Convert release learning into retrospectives, memory, and decision records. |
 | `upgrade-advisor` | Show version distance, requirement relevance, risk, and user-selectable upgrade choices before changing versions. |
+| `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
+| `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
 
 ## Install locally for yourself
 
@@ -164,6 +166,8 @@ You can also run the offline deterministic helper after collecting candidate ver
 
 ```bash
 python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
+python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
+python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 ```
 
 ### Compact memory
@@ -208,6 +212,8 @@ python3 skills/convention-miner/scripts/detect_repo_conventions.py /path/to/repo
 python3 skills/implementation-guard/scripts/check_iteration_compliance.py examples/guard-input.json
 python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-drift-input.json
 python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
+python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
+python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-candidates.json
 ```
 
@@ -229,6 +235,8 @@ The tests validate:
 - implementation guard detects rewrite risk, dependency changes, and unjustified new files
 - style drift check detects raw colors and unregistered components
 - upgrade advisor classifies candidates by version distance, requirement relevance, risk, and user-selectable action
+- version researcher classifies release candidates by skipped versions, evidence quality, relevance, and risk
+- research radar classifies candidate capabilities by source quality, matched needs, risk, maturity, and user choices
 - memory classifier separates durable facts, decisions, open questions, repeated mistakes, and sensitive items
 
 ## Governance model
@@ -238,6 +246,7 @@ The plugin intentionally separates responsibilities:
 ```text
 AGENTS.md              project behavior constitution
 docs/conventions/      style, component, architecture, and iteration contracts
+docs/research/         candidate capability research policy, briefs, and registers
 docs/memory/           durable project facts, risks, repeated agent mistakes
 docs/decisions/        ADR/PDR records
 docs/upgrades/         upgrade policy, upgrade decisions, deferrals, and pins
