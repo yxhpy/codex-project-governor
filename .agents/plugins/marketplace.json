@@ -1,0 +1,20 @@
+{
+  "name": "codex-project-governor-local",
+  "interface": {
+    "displayName": "Codex Project Governor Local"
+  },
+  "plugins": [
+    {
+      "name": "codex-project-governor",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

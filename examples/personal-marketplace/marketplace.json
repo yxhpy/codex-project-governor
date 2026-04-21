@@ -1,0 +1,20 @@
+{
+  "name": "personal-codex-plugins",
+  "interface": {
+    "displayName": "Personal Codex Plugins"
+  },
+  "plugins": [
+    {
+      "name": "codex-project-governor",
+      "source": {
+        "source": "local",
+        "path": "./.codex/plugins/codex-project-governor"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

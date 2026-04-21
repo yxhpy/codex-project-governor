@@ -1,0 +1,4 @@
+# Weekly Project Governor memory compaction.
+# Prefer running this in an isolated clone or worktree.
+# Edit /path/to/repo and codex path for your environment.
+0 21 * * 5 cd /path/to/repo && codex exec --full-auto "$(cat .codex/prompts/memory-compact.md)" -o reports/memory-compact/latest.md

@@ -1,0 +1,27 @@
+name: Weekly Memory Compact
+
+on:
+  schedule:
+    - cron: "0 21 * * 5"
+  workflow_dispatch:
+
+jobs:
+  memory-compact:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Codex CLI
+        run: |
+          echo "Install Codex CLI according to your organization's approved process."
+      - name: Run memory compact
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p reports/memory-compact
+          codex exec --full-auto "$(cat .codex/prompts/memory-compact.md)" \
+            -o reports/memory-compact/latest.md
+      - name: Show changed files
+        run: git status --short
