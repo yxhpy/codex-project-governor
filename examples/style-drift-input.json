@@ -1,0 +1,7 @@
+{
+  "new_components": ["PrimaryButton", "MarketingCard"],
+  "registered_components": ["PrimaryButton"],
+  "raw_colors": ["#ff0000", "var(--brand-primary)"],
+  "new_style_systems": ["styled-components"],
+  "approved_style_systems": ["css-modules"]
+}

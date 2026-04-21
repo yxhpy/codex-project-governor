@@ -1,0 +1,10 @@
+{
+  "rewrite_pct_by_file": {
+    "src/features/users/UserCard.tsx": 0.42
+  },
+  "dependency_changes": ["zustand"],
+  "new_files": ["src/components/NewCard.tsx", "src/components/NewButton.tsx"],
+  "justified_new_files": ["src/components/NewCard.tsx"],
+  "public_contract_changes": ["GET /api/users response shape changed"],
+  "approved_contract_changes": []
+}

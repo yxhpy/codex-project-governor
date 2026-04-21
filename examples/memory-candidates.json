@@ -1,0 +1,8 @@
+[
+  "Fact: Project uses React for the web UI, evidenced by package.json.",
+  "Decision: Use existing Button component instead of creating a duplicate component.",
+  "Question: Is the billing feature in scope for MVP?",
+  "Repeated mistake: Codex keeps creating raw hex colors instead of tokens.",
+  "api_key: should-not-be-stored",
+  "Temporary note: explored two possible designs today."
+]
