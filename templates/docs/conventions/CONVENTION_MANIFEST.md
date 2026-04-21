@@ -10,5 +10,7 @@
 - Component registry: `docs/conventions/COMPONENT_REGISTRY.md`
 - Pattern registry: `docs/conventions/PATTERN_REGISTRY.md`
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
+- Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
+- Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
 
 If implementation conflicts with these files, create or update a decision record first.

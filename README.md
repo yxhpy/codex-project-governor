@@ -1,15 +1,15 @@
 # codex-project-governor
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, uses subagents for parallel audits, and supports scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, uses subagents for parallel audits, advises on upgrades, and supports scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 10 bundled Codex skills under `skills/`.
+- 11 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
-- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, and memory classification.
+- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -28,6 +28,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `pr-governance-review` | Run subagent-based PR governance review. |
 | `memory-compact` | Compact recent activity into durable project memory. |
 | `release-retro` | Convert release learning into retrospectives, memory, and decision records. |
+| `upgrade-advisor` | Show version distance, requirement relevance, risk, and user-selectable upgrade choices before changing versions. |
 
 ## Install locally for yourself
 
@@ -146,6 +147,25 @@ Spawn one read-only subagent for each dimension:
 Return blocking issues, warnings, and required patches.
 ```
 
+
+### Advise on upgrades before implementation
+
+```text
+Use @project-governor upgrade-advisor.
+
+Request:
+<your feature, bug fix, migration, or maintenance goal>
+
+Advisory only. Do not edit manifests or install packages.
+Show which dependencies/tools are behind, how many versions they are isolated from the candidate, which upgrades are relevant to this request, and whether to upgrade now, plan a separate upgrade iteration, defer, or pin.
+```
+
+You can also run the offline deterministic helper after collecting candidate versions:
+
+```bash
+python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
+```
+
 ### Compact memory
 
 ```text
@@ -187,6 +207,7 @@ python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 skills/convention-miner/scripts/detect_repo_conventions.py /path/to/repo
 python3 skills/implementation-guard/scripts/check_iteration_compliance.py examples/guard-input.json
 python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-drift-input.json
+python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
 python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-candidates.json
 ```
 
@@ -207,6 +228,7 @@ The tests validate:
 - deterministic initialization does not overwrite existing application code
 - implementation guard detects rewrite risk, dependency changes, and unjustified new files
 - style drift check detects raw colors and unregistered components
+- upgrade advisor classifies candidates by version distance, requirement relevance, risk, and user-selectable action
 - memory classifier separates durable facts, decisions, open questions, repeated mistakes, and sensitive items
 
 ## Governance model
@@ -218,6 +240,7 @@ AGENTS.md              project behavior constitution
 docs/conventions/      style, component, architecture, and iteration contracts
 docs/memory/           durable project facts, risks, repeated agent mistakes
 docs/decisions/        ADR/PDR records
+docs/upgrades/         upgrade policy, upgrade decisions, deferrals, and pins
 tasks/                 short-lived task memory and iteration plans
 skills/                reusable Codex workflows
 scripts                deterministic checks

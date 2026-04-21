@@ -23,7 +23,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 10)
+        self.assertGreaterEqual(len(skill_dirs), 11)
         for skill_dir in skill_dirs:
             skill_md = skill_dir / "SKILL.md"
             self.assertTrue(skill_md.exists(), skill_dir)
@@ -44,7 +44,10 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "docs/decisions/ADR-0000-template.md",
             "tasks/_template/ITERATION_PLAN.md",
             ".codex/prompts/memory-compact.md",
+            ".codex/prompts/upgrade-advisor.md",
             ".codex/hooks/check_iteration_compliance.py",
+            "docs/upgrades/UPGRADE_POLICY.md",
+            "docs/upgrades/UPGRADE_REGISTER.md",
         ]
         for rel in required:
             self.assertTrue((ROOT / "templates" / rel).exists(), rel)
@@ -95,6 +98,25 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("unregistered_components", types)
         self.assertIn("raw_color_literals", types)
         self.assertIn("unapproved_style_systems", types)
+
+
+    def test_upgrade_advisor(self) -> None:
+        proc = subprocess.run(
+            [PY, str(ROOT / "skills" / "upgrade-advisor" / "scripts" / "analyze_upgrade_candidates.py"), str(ROOT / "examples" / "upgrade-candidates.json")],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        data = json.loads(proc.stdout)
+        self.assertEqual(data["status"], "review_required")
+        recommendations = {item["name"]: item["recommendation"] for item in data["candidates"]}
+        self.assertEqual(recommendations["lodash"], "upgrade_required")
+        self.assertIn(recommendations["react"], {"recommend_upgrade", "consider_upgrade"})
+        self.assertEqual(recommendations["eslint"], "defer")
+        react = next(item for item in data["candidates"] if item["name"] == "react")
+        self.assertEqual(react["version_distance"]["major"], 1)
+        self.assertEqual(react["skipped_versions"], 3)
+        self.assertIn("plan_upgrade_iteration", react["choices"])
 
     def test_memory_classifier(self) -> None:
         proc = subprocess.run(

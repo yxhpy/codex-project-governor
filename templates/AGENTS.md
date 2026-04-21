@@ -44,6 +44,10 @@ Do not:
 - delete decision history
 - store secrets in code, docs, logs, or memory files
 
+## Upgrade policy
+
+Before upgrading dependencies, frameworks, tools, SDKs, runtimes, or Project Governor assets, run `upgrade-advisor` in advisory mode. Do not edit manifests or install packages until the user selects an upgrade path. Follow `docs/upgrades/UPGRADE_POLICY.md` and record decisions in `docs/upgrades/UPGRADE_REGISTER.md`.
+
 ## Documentation updates
 
 Update docs when changing:
