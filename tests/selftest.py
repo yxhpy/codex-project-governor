@@ -63,6 +63,18 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         for rel in required:
             self.assertTrue((ROOT / "templates" / rel).exists(), rel)
 
+    def test_chinese_docs_exist(self) -> None:
+        readme = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
+        usage = (ROOT / "docs" / "zh-CN" / "USAGE.md").read_text(encoding="utf-8")
+        english = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("README.zh-CN.md", english)
+        self.assertIn("Project Governor", readme)
+        self.assertIn("research-radar", readme)
+        self.assertIn("version-researcher", readme)
+        self.assertIn("0.3.0", readme)
+        self.assertIn("init-existing-project", usage)
+        self.assertIn("memory-compact", usage)
+
     def test_project_rules_use_valid_decisions(self) -> None:
         rules = (ROOT / "templates" / ".codex" / "rules" / "project.rules").read_text(encoding="utf-8")
         decisions = re.findall(r'decision="([^"]+)"', rules)

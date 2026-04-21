@@ -1,0 +1,219 @@
+# Project Governor 中文使用指南
+
+这份指南面向已经安装 Project Governor 的 Codex 用户，重点说明如何在真实仓库里使用它，而不是解释插件内部实现。
+
+## 基本原则
+
+- 先读项目规则，再改代码。
+- 先做迭代计划，再实现非平凡改动。
+- 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
+- 只把有证据的事实写入项目记忆。
+- 初始化已有项目时只写治理文件，不改应用代码。
+
+## 1. 给已有仓库接入治理
+
+适合已经有代码的项目。
+
+```text
+Use @project-governor init-existing-project.
+
+Initialize this existing repository for strict iterative development.
+Do not modify application code.
+Infer conventions from the existing codebase.
+Create governance files only.
+```
+
+完成后重点检查：
+
+- `AGENTS.md`
+- `docs/conventions/CONVENTION_MANIFEST.md`
+- `docs/conventions/ITERATION_CONTRACT.md`
+- `docs/architecture/ARCHITECTURE.md`
+- `docs/memory/OPEN_QUESTIONS.md`
+- `tasks/_template/ITERATION_PLAN.md`
+
+## 2. 给新仓库先建治理骨架
+
+适合还没有应用代码的新项目。
+
+```text
+Use @project-governor init-empty-project.
+
+Create a Codex-governed project foundation.
+
+Project:
+- Name: <项目名>
+- Product goal: <产品目标>
+- Primary users: <主要用户>
+- Preferred stack: <技术栈>
+
+Do not write application code.
+Create only governance docs, memory docs, task templates, AGENTS.md, and Codex prompts.
+```
+
+## 3. 开始一次功能或修复迭代
+
+当需求不是简单错字修复时，先让 Codex 建立迭代计划：
+
+```text
+Use @project-governor iteration-planner.
+
+Request:
+<需求内容>
+
+Treat this as an iteration, not a rewrite.
+Find adjacent code and reusable patterns first.
+Create tasks/<date>-<slug>/ITERATION_PLAN.md.
+Do not implement until the plan is complete.
+```
+
+计划里至少应该说明：
+
+- 复用哪些已有模式。
+- 预计修改哪些文件。
+- 哪些文件不应该动。
+- 是否新增文件，为什么必须新增。
+- 需要跑哪些测试。
+- 回滚方式。
+
+## 4. 实现前研究候选能力
+
+当你想引入新的治理规则、agent 模式、hook、skill、库或自动化方式时，先使用 `research-radar`。
+
+```text
+Use @project-governor research-radar.
+
+Research this candidate before implementation:
+<候选能力或方案>
+
+Advisory only.
+Prefer official docs, changelogs, release notes, and project docs.
+Show source quality, matched project needs, risk, maturity, recommendation, and user choices.
+Do not modify code or manifests.
+```
+
+输出建议应落在这些类别之一：
+
+- `adopt_now`：证据强、风险低、直接匹配当前需求。
+- `spike`：有价值但风险或不确定性较高，应该隔离验证。
+- `watch`：暂时观察，当前不实现。
+- `reject`：不符合项目方向或风险超过收益。
+
+如果已经有结构化候选清单，可以运行：
+
+```bash
+python3 skills/research-radar/scripts/score_research_candidates.py \
+  --manifest examples/research-candidates.json \
+  --need memory \
+  --need subagents \
+  --need research
+```
+
+## 5. 升级前研究版本
+
+当涉及依赖、工具、SDK、运行时或 Project Governor 自身版本变化时，先用 `version-researcher`。
+
+```text
+Use @project-governor version-researcher.
+
+Research candidate versions before upgrade-advisor is used.
+Show current version, candidate versions, skipped versions, evidence quality, relevant changes, migration risk, request match, and recommendation.
+Do not modify manifests, lockfiles, application code, CI config, hooks, or rules.
+```
+
+结构化版本研究示例：
+
+```bash
+python3 skills/version-researcher/scripts/research_versions.py \
+  --manifest examples/version-research-manifest.json \
+  --request "Need better memory and subagent governance"
+```
+
+## 6. 升级前给出用户可选路径
+
+`upgrade-advisor` 不直接升级，而是输出菜单和理由。
+
+```text
+Use @project-governor upgrade-advisor.
+
+Request:
+<当前需求>
+
+Advisory only. Do not edit manifests or install packages.
+Show which dependencies or tools are behind, relevant, risky, optional, deferred, or should be pinned.
+```
+
+常见选择：
+
+- `upgrade_now`
+- `plan_upgrade_iteration`
+- `defer`
+- `reject_or_pin`
+
+只有用户明确选择后，才进入实际升级迭代。
+
+## 7. 压缩项目记忆
+
+适合阶段性维护、长会话后整理、发布后复盘。
+
+```text
+Use @project-governor memory-compact.
+
+Compact project memory from the last 7 days.
+Read recent task retros, execution logs, docs changes, PR feedback, and repeated mistakes.
+Update only docs/memory/, docs/decisions/, and AGENTS.md when justified by evidence.
+Do not modify application code.
+```
+
+分类规则：
+
+- 确认事实写入 `docs/memory/PROJECT_MEMORY.md`。
+- 不确定事项写入 `docs/memory/OPEN_QUESTIONS.md`。
+- 重复错误写入 `docs/memory/REPEATED_AGENT_MISTAKES.md`。
+- 风险写入 `docs/memory/RISK_REGISTER.md`。
+- 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
+
+## 8. PR 或分支治理审查
+
+```text
+Use @project-governor pr-governance-review.
+
+Review this branch against main.
+Check iteration compliance, style drift, architecture drift, tests, dependency risk, and docs/memory needs.
+Return blockers, warnings, and required patches.
+```
+
+审查重点：
+
+- 是否偏离迭代计划。
+- 是否新增未批准依赖。
+- 是否引入新架构或目录模式。
+- 是否遗漏测试和文档更新。
+- 是否需要把重复问题沉淀进 memory 或 AGENTS.md。
+
+## 9. 发布前检查
+
+发布插件变更前建议执行：
+
+```bash
+python3 tests/selftest.py
+python3 -m compileall tools skills tests
+python3 tools/init_project.py --mode existing --target /tmp/project-governor-smoke --json
+```
+
+如果改了模板、skill、helper 输出或 manifest，必须同步更新：
+
+- `README.md`
+- `README.zh-CN.md`
+- `tests/selftest.py`
+- 相关 `templates/` 文件
+- 相关 `docs/` 或任务计划
+
+## 10. 常见误区
+
+- 不要把 Project Governor 当应用框架；它是治理插件和模板包。
+- 不要在初始化已有项目时顺手修改应用代码。
+- 不要没有 ADR/PDR 就新增依赖或运行时层。
+- 不要把推测写入 durable memory。
+- 不要在用户选择升级路径前修改 manifest 或 lockfile。
+- 不要把一次小修复扩大成重构或重写。

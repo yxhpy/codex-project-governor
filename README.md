@@ -1,5 +1,7 @@
 # codex-project-governor
 
+[中文文档](README.zh-CN.md) | English
+
 `codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, uses subagents for parallel audits, advises on upgrades, and supports scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
