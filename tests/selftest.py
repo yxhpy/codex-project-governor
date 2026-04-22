@@ -18,7 +18,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.3.0")
+        self.assertEqual(manifest["version"], "0.3.1")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
@@ -71,7 +71,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.3.0", readme)
+        self.assertIn("0.3.1", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("memory-compact", usage)
 
@@ -79,7 +79,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         rules = (ROOT / "templates" / ".codex" / "rules" / "project.rules").read_text(encoding="utf-8")
         decisions = re.findall(r'decision="([^"]+)"', rules)
         self.assertGreater(len(decisions), 0)
-        self.assertEqual(set(decisions) - {"allow", "deny", "prompt"}, set())
+        self.assertEqual(set(decisions) - {"allow", "prompt"}, set())
+        self.assertNotIn("deny", decisions)
 
     def test_init_project_preserves_application_code(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

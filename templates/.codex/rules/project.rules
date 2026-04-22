@@ -1,4 +1,4 @@
-# Prompt before potentially destructive operations.
+# Prompt before publishing or potentially destructive operations.
 prefix_rule(pattern=["git", "push"], decision="prompt", justification="Publishing changes needs user approval")
-prefix_rule(pattern=["git", "reset", "--hard"], decision="deny", justification="Destructive reset is forbidden by project governance")
-prefix_rule(pattern=["rm", "-rf"], decision="deny", justification="Destructive deletion is forbidden by project governance")
+prefix_rule(pattern=["git", "reset", "--hard"], decision="prompt", justification="Destructive reset needs explicit user approval")
+prefix_rule(pattern=["rm", "-rf"], decision="prompt", justification="Destructive deletion needs explicit user approval")
