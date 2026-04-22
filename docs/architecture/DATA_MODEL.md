@@ -27,6 +27,20 @@ Implementation and style guard scripts return:
 
 Each finding contains a `type`, `severity`, `message`, and supporting fields specific to the checker.
 
+### DESIGN.md Token Summary
+
+`skills/design-md-governor/scripts/lint_design_md.py` and adjacent helpers return parsed project design-system tokens from YAML front matter plus section summaries from the Markdown body.
+
+Primary fields include:
+
+- `status`
+- `summary`
+- `findings[]`
+- `designSystem`
+- `token_counts`
+- `sections`
+- `regression`
+
 ### Upgrade Candidate Analysis
 
 `skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py` returns:

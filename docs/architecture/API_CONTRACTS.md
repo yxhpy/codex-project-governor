@@ -112,6 +112,59 @@ Output:
 
 The script exits non-zero when findings are present.
 
+### `skills/design-md-governor/scripts/lint_design_md.py`
+
+Input:
+
+- `file`
+
+Output:
+
+- `status`
+- `file`
+- `summary`
+- `findings`
+- `designSystem`
+
+The script exits non-zero when `status=fail`. Findings include `severity`, `path`, `message`, and `rule`.
+
+### `skills/design-md-governor/scripts/summarize_design_md.py`
+
+Input:
+
+- `file`
+
+Output:
+
+- `file`
+- `name`
+- `version`
+- `description`
+- `token_counts`
+- `colors`
+- `typography_tokens`
+- `component_tokens`
+- `sections`
+- `parse_findings`
+
+### `skills/design-md-governor/scripts/diff_design_md.py`
+
+Input:
+
+- `before`
+- `after`
+
+Output:
+
+- `before`
+- `after`
+- `tokens`
+- `before_summary`
+- `after_summary`
+- `regression`
+
+The script exits non-zero when `regression=true`.
+
 ### `skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py`
 
 Input JSON fields include:

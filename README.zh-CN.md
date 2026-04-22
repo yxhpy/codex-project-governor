@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.4.6`
+当前版本：`0.4.7`
 
 ## 它解决什么问题
 
@@ -27,6 +27,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - `tasks/`：每次迭代的计划、日志和复盘。
 - `skills/`：可复用的 Codex 工作流。
 - `templates/`：初始化目标仓库时复制的治理模板。
+- `managed-assets/`：插件自有的可选资产，不默认复制到目标项目。
 
 ## 核心能力
 
@@ -36,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -58,6 +59,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
 | `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
 | `clean-reinstall-manager` | 生成用户级插件重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
+| `design-md-governor` | 把 Google Labs Code DESIGN.md 作为可选设计系统真源，支持 lint、摘要、diff 和迁移建议，但不自动创建项目设计文件。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
@@ -239,7 +241,7 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.6
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.7
 ```
 
 从项目外发现已治理仓库：
@@ -252,6 +254,27 @@ python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --r
 
 ```bash
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
+```
+
+### 治理 DESIGN.md 设计系统
+
+当项目已经有 `DESIGN.md`，或准备把视觉身份、设计 token、UI 理由和实现约束沉淀成项目自己的 `DESIGN.md` 时，使用 `design-md-governor`。
+
+```text
+Use @project-governor design-md-governor.
+
+Detect whether DESIGN.md exists.
+Lint and summarize it if present.
+Recommend an adoption plan if missing.
+Do not create or overwrite DESIGN.md unless the user explicitly opts in.
+```
+
+无第三方依赖的备用脚本：
+
+```bash
+python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
 ```
 
 ### 实现新能力前做研究雷达

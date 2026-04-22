@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.7 - DESIGN.md Governor
+
+### Added
+
+- Added `design-md-governor` skill for opt-in project `DESIGN.md` governance.
+- Added deterministic DESIGN.md lint, summarize, and diff helpers.
+- Added plugin-owned `managed-assets/design-md/` template and policy files, examples, release metadata, and tests.
+
+### Compatibility
+
+- No new third-party dependencies.
+- No target-project migration is required; project `DESIGN.md` creation remains explicit opt-in behavior.
+
 ## 0.4.6 - Clean Reinstall Manager
 
 ### Added

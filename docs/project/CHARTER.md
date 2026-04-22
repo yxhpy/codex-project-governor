@@ -6,7 +6,7 @@
 
 ## Purpose
 
-The project provides governance templates, Codex skills, deterministic helper scripts, marketplace examples, quality-gated acceleration workflows, smart route guards, project-scoped subagent activation, plugin upgrade migration tools, and scheduled-memory examples so future Codex sessions can preserve project rules, conventions, decisions, risks, and durable memory while still moving quickly.
+The project provides governance templates, Codex skills, deterministic helper scripts, marketplace examples, quality-gated acceleration workflows, smart route guards, project-scoped subagent activation, plugin upgrade migration tools, opt-in design-system governance assets, and scheduled-memory examples so future Codex sessions can preserve project rules, conventions, decisions, risks, design constraints, and durable memory while still moving quickly.
 
 ## Primary Users
 
@@ -20,6 +20,7 @@ The project provides governance templates, Codex skills, deterministic helper sc
 - Governance templates: `templates/`
 - Project-scoped Codex agents and prompts: `.codex/`
 - Deterministic helper scripts: `tools/` and `skills/*/scripts/`
+- Plugin-owned managed assets: `managed-assets/`
 - Examples and fixtures: `examples/`
 - Self-tests: `tests/selftest.py`
 

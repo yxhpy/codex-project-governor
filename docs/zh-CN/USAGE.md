@@ -12,6 +12,7 @@
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
 - 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
 - 需要重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
+- 项目采用 `DESIGN.md` 时，先用 `design-md-governor` lint、摘要和 diff，缺失时只给采纳计划，不自动创建。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -119,6 +120,7 @@ python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent
 python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
+python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -126,7 +128,28 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 实现前研究候选能力
+## 5. 治理 DESIGN.md 设计系统
+
+v0.4.7 起，`design-md-governor` 可以把项目自己的 `DESIGN.md` 作为 UI/视觉实现前的设计系统真源。它不会自动创建或覆盖 `DESIGN.md`；缺失时只给采纳计划，除非用户明确选择创建。
+
+```text
+Use @project-governor design-md-governor.
+
+Detect whether DESIGN.md exists.
+Lint and summarize it if present.
+Recommend an adoption plan if missing.
+Do not create or overwrite DESIGN.md unless the user explicitly opts in.
+```
+
+常用脚本：
+
+```bash
+python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
+```
+
+## 6. 实现前研究候选能力
 
 当你想引入新的治理规则、agent 模式、hook、skill、库或自动化方式时，先使用 `research-radar`。
 
@@ -159,7 +182,7 @@ python3 skills/research-radar/scripts/score_research_candidates.py \
   --need research
 ```
 
-## 6. 升级前研究版本
+## 7. 升级前研究版本
 
 当涉及依赖、工具、SDK、运行时或 Project Governor 自身版本变化时，先用 `version-researcher`。
 
@@ -179,7 +202,7 @@ python3 skills/version-researcher/scripts/research_versions.py \
   --request "Need better memory and subagent governance"
 ```
 
-## 7. 升级前给出用户可选路径
+## 8. 升级前给出用户可选路径
 
 `upgrade-advisor` 不直接升级，而是输出菜单和理由。
 
@@ -202,7 +225,7 @@ Show which dependencies or tools are behind, relevant, risky, optional, deferred
 
 只有用户明确选择后，才进入实际升级迭代。
 
-## 8. 检查项目卫生
+## 9. 检查项目卫生
 
 v0.4.4 起，初始化默认使用 clean profile：复制 `AGENTS.md`、`docs/`、`tasks/_template/`、`.project-governor/`、`.codex/rules/`、`.codex/hooks/` 和 `.codex/hooks.json` 等项目治理文件。插件全局 `.codex/agents`、`.codex/prompts` 和 `.codex/config.toml` 默认留在插件安装目录。
 
@@ -227,7 +250,7 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 ```
 
-## 9. 干净重装或刷新治理项目
+## 10. 干净重装或刷新治理项目
 
 v0.4.6 起，`clean-reinstall-manager` 可以生成用户级插件重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
@@ -240,7 +263,7 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.6
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.7
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
@@ -248,7 +271,7 @@ python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py -
 
 如果当前目录不是 Project Governor 项目，orchestrator 会停止并列出发现的项目，不会修改当前目录。
 
-## 10. 压缩项目记忆
+## 11. 压缩项目记忆
 
 适合阶段性维护、长会话后整理、发布后复盘。
 
@@ -269,7 +292,7 @@ Do not modify application code.
 - 风险写入 `docs/memory/RISK_REGISTER.md`。
 - 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
 
-## 11. PR 或分支治理审查
+## 12. PR 或分支治理审查
 
 ```text
 Use @project-governor pr-governance-review.

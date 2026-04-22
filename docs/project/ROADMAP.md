@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Governance plugin v0.3.0 with initialized self-governance and advisory research gates for this source repository.
+Governance plugin v0.4.7 with initialized self-governance, advisory research gates, quality-gated acceleration, clean reinstall management, and opt-in DESIGN.md governance.
 
 ## Current Maintained Surfaces
 
@@ -10,12 +10,14 @@ Governance plugin v0.3.0 with initialized self-governance and advisory research 
 - Skill documentation under `skills/`.
 - Deterministic helper scripts under `tools/` and `skills/*/scripts/`.
 - Governance templates under `templates/`.
+- Plugin-owned managed assets under `managed-assets/`.
 - Example inputs and scheduled-memory examples under `examples/`.
 - Self-test workflow under `tests/` and `.github/workflows/selftest.yml`.
 
 ## Near-Term Priorities
 
 - Keep self-tests aligned with every new skill, template, and helper script.
+- Keep managed assets clearly separated from target-project templates unless a user explicitly opts in.
 - Keep research and release-research policies aligned with the advisory-only upgrade model.
 - Fill root governance docs only with facts confirmed from repository evidence.
 - Preserve dependency-free Python helper scripts unless an explicit decision approves a new dependency.
@@ -30,6 +32,6 @@ Governance plugin v0.3.0 with initialized self-governance and advisory research 
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `0.3.0`.
-- `README.md` lists 13 skills and deterministic script entrypoints.
+- `.codex-plugin/plugin.json` declares version `0.4.7`.
+- `README.md` lists 28 skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.

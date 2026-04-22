@@ -23,15 +23,17 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
    - `templates/docs/**`
    - `templates/.codex/**`
    - `templates/tasks/_template/**`
-5. Initializer and compatibility tools
+5. Plugin-owned managed assets
+   - `managed-assets/design-md/**`
+6. Initializer and compatibility tools
    - `tools/init_project.py`
    - `tools/init_existing_project.py`
-6. Examples and fixtures
+7. Examples and fixtures
    - `examples/*.json`
    - `examples/cron/**`
    - `examples/launchd/**`
    - `examples/github-actions/**`
-7. Validation
+8. Validation
    - `tests/selftest.py`
    - `.github/workflows/selftest.yml`
 
@@ -41,6 +43,7 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 - Tools may read from `templates/`.
 - Skill scripts should remain standalone and should not depend on each other unless explicitly documented.
 - Templates should not depend on generated output under `reports/`.
+- Managed assets are plugin-owned source material. They are not target-project files unless a user explicitly opts in and creates project-owned copies.
 
 ## Generated Output
 

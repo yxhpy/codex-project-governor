@@ -2,16 +2,17 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations and clean reinstall management, and supports scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 27 bundled Codex skills under `skills/`.
+- 28 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
-- Deterministic helper scripts for initialization, project hygiene inspection, clean reinstall management, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Plugin-owned managed assets under `managed-assets/`.
+- Deterministic helper scripts for initialization, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -34,6 +35,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `plugin-upgrade-migrator` | Show what changed between Project Governor versions, plan safe project-file migrations, and avoid overwriting initialized project customizations. |
 | `project-hygiene-doctor` | Detect plugin-global assets copied into target projects and quarantine safe generated `.codex` runtime files. |
 | `clean-reinstall-manager` | Generate user-level reinstall instructions, discover governed projects, and refresh project-owned governance without copying plugin-global assets. |
+| `design-md-governor` | Adopt Google Labs Code DESIGN.md as an opt-in design-system source of truth; lint, summarize, diff, and plan migrations without auto-creating project design files. |
 | `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
 | `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
 | `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
@@ -236,7 +238,7 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.6
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.7
 ```
 
 Discover governed projects from outside a project:
@@ -249,6 +251,27 @@ Plan a safe refresh inside a governed project:
 
 ```bash
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
+```
+
+### Govern DESIGN.md design systems
+
+Use `design-md-governor` when a project has, or is considering, a project-owned `DESIGN.md` file for visual identity, design tokens, UI rationale, and implementation constraints.
+
+```text
+Use @project-governor design-md-governor.
+
+Detect whether DESIGN.md exists.
+Lint and summarize it if present.
+Recommend an adoption plan if missing.
+Do not create or overwrite DESIGN.md unless the user explicitly opts in.
+```
+
+Dependency-free fallback helpers:
+
+```bash
+python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
+python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
 ```
 
 ### Compact memory

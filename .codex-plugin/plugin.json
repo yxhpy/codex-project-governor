@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "0.4.6",
-  "description": "Codex Project Governor with clean project initialization, clean reinstall management, project hygiene cleanup, safe plugin upgrades, automatic workflow orchestration, subagent activation, model routing, and Smart Routing Guard.",
+  "version": "0.4.7",
+  "description": "Codex Project Governor with clean project initialization, clean reinstall management, project hygiene cleanup, safe plugin upgrades, DESIGN.md governance, automatic workflow orchestration, subagent activation, model routing, and Smart Routing Guard.",
   "author": {
     "name": "yxhpy"
   },
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Project Governor",
     "shortDescription": "Project initialization, memory, and governance for Codex",
-    "longDescription": "Adds Clean Reinstall Manager and Project Hygiene Doctor: reinstall the user-level plugin, discover governed projects, refresh project-owned governance files, quarantine plugin-global noise, and preserve project customizations before migrations.",
+    "longDescription": "Adds Clean Reinstall Manager, Project Hygiene Doctor, and DESIGN.md Governor: reinstall the user-level plugin, discover governed projects, refresh project-owned governance files, quarantine plugin-global noise, preserve project customizations before migrations, and lint or summarize opt-in project design systems.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
@@ -51,7 +51,8 @@
       "Use Project Governor project-hygiene-doctor to detect and quarantine plugin-global assets that should not live in a target project.",
       "Use Project Governor clean initialization so target projects contain only project-owned governance files, not bundled plugin runtime assets.",
       "Use Project Governor project-hygiene-doctor before plugin-upgrade-migrator when project-level .codex agents, prompts, or plugin source folders create upgrade noise.",
-      "Use Project Governor clean-reinstall-manager to generate user-level reinstall instructions, discover governed projects, and refresh project-owned governance without copying plugin-global assets."
+      "Use Project Governor clean-reinstall-manager to generate user-level reinstall instructions, discover governed projects, and refresh project-owned governance without copying plugin-global assets.",
+      "Use Project Governor design-md-governor to lint, summarize, diff, or plan opt-in DESIGN.md governance before UI/style work."
     ]
   }
 }

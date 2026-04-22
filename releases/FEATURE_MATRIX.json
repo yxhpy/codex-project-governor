@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.4.6",
+  "current_latest": "0.4.7",
   "versions": [
     {
       "version": "0.4.1",
@@ -131,6 +131,26 @@
           "name": "Project refresh trash/quarantine",
           "summary": "Moves plugin-global noise to .project-governor/trash/<timestamp>/ instead of deleting it.",
           "user_value": "Projects can be cleaned while preserving recoverability.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "0.4.7",
+      "title": "DESIGN.md Governor",
+      "features": [
+        {
+          "id": "design_md_governor",
+          "name": "DESIGN.md Governor",
+          "summary": "Adds opt-in Google Labs Code DESIGN.md support for design tokens, design rationale, linting, summaries, and diff checks.",
+          "user_value": "UI/style work can use a structured design-system source of truth without copying plugin-global assets into projects.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "design_md_fallback_linter",
+          "name": "Bundled DESIGN.md fallback linter",
+          "summary": "Provides deterministic Python checks for token references, colors, contrast, section order, duplicate sections, typography, and component properties.",
+          "user_value": "Projects can validate DESIGN.md even when the official npm CLI is unavailable.",
           "requires_project_migration": false
         }
       ]
