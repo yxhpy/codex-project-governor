@@ -18,7 +18,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.4.0")
+        self.assertEqual(manifest["version"], "0.4.1")
         self.assertIn("quality-gated acceleration", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
@@ -26,12 +26,13 @@ class ProjectGovernorSelfTest(unittest.TestCase):
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 22)
+        self.assertGreaterEqual(len(skill_dirs), 23)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
             "research-radar",
             "task-router",
+            "route-guard",
             "context-pack-builder",
             "pattern-reuse-engine",
             "parallel-feature-builder",
@@ -74,6 +75,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "docs/quality/CHANGE_BUDGET_POLICY.md",
             "docs/quality/TESTING_ACCELERATION_POLICY.md",
             "docs/quality/ACCELERATION_POLICY.md",
+            "docs/quality/ROUTE_GUARD_POLICY.md",
             "tasks/_template/TASK_ROUTE.md",
             "tasks/_template/CONTEXT_PACK.md",
             "tasks/_template/PATTERN_REUSE_PLAN.md",
@@ -83,9 +85,11 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "tasks/_template/REPAIR_LOG.md",
             "tasks/_template/MERGE_READINESS.md",
             "tasks/_template/VELOCITY_REPORT.md",
+            "tasks/_template/ROUTE_GUARD_REPORT.md",
             ".codex/prompts/research-radar.md",
             ".codex/prompts/version-researcher.md",
             ".codex/prompts/task-router.md",
+            ".codex/prompts/route-guard.md",
             ".codex/prompts/context-pack-builder.md",
             ".codex/prompts/pattern-reuse-engine.md",
             ".codex/prompts/parallel-feature-builder.md",
@@ -106,8 +110,9 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.4.0", readme)
+        self.assertIn("0.4.1", readme)
         self.assertIn("task-router", readme)
+        self.assertIn("route-guard", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("memory-compact", usage)

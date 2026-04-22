@@ -177,13 +177,40 @@ Input:
 Output includes:
 
 - `status`
+- `request`
 - `route`
 - `lane`
 - `quality_level`
+- `quality_gate`
+- `confidence`
 - `risk_signals`
+- `negative_constraints`
 - `required_skills`
+- `required_workflow`
+- `skipped_workflow`
 - `change_budget`
+- `route_guard_requirements`
 - `escalate_if`
+- `escalation_triggers`
+
+### `skills/route-guard/scripts/check_route_guard.py`
+
+Input JSON fields include:
+
+- `route`
+- `route_guard_requirements`
+- `changes`
+
+Output:
+
+- `status`
+- `route`
+- `violations`
+- `required_action`
+- `recommended_route`
+- `summary`
+
+The script exits non-zero when route guard violations are present.
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 
@@ -237,18 +264,25 @@ The script exits non-zero when the budget fails.
 Input JSON fields include:
 
 - `level`
+- `quality_level`
 - `change_budget`
 - `actual`
 - `checks`
 - `commands`
+- `route_guard`
 
 Output:
 
 - `status`
 - `level`
+- `quality_level`
 - `findings`
+- `blockers`
+- `warnings`
 - `commands`
+- `route_guard`
 - `repair_loop_required`
+- `summary`
 
 The script exits non-zero when blocking findings are present.
 

@@ -52,16 +52,17 @@ Before upgrading dependencies, frameworks, tools, SDKs, runtimes, or Project Gov
 
 For coding work where speed matters, use the acceleration pipeline instead of ad hoc implementation:
 
-1. `task-router` to choose route, lane, quality level, and change budget.
+1. `task-router` to choose route, lane, quality level, change budget, and route guard requirements.
 2. `context-pack-builder` to produce a minimal task context pack.
 3. `pattern-reuse-engine` to define mandatory reuse and forbidden duplicates.
 4. `test-first-synthesizer` for behavior and regression coverage.
 5. `parallel-feature-builder` with read-only subagents first, then one bounded implementation writer.
-6. `quality-gate` before final response.
-7. `repair-loop` only for bounded repairs when the gate fails.
-8. `merge-readiness` before PR or merge.
+6. `route-guard` after fast-lane implementation, especially for `micro_patch`.
+7. `quality-gate` before final response.
+8. `repair-loop` only for bounded repairs when the gate fails.
+9. `merge-readiness` before PR or merge.
 
-Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
+Use `micro_patch` only for explicit local style/copy changes. If actual diff exceeds route guard, stop and reroute. Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
 
 ## Documentation updates
 

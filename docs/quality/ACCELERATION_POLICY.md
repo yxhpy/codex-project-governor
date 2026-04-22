@@ -7,9 +7,10 @@ Use the acceleration pipeline when speed matters but quality gates still apply:
 3. `pattern-reuse-engine`
 4. `test-first-synthesizer`
 5. `parallel-feature-builder`
-6. `quality-gate`
-7. `repair-loop` when needed
-8. `merge-readiness`
-9. `coding-velocity-report`
+6. `route-guard` for `micro_patch`, `tiny_patch`, and other fast-lane work
+7. `quality-gate`
+8. `repair-loop` when needed
+9. `merge-readiness`
+10. `coding-velocity-report`
 
-Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
+Do not use multiple write agents on overlapping production code. Do not skip route guards or quality gates for speed.

@@ -6,4 +6,4 @@ Use one of these gate levels:
 - `standard`: ordinary features and bug fixes.
 - `strict`: auth, payment, security, API, data, migrations, dependency upgrades, and refactors.
 
-Speed never justifies bypassing tests, weakening assertions, skipping docs, or exceeding the change budget silently.
+Speed never justifies bypassing route guard, tests, weakening assertions, skipping docs, or exceeding the change budget silently.

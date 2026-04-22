@@ -2,16 +2,16 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, uses subagents for parallel audits, advises on upgrades, and supports scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, uses subagents for parallel audits, advises on upgrades, adds smart route guards, and supports scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 22 bundled Codex skills under `skills/`.
+- 23 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
-- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -34,6 +34,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
 | `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
 | `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
+| `route-guard` | Verify that the actual diff still fits the route selected by task-router, especially micro-patch and fast-lane changes. |
 | `context-pack-builder` | Build a minimal task-specific context pack so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
 | `pattern-reuse-engine` | Find existing components, services, hooks, schemas, tests, and style patterns that must be reused before creating new implementation patterns. |
 | `parallel-feature-builder` | Implement a feature through a quality-gated subagent pipeline that uses parallel read-only analysis, one bounded implementation writer, test writing, review, and repair. |
@@ -158,6 +159,8 @@ Return the route, lane, quality level, change budget, and required downstream sk
 
 Then build context and reuse constraints with `context-pack-builder` and `pattern-reuse-engine`, implement with `parallel-feature-builder`, run `quality-gate`, use `repair-loop` only if the gate fails, and finish with `merge-readiness`.
 
+For explicit local style, copy, spacing, or typo edits, `task-router` can choose `micro_patch`. That skips heavy workflows but still emits route guard requirements; run `route-guard` and a light quality gate before finalizing.
+
 ### Review a PR with subagents
 
 ```text
@@ -241,6 +244,8 @@ python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/up
 python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
 python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
+python3 skills/task-router/scripts/classify_task.py examples/task-router-micro-input.json
+python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-micro-pass.json
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -269,6 +274,8 @@ The tests validate:
 - upgrade advisor classifies candidates by version distance, requirement relevance, risk, and user-selectable action
 - version researcher classifies release candidates by skipped versions, evidence quality, relevance, and risk
 - research radar classifies candidate capabilities by source quality, matched needs, risk, maturity, and user choices
+- task router classifies micro-patches and emits route guard requirements
+- route guard blocks scope creep from fast routes
 - memory classifier separates durable facts, decisions, open questions, repeated mistakes, and sensitive items
 
 ## Governance model

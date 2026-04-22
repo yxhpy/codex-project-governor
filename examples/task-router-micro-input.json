@@ -1,0 +1,8 @@
+{
+  "request": "把 src/pages/settings/page.tsx 里的标题 margin-top 改成 12px，只改这个文件，不要改 API schema，不要新增文件。",
+  "hints": {
+    "exact_file_only": true,
+    "expected_modified_files": 1,
+    "expected_added_files": 0
+  }
+}

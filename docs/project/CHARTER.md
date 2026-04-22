@@ -6,7 +6,7 @@
 
 ## Purpose
 
-The project provides governance templates, Codex skills, deterministic helper scripts, marketplace examples, quality-gated acceleration workflows, and scheduled-memory examples so future Codex sessions can preserve project rules, conventions, decisions, risks, and durable memory while still moving quickly.
+The project provides governance templates, Codex skills, deterministic helper scripts, marketplace examples, quality-gated acceleration workflows, smart route guards, and scheduled-memory examples so future Codex sessions can preserve project rules, conventions, decisions, risks, and durable memory while still moving quickly.
 
 ## Primary Users
 

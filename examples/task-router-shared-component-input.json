@@ -1,0 +1,7 @@
+{
+  "request": "把 Button 的 primary 样式调小一点。",
+  "hints": {
+    "target_component": "Button",
+    "target_is_shared_component": true
+  }
+}

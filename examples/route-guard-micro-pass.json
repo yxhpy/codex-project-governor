@@ -1,0 +1,26 @@
+{
+  "route": "micro_patch",
+  "route_guard_requirements": {
+    "route": "micro_patch",
+    "max_modified_files": 1,
+    "max_added_files": 0,
+    "allow_dependencies": false,
+    "allow_api_changes": false,
+    "allow_schema_changes": false,
+    "allow_new_components": false,
+    "allow_global_style_changes": false,
+    "allow_shared_component_changes": false
+  },
+  "changes": {
+    "modified_files": [
+      "src/pages/settings/page.tsx"
+    ],
+    "added_files": [],
+    "dependencies_added": false,
+    "api_contract_changed": false,
+    "schema_changed": false,
+    "global_style_changed": false,
+    "shared_component_changed": false,
+    "new_components_added": false
+  }
+}
