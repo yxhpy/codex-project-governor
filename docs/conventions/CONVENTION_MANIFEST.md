@@ -20,6 +20,7 @@
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`
 - Change budget policy: `docs/quality/CHANGE_BUDGET_POLICY.md`
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
+- Project hygiene policy template: `templates/docs/quality/PROJECT_HYGIENE_POLICY.md`
 - Route guard policy: `docs/quality/ROUTE_GUARD_POLICY.md`
 - Subagent activation policy: `docs/quality/SUBAGENT_ACTIVATION_POLICY.md`
 - Smart routing guard brief: `docs/research/V0.4.1_SMART_ROUTING_GUARD.md`

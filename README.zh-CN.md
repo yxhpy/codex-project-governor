@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.4.3`
+当前版本：`0.4.4`
 
 ## 它解决什么问题
 
@@ -36,7 +36,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、项目卫生检查、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -56,6 +56,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `release-retro` | 把发布经验转成复盘、记忆和决策记录。 |
 | `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
 | `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
+| `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
@@ -216,6 +217,20 @@ Advisory only. Do not edit manifests or install packages.
 Show which upgrades are relevant, risky, optional, deferred, or should be pinned.
 ```
 
+### 检查项目卫生
+
+v0.4.4 起，初始化默认使用 clean profile：只复制项目自己的治理文件，不把插件全局 `.codex/agents`、`.codex/prompts` 和 `.codex/config.toml` 写入目标项目。需要旧行为时显式使用 `--profile legacy-full`。
+
+```bash
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
+```
+
+安全的生成型全局资产会被隔离到 `.project-governor/hygiene-quarantine/`，不会直接删除：
+
+```bash
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor --apply
+```
+
 ### 实现新能力前做研究雷达
 
 ```text
@@ -243,6 +258,8 @@ Do not modify application code.
 
 ```bash
 python3 tools/init_project.py --mode existing --target /path/to/repo
+python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
 python3 skills/convention-miner/scripts/detect_repo_conventions.py /path/to/repo
 python3 skills/implementation-guard/scripts/check_iteration_compliance.py examples/guard-input.json
 python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-drift-input.json
@@ -288,6 +305,7 @@ make test
 
 - 这个仓库不是应用运行时，不提供 Web UI、后端服务或 HTTP API。
 - 默认不新增依赖；确定性脚本应保持标准库实现。
+- 默认初始化保持 clean profile；旧式复制 `.codex` agents/prompts/config 资产需要显式使用 `--profile legacy-full`。
 - 初始化已有仓库时不修改应用代码。
 - 升级、版本变更、hook/rule 行为变化必须先经过 advisory 流程。
 - durable memory 只能写入有证据的事实；不确定内容应进入 open questions。

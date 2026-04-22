@@ -17,7 +17,7 @@ Do not write:
 |---|---|---|---|
 | Product | `codex-project-governor`, a Codex governance plugin | `README.md`, `.codex-plugin/plugin.json` | confirmed |
 | Primary user | Codex-powered maintainers and project teams that want repository-scoped governance | `README.md`, `skills/init-existing-project/SKILL.md`, `skills/pr-governance-review/SKILL.md` | inferred from evidence |
-| Current phase | v0.2.0 plugin with upgrade-advisor and self-tests | `.codex-plugin/plugin.json`, `README.md`, `tests/selftest.py` | confirmed |
+| Current phase | v0.4.4 plugin with project hygiene doctor, clean initialization, plugin upgrade migration, routing, quality gates, and self-tests | `.codex-plugin/plugin.json`, `README.md`, `tests/selftest.py` | confirmed |
 | Success metric | Self-tests pass and initialized repositories receive governance templates without application-code changes | `README.md`, `tests/selftest.py`, `tools/init_project.py` | confirmed |
 
 ## Durable facts
@@ -25,9 +25,10 @@ Do not write:
 | Date | Fact | Source | Status | Evidence |
 |---|---|---|---|---|
 | 2026-04-21 | The repository is organized around plugin metadata, skills, templates, deterministic scripts, examples, and self-tests. | init-existing-project analysis | confirmed | `.codex-plugin/plugin.json`, `README.md`, `tests/selftest.py` |
-| 2026-04-21 | The project ships 11 bundled skills in `skills/`. | init-existing-project analysis | confirmed | `README.md`, `tests/selftest.py` |
-| 2026-04-21 | The initializer copies files from `templates/` and preserves existing files unless overwrite is requested. | init-existing-project analysis | confirmed | `tools/init_project.py` |
+| 2026-04-22 | The project ships 26 bundled skills in `skills/`. | v0.4.4 release merge | confirmed | `README.md`, `tests/selftest.py`, `skills/project-hygiene-doctor/SKILL.md` |
+| 2026-04-22 | The initializer copies project-owned governance files from `templates/` by default, preserves existing files unless overwrite is requested, and exposes `--profile legacy-full` for bundled `.codex` runtime assets. | v0.4.4 release merge | confirmed | `tools/init_project.py`, `docs/architecture/API_CONTRACTS.md` |
 | 2026-04-21 | The repository has no application runtime, HTTP service, or local UI component implementation. | init-existing-project analysis | confirmed | `.mcp.json`, `README.md`, `assets/icon.png`, file tree |
+| 2026-04-22 | v0.4.4 introduces clean initialization by default and a `project-hygiene-doctor` workflow for diagnosing plugin-global assets in target projects. | v0.4.4 release merge | confirmed | `CHANGELOG.md`, `tools/init_project.py`, `skills/project-hygiene-doctor/SKILL.md`, `releases/0.4.4.md` |
 
 ## Durable decisions summary
 
@@ -55,5 +56,5 @@ See `REPEATED_AGENT_MISTAKES.md`.
 
 ## Last reviewed
 
-- Date: 2026-04-21
-- Reviewer: Codex init-existing-project workflow
+- Date: 2026-04-22
+- Reviewer: Codex v0.4.4 release workflow

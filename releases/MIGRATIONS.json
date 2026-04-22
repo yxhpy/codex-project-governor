@@ -35,6 +35,28 @@
           "reason": "Add plugin upgrade behavior without overwriting local AGENTS rules."
         }
       ]
+    },
+    {
+      "id": "migration_0_4_4_project_hygiene_doctor",
+      "from": "0.4.3",
+      "to": "0.4.4",
+      "title": "Project Hygiene Doctor policy and prompt",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": "docs/quality/PROJECT_HYGIENE_POLICY.md",
+          "source": "templates/docs/quality/PROJECT_HYGIENE_POLICY.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Document which assets belong to the project and which belong to the plugin installation."
+        },
+        {
+          "op": "run_hygiene_check",
+          "path": ".",
+          "source": "skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py",
+          "upgrade_policy": "diagnostic_only",
+          "reason": "Detect generated global .codex assets or plugin source leakage before applying upgrade migrations."
+        }
+      ]
     }
   ]
 }

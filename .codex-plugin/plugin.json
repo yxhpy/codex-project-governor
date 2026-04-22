@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "0.4.3",
-  "description": "Codex Project Governor with safe plugin upgrades, migration planning, feature discovery, automatic workflow orchestration, explicit subagent activation, model routing, and Smart Routing Guard.",
+  "version": "0.4.4",
+  "description": "Codex Project Governor with clean project initialization, project hygiene cleanup, safe plugin upgrades, automatic workflow orchestration, subagent activation, model routing, and Smart Routing Guard.",
   "author": {
     "name": "yxhpy"
   },
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Project Governor",
     "shortDescription": "Project initialization, memory, and governance for Codex",
-    "longDescription": "Adds Plugin Upgrade Migrator: feature matrix discovery, install manifests, migration planning, safe add-only migrations, and conflict reports without overwriting initialized project governance files.",
+    "longDescription": "Adds Project Hygiene Doctor: keeps initialized projects clean by detecting plugin-global assets copied into target repositories, quarantining safe generated .codex runtime assets, and preserving project-owned governance files before migrations.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
@@ -47,7 +47,10 @@
       "Use Project Governor subagent-activation automatically when a routed task requires or benefits from parallel subagents.",
       "Use project-scoped .codex/agents roles and model routing to balance speed and quality without requiring the user to specify subagents manually.",
       "Use Project Governor plugin-upgrade-migrator to show what is new, plan a safe migration, and avoid overwriting project customizations.",
-      "Use Project Governor to generate a migration plan or patch instead of directly overwriting AGENTS.md, docs, memory files, .codex agents, prompts, or config."
+      "Use Project Governor to generate a migration plan or patch instead of directly overwriting AGENTS.md, docs, memory files, .codex agents, prompts, or config.",
+      "Use Project Governor project-hygiene-doctor to detect and quarantine plugin-global assets that should not live in a target project.",
+      "Use Project Governor clean initialization so target projects contain only project-owned governance files, not bundled plugin runtime assets.",
+      "Use Project Governor project-hygiene-doctor before plugin-upgrade-migrator when project-level .codex agents, prompts, or plugin source folders create upgrade noise."
     ]
   }
 }

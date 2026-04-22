@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.4 — Project Hygiene Doctor
+
+### Added
+
+- Added `project-hygiene-doctor` skill to detect and quarantine plugin-global assets that should not live in initialized target projects.
+- Added clean init profile in `tools/init_project.py`; target projects now receive project-owned governance files only by default.
+- Added `PROJECT_HYGIENE_POLICY.md` and hygiene prompt template.
+
+### Changed
+
+- Default initialization skips `.codex/agents`, `.codex/prompts`, and `.codex/config.toml`; these remain plugin-owned unless the user opts into `--profile legacy-full`.
+
 ## 0.4.3 — Plugin Upgrade Migrator
 
 ### Added

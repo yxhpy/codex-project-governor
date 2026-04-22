@@ -62,3 +62,8 @@ python3 skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py --plan .p
 ## Output
 
 Return an upgrade panel with feature diff, migration plan, safe operations, manual-review items, and next choices.
+
+
+## Project hygiene preflight
+
+Before planning migrations, run `project-hygiene-doctor` when the target project contains `.codex/agents/`, `.codex/prompts/`, `.codex/config.toml`, `.codex-plugin/`, `skills/`, `templates/`, `releases/`, or Project Governor bundled examples/tests. These may indicate plugin-global assets were initialized into a project.

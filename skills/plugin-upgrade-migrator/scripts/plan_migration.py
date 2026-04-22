@@ -21,6 +21,21 @@ def migrations(plugin_root: Path, current: str, target: str) -> list[dict[str, A
 def classify(project: Path, plugin_root: Path, operation: dict[str, Any], tracked_files: dict[str, dict[str, Any]]) -> dict[str, Any]:
     relative_path = operation["path"]
     policy = operation_policy(relative_path, operation.get("upgrade_policy"))
+    if operation.get("op") == "run_hygiene_check" or policy == "diagnostic_only":
+        return {
+            "op": operation.get("op", "diagnostic"),
+            "path": relative_path,
+            "source": operation.get("source"),
+            "policy": policy,
+            "status": "diagnostic_only",
+            "action": "manual_review",
+            "project_exists": project.exists(),
+            "current_sha256": None,
+            "installed_sha256": None,
+            "source_sha256": sha256_path(plugin_root / operation.get("source", "")) if operation.get("source") else None,
+            "reason": operation.get("reason", ""),
+        }
+
     current_hash = sha256_path(project / relative_path)
     source_path = operation.get("source") or relative_path
     source_hash = sha256_path(plugin_root / source_path)

@@ -96,6 +96,28 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertGreaterEqual(data["summary"]["safe_operation_count"], 1)
             self.assertGreaterEqual(data["summary"]["manual_review_count"], 1)
 
+    def test_plan_migration_treats_hygiene_check_as_diagnostic(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "0.4.3",
+                    "--target-version",
+                    "0.4.4",
+                ]
+            )
+            operations = {operation["op"]: operation for operation in data["operations"]}
+            self.assertEqual(operations["run_hygiene_check"]["status"], "diagnostic_only")
+            self.assertEqual(operations["run_hygiene_check"]["action"], "manual_review")
+            self.assertEqual(data["summary"]["manual_review_count"], 1)
+
     def test_apply_safe_migration_adds_only_safe_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir) / "project"

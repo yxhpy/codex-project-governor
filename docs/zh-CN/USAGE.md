@@ -10,6 +10,7 @@
 - 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
+- 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -115,6 +116,7 @@ python3 skills/task-router/scripts/classify_task.py examples/task-router-micro-i
 python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-micro-pass.json
 python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -198,7 +200,32 @@ Show which dependencies or tools are behind, relevant, risky, optional, deferred
 
 只有用户明确选择后，才进入实际升级迭代。
 
-## 8. 压缩项目记忆
+## 8. 检查项目卫生
+
+v0.4.4 起，初始化默认使用 clean profile：复制 `AGENTS.md`、`docs/`、`tasks/_template/`、`.project-governor/`、`.codex/rules/`、`.codex/hooks/` 和 `.codex/hooks.json` 等项目治理文件。插件全局 `.codex/agents`、`.codex/prompts` 和 `.codex/config.toml` 默认留在插件安装目录。
+
+```bash
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
+  --project /path/to/project \
+  --plugin-root /path/to/codex-project-governor
+```
+
+如果报告里只有安全的生成型全局资产，可以隔离而不是删除：
+
+```bash
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
+  --project /path/to/project \
+  --plugin-root /path/to/codex-project-governor \
+  --apply
+```
+
+如果项目确实需要旧式 `.codex` 运行时资产，可在初始化时显式使用：
+
+```bash
+python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
+```
+
+## 9. 压缩项目记忆
 
 适合阶段性维护、长会话后整理、发布后复盘。
 
@@ -219,7 +246,7 @@ Do not modify application code.
 - 风险写入 `docs/memory/RISK_REGISTER.md`。
 - 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
 
-## 9. PR 或分支治理审查
+## 10. PR 或分支治理审查
 
 ```text
 Use @project-governor pr-governance-review.
@@ -237,7 +264,7 @@ Return blockers, warnings, and required patches.
 - 是否遗漏测试和文档更新。
 - 是否需要把重复问题沉淀进 memory 或 AGENTS.md。
 
-## 10. 发布前检查
+## 11. 发布前检查
 
 发布插件变更前建议执行：
 
@@ -245,6 +272,7 @@ Return blockers, warnings, and required patches.
 python3 tests/selftest.py
 python3 -m compileall tools skills tests
 python3 tools/init_project.py --mode existing --target /tmp/project-governor-smoke --json
+python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /tmp/project-governor-smoke --plugin-root .
 ```
 
 如果改了模板、skill、helper 输出或 manifest，必须同步更新：
@@ -255,7 +283,7 @@ python3 tools/init_project.py --mode existing --target /tmp/project-governor-smo
 - 相关 `templates/` 文件
 - 相关 `docs/` 或任务计划
 
-## 11. 常见误区
+## 12. 常见误区
 
 - 不要把 Project Governor 当应用框架；它是治理插件和模板包。
 - 不要在初始化已有项目时顺手修改应用代码。

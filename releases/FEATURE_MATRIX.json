@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.4.3",
+  "current_latest": "0.4.4",
   "versions": [
     {
       "version": "0.4.1",
@@ -71,6 +71,27 @@
           "user_value": "Upgrade tools can distinguish unchanged, modified, missing, and custom files.",
           "requires_project_migration": true,
           "migration_id": "migration_0_4_3_plugin_upgrade_migrator"
+        }
+      ]
+    },
+    {
+      "version": "0.4.4",
+      "title": "Project Hygiene Doctor",
+      "features": [
+        {
+          "id": "clean_init_profile",
+          "name": "Clean Init Profile",
+          "summary": "Initializes target projects with project-owned governance files only; plugin-global .codex agents/prompts/config stay in the plugin unless explicitly requested.",
+          "user_value": "Projects stay clean and plugin upgrades are less noisy.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "project_hygiene_doctor",
+          "name": "Project Hygiene Doctor",
+          "summary": "Detects plugin-global assets that were copied into target projects and quarantines safe generated files without deleting custom project overrides.",
+          "user_value": "Users can repair initialized projects and reduce upgrade conflicts.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_4_project_hygiene_doctor"
         }
       ]
     }

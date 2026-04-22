@@ -1,7 +1,7 @@
 {
   "plugin": {
     "name": "codex-project-governor",
-    "installed_version": "0.4.3",
+    "installed_version": "0.4.4",
     "installed_at": "<iso8601>",
     "source": "<plugin path or git url>"
   },
@@ -9,7 +9,7 @@
     {
       "path": "AGENTS.md",
       "template": "templates/AGENTS.md",
-      "template_version": "0.4.3",
+      "template_version": "0.4.4",
       "template_sha256": "<sha256>",
       "installed_sha256": "<sha256>",
       "upgrade_policy": "three_way_merge"
@@ -17,18 +17,12 @@
     {
       "path": "docs/memory/PROJECT_MEMORY.md",
       "template": "templates/docs/memory/PROJECT_MEMORY.md",
-      "template_version": "0.4.3",
+      "template_version": "0.4.4",
       "template_sha256": "<sha256>",
       "installed_sha256": "<sha256>",
       "upgrade_policy": "append_only"
-    },
-    {
-      "path": ".codex/config.toml",
-      "template": "templates/.codex/config.toml",
-      "template_version": "0.4.3",
-      "template_sha256": "<sha256>",
-      "installed_sha256": "<sha256>",
-      "upgrade_policy": "merge_toml"
     }
-  ]
+  ],
+  "init_profile": "clean",
+  "notes": "Clean profile tracks project-owned governance files only. Plugin-global .codex agents/prompts/config should remain in the plugin installation unless explicitly opted in."
 }

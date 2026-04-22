@@ -27,23 +27,31 @@ Inputs:
 
 - `--mode {empty,existing}`
 - `--target <path>`
+- `--profile {clean,legacy-full}`
 - `--overwrite`
 - `--json`
 
 Behavior:
 
 - Copies files from `templates/`.
+- Defaults to the `clean` profile, which copies project-owned governance files, project `.codex/rules`, project `.codex/hooks`, and `.codex/hooks.json` while skipping plugin-global `.codex` runtime assets.
+- `--profile legacy-full` copies bundled `.codex` runtime assets for projects that explicitly need the old behavior.
 - Preserves existing files unless `--overwrite` is used.
 - Skips known application/package paths.
+- Writes `.project-governor/INSTALL_MANIFEST.json` for fresh initialization or when overwrite is requested.
 - Writes `reports/project-governor/init-report.json`.
 
 JSON output fields:
 
 - `mode`
+- `profile`
 - `target`
 - `created`
 - `preserved`
 - `skipped`
+- `skipped_application`
+- `skipped_global`
+- `install_manifest`
 
 ### `tools/init_existing_project.py`
 
@@ -293,6 +301,8 @@ Output:
 - `summary`
 - `recommended_action`
 
+Operations with `op=run_hygiene_check` or `upgrade_policy=diagnostic_only` are diagnostic steps. They must be planned as manual review operations and must not be treated as safe file-copy operations by `apply_safe_migration.py`.
+
 ### `skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py`
 
 Input:
@@ -307,6 +317,32 @@ Output:
 - `applied`
 - `skipped`
 - `summary`
+
+### `skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py`
+
+Input:
+
+- `--project <path>`
+- optional `--plugin-root <path>`
+- optional `--apply`
+
+Behavior:
+
+- Detects plugin-global source-like folders in non-plugin target projects.
+- Detects `.codex/agents`, `.codex/prompts`, and `.codex/config.toml` assets that should normally remain plugin-owned.
+- Never removes memory or decision files.
+- With `--apply`, quarantines only unchanged generated global assets under `.project-governor/hygiene-quarantine/`.
+
+Output:
+
+- `status`
+- `project`
+- `plugin_root`
+- `is_plugin_repo`
+- `summary`
+- `findings`
+- `applied`
+- `recommendation`
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 

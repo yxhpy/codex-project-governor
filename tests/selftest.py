@@ -18,7 +18,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.4.3")
+        self.assertEqual(manifest["version"], "0.4.4")
         self.assertIn("safe plugin upgrades", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
@@ -26,11 +26,12 @@ class ProjectGovernorSelfTest(unittest.TestCase):
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 25)
+        self.assertGreaterEqual(len(skill_dirs), 26)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
             "plugin-upgrade-migrator",
+            "project-hygiene-doctor",
             "research-radar",
             "task-router",
             "route-guard",
@@ -67,6 +68,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/prompts/memory-compact.md",
             ".codex/prompts/upgrade-advisor.md",
             ".codex/prompts/plugin-upgrade-migrator.md",
+            ".codex/prompts/project-hygiene-doctor.md",
             ".codex/hooks/check_iteration_compliance.py",
             ".project-governor/INSTALL_MANIFEST.json",
             "docs/upgrades/UPGRADE_POLICY.md",
@@ -82,6 +84,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "docs/quality/ACCELERATION_POLICY.md",
             "docs/quality/ROUTE_GUARD_POLICY.md",
             "docs/quality/SUBAGENT_ACTIVATION_POLICY.md",
+            "docs/quality/PROJECT_HYGIENE_POLICY.md",
             "tasks/_template/TASK_ROUTE.md",
             "tasks/_template/CONTEXT_PACK.md",
             "tasks/_template/PATTERN_REUSE_PLAN.md",
@@ -123,11 +126,12 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.4.3", readme)
+        self.assertIn("0.4.4", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
         self.assertIn("plugin-upgrade-migrator", readme)
+        self.assertIn("project-hygiene-doctor", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("memory-compact", usage)
@@ -147,11 +151,25 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             package_json = repo / "package.json"
             source.write_text("export const x = 1;\n", encoding="utf-8")
             package_json.write_text('{"name":"fixture"}\n', encoding="utf-8")
-            subprocess.check_call([PY, str(ROOT / "tools" / "init_project.py"), "--mode", "existing", "--target", str(repo), "--json"])
+            process = subprocess.run(
+                [PY, str(ROOT / "tools" / "init_project.py"), "--mode", "existing", "--target", str(repo), "--json"],
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+            result = json.loads(process.stdout)
             self.assertEqual(source.read_text(encoding="utf-8"), "export const x = 1;\n")
             self.assertEqual(package_json.read_text(encoding="utf-8"), '{"name":"fixture"}\n')
+            self.assertEqual(result["profile"], "clean")
+            self.assertIn("skipped", result)
+            self.assertIn("skipped_application", result)
+            self.assertIn("skipped_global", result)
             self.assertTrue((repo / "AGENTS.md").exists())
             self.assertTrue((repo / "docs" / "conventions" / "ITERATION_CONTRACT.md").exists())
+            self.assertTrue((repo / ".codex" / "rules" / "project.rules").exists())
+            self.assertTrue((repo / ".codex" / "hooks" / "check_iteration_compliance.py").exists())
+            self.assertTrue((repo / ".codex" / "hooks.json").exists())
+            self.assertFalse((repo / ".codex" / "agents").exists())
 
     def test_iteration_guard_detects_blockers(self) -> None:
         proc = subprocess.run(
