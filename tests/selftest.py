@@ -18,17 +18,30 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.3.1")
+        self.assertEqual(manifest["version"], "0.4.0")
+        self.assertIn("quality-gated acceleration", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 13)
+        self.assertGreaterEqual(len(skill_dirs), 22)
         names = {p.name for p in skill_dirs}
-        self.assertIn("version-researcher", names)
-        self.assertIn("research-radar", names)
+        for required in {
+            "version-researcher",
+            "research-radar",
+            "task-router",
+            "context-pack-builder",
+            "pattern-reuse-engine",
+            "parallel-feature-builder",
+            "test-first-synthesizer",
+            "quality-gate",
+            "repair-loop",
+            "merge-readiness",
+            "coding-velocity-report",
+        }:
+            self.assertIn(required, names)
         for skill_dir in skill_dirs:
             skill_md = skill_dir / "SKILL.md"
             self.assertTrue(skill_md.exists(), skill_dir)
@@ -57,8 +70,30 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "docs/research/RESEARCH_REGISTER.md",
             "docs/upgrades/RELEASE_RESEARCH_POLICY.md",
             "docs/upgrades/RELEASE_RESEARCH_REPORT.md",
+            "docs/quality/QUALITY_GATE_POLICY.md",
+            "docs/quality/CHANGE_BUDGET_POLICY.md",
+            "docs/quality/TESTING_ACCELERATION_POLICY.md",
+            "docs/quality/ACCELERATION_POLICY.md",
+            "tasks/_template/TASK_ROUTE.md",
+            "tasks/_template/CONTEXT_PACK.md",
+            "tasks/_template/PATTERN_REUSE_PLAN.md",
+            "tasks/_template/TEST_PLAN.md",
+            "tasks/_template/CHANGE_BUDGET.md",
+            "tasks/_template/QUALITY_REPORT.md",
+            "tasks/_template/REPAIR_LOG.md",
+            "tasks/_template/MERGE_READINESS.md",
+            "tasks/_template/VELOCITY_REPORT.md",
             ".codex/prompts/research-radar.md",
             ".codex/prompts/version-researcher.md",
+            ".codex/prompts/task-router.md",
+            ".codex/prompts/context-pack-builder.md",
+            ".codex/prompts/pattern-reuse-engine.md",
+            ".codex/prompts/parallel-feature-builder.md",
+            ".codex/prompts/test-first-synthesizer.md",
+            ".codex/prompts/quality-gate.md",
+            ".codex/prompts/repair-loop.md",
+            ".codex/prompts/merge-readiness.md",
+            ".codex/prompts/coding-velocity-report.md",
         ]
         for rel in required:
             self.assertTrue((ROOT / "templates" / rel).exists(), rel)
@@ -71,8 +106,10 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.3.1", readme)
+        self.assertIn("0.4.0", readme)
+        self.assertIn("task-router", readme)
         self.assertIn("init-existing-project", usage)
+        self.assertIn("quality-gate", usage)
         self.assertIn("memory-compact", usage)
 
     def test_project_rules_use_valid_decisions(self) -> None:
@@ -229,6 +266,117 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         labels = {choice["id"] for choice in data["user_choices"]}
         self.assertIn("1", labels)
         self.assertIn("4", labels)
+
+    def test_acceleration_tools(self) -> None:
+        route_proc = subprocess.run(
+            [PY, str(ROOT / "skills" / "task-router" / "scripts" / "classify_task.py"), str(ROOT / "examples" / "task-router-input.json")],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        route = json.loads(route_proc.stdout)
+        self.assertIn(route["route"], {"ui_change", "standard_feature"})
+        self.assertEqual(route["quality_level"], "standard")
+        self.assertIn("quality-gate", route["required_skills"])
+
+        risk_proc = subprocess.run(
+            [PY, str(ROOT / "skills" / "task-router" / "scripts" / "classify_task.py"), str(ROOT / "examples" / "task-router-risk-input.json")],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        risk = json.loads(risk_proc.stdout)
+        self.assertEqual(risk["route"], "risky_feature")
+        self.assertEqual(risk["quality_level"], "strict")
+        self.assertIn("risk_domain", risk["risk_signals"])
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "src" / "components").mkdir(parents=True)
+            (repo / "src" / "services").mkdir(parents=True)
+            (repo / "docs").mkdir()
+            (repo / "src" / "components" / "DashboardChart.tsx").write_text(
+                "export function DashboardChart() { return null }\n", encoding="utf-8"
+            )
+            (repo / "src" / "services" / "dashboardService.ts").write_text(
+                "export const dashboardService = { load() { return [] } }\n", encoding="utf-8"
+            )
+            (repo / "src" / "DashboardChart.test.tsx").write_text("test('dashboard chart', () => {})\n", encoding="utf-8")
+            (repo / "docs" / "dashboard.md").write_text("Dashboard widget behavior.\n", encoding="utf-8")
+
+            context_proc = subprocess.run(
+                [
+                    PY,
+                    str(ROOT / "skills" / "context-pack-builder" / "scripts" / "build_context_pack.py"),
+                    str(repo),
+                    "--request",
+                    "dashboard chart widget",
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=TIMEOUT,
+            )
+            context = json.loads(context_proc.stdout)
+            self.assertIn("src/components/DashboardChart.tsx", {item["path"] for item in context["must_read"]})
+            self.assertTrue(context["related_tests"])
+
+            reuse_proc = subprocess.run(
+                [
+                    PY,
+                    str(ROOT / "skills" / "pattern-reuse-engine" / "scripts" / "find_reuse_candidates.py"),
+                    str(repo),
+                    "--request",
+                    "dashboard chart widget",
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=TIMEOUT,
+            )
+            reuse = json.loads(reuse_proc.stdout)
+            self.assertIn("DashboardChart", {item["name"] for item in reuse["reuse_candidates"]})
+            self.assertTrue(reuse["forbidden_duplicates"])
+
+        gate_proc = subprocess.run(
+            [PY, str(ROOT / "skills" / "quality-gate" / "scripts" / "run_quality_gate.py"), str(ROOT / "examples" / "quality-gate-input.json")],
+            text=True,
+            capture_output=True,
+            timeout=TIMEOUT,
+        )
+        self.assertNotEqual(gate_proc.returncode, 0)
+        gate = json.loads(gate_proc.stdout)
+        self.assertEqual(gate["status"], "fail")
+        gate_types = {item["type"] for item in gate["findings"]}
+        self.assertIn("change_budget_exceeded", gate_types)
+        self.assertIn("new_file_budget_exceeded", gate_types)
+
+        ready_proc = subprocess.run(
+            [PY, str(ROOT / "skills" / "merge-readiness" / "scripts" / "check_merge_readiness.py"), str(ROOT / "examples" / "merge-readiness-input.json")],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        ready = json.loads(ready_proc.stdout)
+        self.assertEqual(ready["status"], "ready")
+
+        velocity_proc = subprocess.run(
+            [
+                PY,
+                str(ROOT / "skills" / "coding-velocity-report" / "scripts" / "build_velocity_report.py"),
+                str(ROOT / "examples" / "velocity-input.json"),
+            ],
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=TIMEOUT,
+        )
+        velocity = json.loads(velocity_proc.stdout)
+        self.assertGreaterEqual(velocity["quality_score"], 70)
+        self.assertGreaterEqual(velocity["velocity_score"], 70)
 
 
 if __name__ == "__main__":

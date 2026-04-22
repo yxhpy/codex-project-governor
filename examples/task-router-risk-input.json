@@ -1,0 +1,11 @@
+{
+  "request": "Add role-based authorization checks to the billing webhook handler and update tests.",
+  "changed_areas": [
+    "services/billing",
+    "auth",
+    "webhooks"
+  ],
+  "constraints": [
+    "preserve API contract"
+  ]
+}

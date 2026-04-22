@@ -6,6 +6,7 @@
 
 - 先读项目规则，再改代码。
 - 先做迭代计划，再实现非平凡改动。
+- 先做任务路由、上下文包和模式复用，再走并行实现和质量门。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -76,7 +77,43 @@ Do not implement until the plan is complete.
 - 需要跑哪些测试。
 - 回滚方式。
 
-## 4. 实现前研究候选能力
+## 4. 用质量门加速功能开发
+
+当需求需要更快落地，但仍必须保持质量边界时，先让 `task-router` 选择路线：
+
+```text
+Use @project-governor task-router.
+
+Request:
+<功能、修复或重构需求>
+
+Choose the fastest safe workflow. Do not implement yet.
+Return the route, lane, quality level, change budget, and required downstream skills.
+```
+
+典型顺序：
+
+- `context-pack-builder`：生成最小上下文包。
+- `pattern-reuse-engine`：明确必须复用的现有模式和禁止重复项。
+- `test-first-synthesizer`：先规划行为、回归、边界和错误路径覆盖。
+- `parallel-feature-builder`：先并行只读分析，再由一个有边界的实现者修改代码。
+- `quality-gate`：按 `light`、`standard` 或 `strict` 运行质量门。
+- `repair-loop`：只在质量门失败时修复，并保持范围有界。
+- `merge-readiness`：检查是否可以进入 PR 或 merge。
+- `coding-velocity-report`：复盘上下文时间、首次补丁时间、修复轮次和质量分。
+
+确定性脚本入口：
+
+```bash
+python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
+python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
+python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
+python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
+python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
+python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
+```
+
+## 5. 实现前研究候选能力
 
 当你想引入新的治理规则、agent 模式、hook、skill、库或自动化方式时，先使用 `research-radar`。
 
@@ -109,7 +146,7 @@ python3 skills/research-radar/scripts/score_research_candidates.py \
   --need research
 ```
 
-## 5. 升级前研究版本
+## 6. 升级前研究版本
 
 当涉及依赖、工具、SDK、运行时或 Project Governor 自身版本变化时，先用 `version-researcher`。
 
@@ -129,7 +166,7 @@ python3 skills/version-researcher/scripts/research_versions.py \
   --request "Need better memory and subagent governance"
 ```
 
-## 6. 升级前给出用户可选路径
+## 7. 升级前给出用户可选路径
 
 `upgrade-advisor` 不直接升级，而是输出菜单和理由。
 
@@ -152,7 +189,7 @@ Show which dependencies or tools are behind, relevant, risky, optional, deferred
 
 只有用户明确选择后，才进入实际升级迭代。
 
-## 7. 压缩项目记忆
+## 8. 压缩项目记忆
 
 适合阶段性维护、长会话后整理、发布后复盘。
 
@@ -173,7 +210,7 @@ Do not modify application code.
 - 风险写入 `docs/memory/RISK_REGISTER.md`。
 - 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
 
-## 8. PR 或分支治理审查
+## 9. PR 或分支治理审查
 
 ```text
 Use @project-governor pr-governance-review.
@@ -191,7 +228,7 @@ Return blockers, warnings, and required patches.
 - 是否遗漏测试和文档更新。
 - 是否需要把重复问题沉淀进 memory 或 AGENTS.md。
 
-## 9. 发布前检查
+## 10. 发布前检查
 
 发布插件变更前建议执行：
 
@@ -209,11 +246,12 @@ python3 tools/init_project.py --mode existing --target /tmp/project-governor-smo
 - 相关 `templates/` 文件
 - 相关 `docs/` 或任务计划
 
-## 10. 常见误区
+## 11. 常见误区
 
 - 不要把 Project Governor 当应用框架；它是治理插件和模板包。
 - 不要在初始化已有项目时顺手修改应用代码。
 - 不要没有 ADR/PDR 就新增依赖或运行时层。
 - 不要把推测写入 durable memory。
 - 不要在用户选择升级路径前修改 manifest 或 lockfile。
+- 不要为了速度跳过 `quality-gate`，也不要让多个写代理修改重叠生产代码。
 - 不要把一次小修复扩大成重构或重写。

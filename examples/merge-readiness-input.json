@@ -1,0 +1,16 @@
+{
+  "quality_gate": {
+    "status": "pass"
+  },
+  "blockers": [],
+  "warnings": [
+    "manual review recommended for UX copy"
+  ],
+  "required_docs_missing": false,
+  "approval_required": false,
+  "open_repair_items": false,
+  "commands_verified": [
+    "pnpm test -- dashboard",
+    "pnpm typecheck"
+  ]
+}

@@ -12,13 +12,28 @@
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
 - Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
 - Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
-- Research policy: `docs/research/RESEARCH_POLICY.md`
-- Research register: `docs/research/RESEARCH_REGISTER.md`
-- Release research policy: `docs/upgrades/RELEASE_RESEARCH_POLICY.md`
-- Release research report: `docs/upgrades/RELEASE_RESEARCH_REPORT.md`
+- Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`
 - Change budget policy: `docs/quality/CHANGE_BUDGET_POLICY.md`
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
 
 If implementation conflicts with these files, create or update a decision record first.
+
+## Confirmed Repository Conventions
+
+- This is a plugin/template repository, not an application repository.
+- Public plugin metadata starts in `.codex-plugin/plugin.json`.
+- Skill workflows are documented in `skills/<skill>/SKILL.md`.
+- Deterministic script helpers are CLI modules under `tools/` and `skills/*/scripts/`.
+- Governance files copied into downstream repositories come from `templates/`.
+- Example JSON inputs are stored under `examples/`.
+- Tests use Python standard-library `unittest` in `tests/selftest.py`.
+
+## Evidence
+
+- `README.md`
+- `.codex-plugin/plugin.json`
+- `tests/selftest.py`
+- `tools/init_project.py`
+- `skills/*/SKILL.md`

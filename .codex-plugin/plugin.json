@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "0.3.1",
-  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, research gates, subagent audits, drift checks, upgrade advice, and scheduled memory compaction.",
+  "version": "0.4.0",
+  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, research gates, subagent audits, quality-gated acceleration, drift checks, upgrade advice, and scheduled memory compaction.",
   "author": {
     "name": "yxhpy"
   },
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Project Governor",
     "shortDescription": "Project initialization, memory, and governance for Codex",
-    "longDescription": "A Codex governance plugin that initializes empty or existing repositories, researches candidate capabilities and releases before implementation, mines conventions, enforces iteration-first development, runs subagent audits, checks style and architecture drift, compacts project memory, and advises on upgrades before applying them.",
+    "longDescription": "A Codex governance plugin that initializes empty or existing repositories, researches candidate capabilities and releases before implementation, accelerates coding through task routing, context packs, pattern reuse, parallel subagent pipelines, quality gates, repair loops, and merge readiness checks, while enforcing iteration-first development, drift checks, memory compaction, and upgrade advice.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
@@ -37,7 +37,11 @@
       "Use Project Governor to compact recent project activity into durable project memory.",
       "Use Project Governor to advise whether project dependencies or tools should be upgraded before this change.",
       "Use Project Governor to research a candidate capability, compare evidence, and recommend whether to adopt, spike, watch, or reject it before implementation.",
-      "Use Project Governor to research candidate release versions before upgrade advice, including skipped versions, evidence quality, relevance, and risk."
+      "Use Project Governor to research candidate release versions before upgrade advice, including skipped versions, evidence quality, relevance, and risk.",
+      "Use Project Governor to route this task into the fastest safe coding workflow with a change budget and quality level.",
+      "Use Project Governor to build a context pack and pattern reuse plan before implementation.",
+      "Use Project Governor to implement this feature through the quality-gated parallel feature builder.",
+      "Use Project Governor to run a quality gate, repair loop if needed, and merge-readiness review."
     ]
   }
 }

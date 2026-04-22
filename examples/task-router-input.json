@@ -1,0 +1,11 @@
+{
+  "request": "Add a streaming dashboard widget that reuses existing chart components and does not change the API.",
+  "changed_areas": [
+    "apps/web/dashboard",
+    "components/charts"
+  ],
+  "constraints": [
+    "no new dependencies",
+    "keep existing visual styles"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "level": "standard",
+  "change_budget": {
+    "max_files_changed": 6,
+    "max_new_files": 2,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": false,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 7,
+    "new_files": 3,
+    "dependencies_added": 0,
+    "public_contract_changes": 0,
+    "schema_changes": 0
+  },
+  "checks": {
+    "lint": "pass",
+    "typecheck": "pass",
+    "targeted_tests": "pass",
+    "style_drift": "pass",
+    "architecture_drift": "not_run"
+  },
+  "commands": [
+    "pnpm test -- dashboard"
+  ]
+}

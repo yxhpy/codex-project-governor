@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.3.1`
+当前版本：`0.4.0`
 
 ## 它解决什么问题
 
@@ -36,6 +36,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
+- 用任务路由、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -56,6 +57,15 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
+| `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
+| `context-pack-builder` | 构建最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
+| `pattern-reuse-engine` | 找出现有组件、服务、hook、schema、测试和样式模式，避免重复造新模式。 |
+| `parallel-feature-builder` | 用质量门约束的子代理流水线实现功能：先只读分析，再单一实现者，再测试、审查和修复。 |
+| `test-first-synthesizer` | 按现有测试风格先产出目标测试计划或测试骨架。 |
+| `quality-gate` | 运行分层质量检查，覆盖迭代合规、漂移、变更预算、测试、文档和记忆更新。 |
+| `repair-loop` | 在质量门失败时执行有边界的修复循环，不删除测试、不削弱断言、不扩大范围。 |
+| `merge-readiness` | 检查任务或分支是否 PR-ready，覆盖 blocker、质量门、文档、记忆、测试、预算和审批。 |
+| `coding-velocity-report` | 记录上下文时间、首次补丁时间、修复轮次、质量门通过率、补丁规模和复用比例。 |
 
 ## 安装到个人 Codex
 
@@ -156,6 +166,29 @@ Create an ITERATION_PLAN.md.
 Do not implement until the plan is complete.
 ```
 
+### 用质量门加速开发
+
+```text
+Use @project-governor task-router.
+
+Request:
+<你的功能、修复或重构需求>
+
+Choose the fastest safe workflow. Do not implement yet.
+Return the route, lane, quality level, change budget, and required downstream skills.
+```
+
+推荐流水线：
+
+- `task-router` 选择 route、lane、quality level 和 change budget。
+- `context-pack-builder` 建上下文包。
+- `pattern-reuse-engine` 固定必须复用的模式和禁止重复项。
+- `test-first-synthesizer` 先规划行为和回归覆盖。
+- `parallel-feature-builder` 先并行只读分析，再用一个有边界的实现者落地。
+- `quality-gate` 作为最终响应或 PR 前的硬检查。
+- `repair-loop` 只在质量门失败时做有边界修复。
+- `merge-readiness` 检查是否可以进入 PR 或 merge。
+
 ### 升级前做版本研究
 
 ```text
@@ -211,6 +244,12 @@ python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-dri
 python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
 python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
 python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
+python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
+python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
+python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
+python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
+python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
+python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-candidates.json
 ```
 

@@ -48,6 +48,21 @@ Do not:
 
 Before upgrading dependencies, frameworks, tools, SDKs, runtimes, or Project Governor assets, run `upgrade-advisor` in advisory mode. Do not edit manifests or install packages until the user selects an upgrade path. Follow `docs/upgrades/UPGRADE_POLICY.md` and record decisions in `docs/upgrades/UPGRADE_REGISTER.md`.
 
+## Quality-gated acceleration
+
+For coding work where speed matters, use the acceleration pipeline instead of ad hoc implementation:
+
+1. `task-router` to choose route, lane, quality level, and change budget.
+2. `context-pack-builder` to produce a minimal task context pack.
+3. `pattern-reuse-engine` to define mandatory reuse and forbidden duplicates.
+4. `test-first-synthesizer` for behavior and regression coverage.
+5. `parallel-feature-builder` with read-only subagents first, then one bounded implementation writer.
+6. `quality-gate` before final response.
+7. `repair-loop` only for bounded repairs when the gate fails.
+8. `merge-readiness` before PR or merge.
+
+Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
+
 ## Documentation updates
 
 Update docs when changing:
@@ -80,7 +95,7 @@ For broad audits, PR governance, or existing-project initialization, use read-on
 
 ## Verification
 
-Before final response, run relevant tests, lint, typecheck, implementation guard, style drift check, and architecture drift check.
+Before final response, run the required quality level from `docs/quality/QUALITY_GATE_POLICY.md`, plus relevant tests, lint, typecheck, implementation guard, style drift check, and architecture drift check.
 If a command cannot run, explain why and what was verified instead.
 
 ## Research policy

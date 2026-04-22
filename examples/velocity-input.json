@@ -1,0 +1,13 @@
+{
+  "metrics": {
+    "time_to_context_pack_minutes": 6,
+    "time_to_first_patch_minutes": 18,
+    "repair_rounds": 1,
+    "quality_gate_pass_rate": 0.94,
+    "files_changed": 5,
+    "new_files_ratio": 0.2,
+    "drift_findings": 0,
+    "manual_approval_count": 0,
+    "rollback_complexity": "low"
+  }
+}

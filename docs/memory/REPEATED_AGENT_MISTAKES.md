@@ -1,0 +1,11 @@
+# Repeated Agent Mistakes
+
+Record repeated mistakes so they can be promoted into `AGENTS.md`, tests, hooks, rules, or skills.
+
+| Date | Mistake | Correct behavior | Evidence | Encoded where | Status |
+|---|---|---|---|---|---|
+| 2026-04-21 | Treating this repository as an application repo and inventing UI/backend structure. | Preserve the plugin/template/script/test architecture unless an ADR approves a new layer. | `README.md`, `.codex-plugin/plugin.json`, `.mcp.json` | `AGENTS.md`, `docs/architecture/ARCHITECTURE.md` | active |
+| 2026-04-21 | Adding dependencies or upgrades without an advisory decision. | Run `upgrade-advisor` first, then record approved upgrades in `docs/upgrades/UPGRADE_REGISTER.md`. | `docs/upgrades/UPGRADE_POLICY.md`, `skills/upgrade-advisor/SKILL.md` | `AGENTS.md`, `docs/upgrades/UPGRADE_POLICY.md` | active |
+| 2026-04-21 | Changing helper-script JSON output without updating tests and contracts. | Update `docs/architecture/API_CONTRACTS.md` and `tests/selftest.py` with any output-shape change. | `tests/selftest.py`, `skills/*/scripts/*.py` | `AGENTS.md`, `docs/architecture/API_CONTRACTS.md` | active |
+| 2026-04-21 | Writing guesses into durable memory. | Put low-confidence findings in `docs/memory/OPEN_QUESTIONS.md` until verified. | `templates/AGENTS.md`, `templates/docs/memory/PROJECT_MEMORY.md` | `AGENTS.md`, `docs/memory/PROJECT_MEMORY.md` | active |
+| 2026-04-22 | Using hard-deny rule decisions in `.codex/rules/project.rules` without verifying Codex parser support. | Use parser-compatible `prompt` decisions for generated project rules and enforce hard blocks through hooks when needed. | `codex debug prompt-input`, `templates/.codex/rules/project.rules`, `tests/selftest.py` | `.codex/rules/project.rules`, `templates/.codex/rules/project.rules`, `tests/selftest.py` | active |
