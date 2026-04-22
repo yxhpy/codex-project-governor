@@ -1,0 +1,78 @@
+{
+  "current_latest": "0.4.3",
+  "versions": [
+    {
+      "version": "0.4.1",
+      "title": "Smart Routing Guard",
+      "features": [
+        {
+          "id": "micro_patch",
+          "name": "Micro Patch route",
+          "summary": "Simple local style/copy changes skip heavy workflows.",
+          "user_value": "Small edits stay fast.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_1_smart_routing_guard"
+        },
+        {
+          "id": "route_guard",
+          "name": "Route Guard",
+          "summary": "Verifies actual diff still fits selected route.",
+          "user_value": "Fast routes cannot silently expand into risky changes.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_1_smart_routing_guard"
+        }
+      ]
+    },
+    {
+      "version": "0.4.2",
+      "title": "Explicit Subagent Activation",
+      "features": [
+        {
+          "id": "explicit_subagent_activation",
+          "name": "Explicit Subagent Activation",
+          "summary": "Adds project-scoped agents and automatic subagent selection.",
+          "user_value": "Users do not need to memorize subagent prompts.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_2_subagent_activation"
+        },
+        {
+          "id": "model_routing",
+          "name": "Model Routing Strategy",
+          "summary": "Uses fast mini models for read-only scouts and stronger models for risky implementation/review.",
+          "user_value": "Balances speed and quality automatically.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_2_subagent_activation"
+        }
+      ]
+    },
+    {
+      "version": "0.4.3",
+      "title": "Plugin Upgrade Migrator",
+      "features": [
+        {
+          "id": "feature_matrix",
+          "name": "Feature Matrix",
+          "summary": "Machine-readable feature discovery for releases.",
+          "user_value": "Users can see what is new without reading diffs.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "safe_migration_plan",
+          "name": "Safe Migration Plan",
+          "summary": "Plans governance-file migrations without overwriting local changes.",
+          "user_value": "Upgrades preserve team customizations.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_3_plugin_upgrade_migrator"
+        },
+        {
+          "id": "install_manifest",
+          "name": "Install Manifest Ledger",
+          "summary": "Tracks generated files, hashes, and upgrade policies.",
+          "user_value": "Upgrade tools can distinguish unchanged, modified, missing, and custom files.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_4_3_plugin_upgrade_migrator"
+        }
+      ]
+    }
+  ]
+}

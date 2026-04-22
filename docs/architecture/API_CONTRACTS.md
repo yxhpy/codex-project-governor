@@ -240,6 +240,74 @@ Output:
 - `wait_policy`
 - `write_policy`
 
+### `skills/plugin-upgrade-migrator/scripts/inspect_installation.py`
+
+Input:
+
+- `--project <path>`
+
+Output:
+
+- `status`
+- `project`
+- `installed_version`
+- `tracked_files`
+- `summary`
+
+### `skills/plugin-upgrade-migrator/scripts/compare_features.py`
+
+Input:
+
+- `--current-version <semver>`
+- optional `--target-version <semver>`
+- `--feature-matrix <json>`
+
+Output:
+
+- `current_version`
+- `target_version`
+- `versions_behind`
+- `new_versions`
+- `features`
+- `migration_required`
+- `migration_ids`
+
+### `skills/plugin-upgrade-migrator/scripts/plan_migration.py`
+
+Input:
+
+- `--project <path>`
+- `--plugin-root <path>`
+- `--current-version <semver>`
+- `--target-version <semver>`
+- optional `--output <path>`
+
+Output:
+
+- `status`
+- `project`
+- `plugin_root`
+- `current_version`
+- `target_version`
+- `operations`
+- `summary`
+- `recommended_action`
+
+### `skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py`
+
+Input:
+
+- `--plan <json>`
+- optional `--apply`
+
+Output:
+
+- `status`
+- `plan`
+- `applied`
+- `skipped`
+- `summary`
+
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 
 Input:

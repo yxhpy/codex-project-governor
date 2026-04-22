@@ -79,6 +79,10 @@ When a task is non-trivial, the main Codex agent must automatically:
 
 Do not spawn subagents for `micro_patch` unless route-guard fails, confidence is low, or the target unexpectedly touches a shared/global component.
 
+## Project Governor upgrades
+
+When upgrading Project Governor, use `plugin-upgrade-migrator` behavior. Do not overwrite initialized project governance files blindly. Show new features, inspect `.project-governor/INSTALL_MANIFEST.json`, generate an upgrade plan, apply only safe operations, and leave user-modified files for manual review or three-way merge. Memory files are append-only and decision records must not be overwritten.
+
 ## Documentation updates
 
 Update docs when changing:

@@ -1,0 +1,40 @@
+{
+  "migrations": [
+    {
+      "id": "migration_0_4_3_plugin_upgrade_migrator",
+      "from": "0.4.2",
+      "to": "0.4.3",
+      "title": "Plugin Upgrade Migrator project files",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/INSTALL_MANIFEST.json",
+          "source": "templates/.project-governor/INSTALL_MANIFEST.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add install ledger for future safe migrations."
+        },
+        {
+          "op": "add_if_missing",
+          "path": "docs/upgrades/PLUGIN_UPGRADE_POLICY.md",
+          "source": "templates/docs/upgrades/PLUGIN_UPGRADE_POLICY.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add project-level plugin upgrade policy."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".codex/prompts/plugin-upgrade-migrator.md",
+          "source": "templates/.codex/prompts/plugin-upgrade-migrator.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Add upgrade migrator prompt."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "AGENTS.md",
+          "source": "templates/AGENTS.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Add plugin upgrade behavior without overwriting local AGENTS rules."
+        }
+      ]
+    }
+  ]
+}

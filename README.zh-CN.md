@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.4.2`
+当前版本：`0.4.3`
 
 ## 它解决什么问题
 
@@ -36,7 +36,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、自动 subagent 激活、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -55,6 +55,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `memory-compact` | 把近期活动压缩成项目记忆、风险和待确认问题。 |
 | `release-retro` | 把发布经验转成复盘、记忆和决策记录。 |
 | `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
+| `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
@@ -246,6 +247,7 @@ python3 skills/convention-miner/scripts/detect_repo_conventions.py /path/to/repo
 python3 skills/implementation-guard/scripts/check_iteration_compliance.py examples/guard-input.json
 python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-drift-input.json
 python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
+python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
 python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
 python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json

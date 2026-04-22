@@ -12,6 +12,9 @@
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
 - Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
 - Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
+- Plugin upgrade policy: `templates/docs/upgrades/PLUGIN_UPGRADE_POLICY.md`
+- Release feature matrix: `releases/FEATURE_MATRIX.json`
+- Release migrations: `releases/MIGRATIONS.json`
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`

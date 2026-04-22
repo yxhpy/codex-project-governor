@@ -1,0 +1,23 @@
+{
+  "plugin": {
+    "name": "codex-project-governor",
+    "installed_version": "0.4.1"
+  },
+  "generated_files": [
+    {
+      "path": "AGENTS.md",
+      "installed_sha256": "BASE_AGENTS",
+      "upgrade_policy": "three_way_merge"
+    },
+    {
+      "path": "docs/memory/PROJECT_MEMORY.md",
+      "installed_sha256": "BASE_MEMORY",
+      "upgrade_policy": "append_only"
+    },
+    {
+      "path": ".codex/config.toml",
+      "installed_sha256": "BASE_CONFIG",
+      "upgrade_policy": "merge_toml"
+    }
+  ]
+}

@@ -2,16 +2,16 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, activates project-scoped subagents, advises on upgrades, adds smart route guards, and supports scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations, and supports scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 24 bundled Codex skills under `skills/`.
+- 25 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
-- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for initialization, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -31,6 +31,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `memory-compact` | Compact recent activity into durable project memory. |
 | `release-retro` | Convert release learning into retrospectives, memory, and decision records. |
 | `upgrade-advisor` | Show version distance, requirement relevance, risk, and user-selectable upgrade choices before changing versions. |
+| `plugin-upgrade-migrator` | Show what changed between Project Governor versions, plan safe project-file migrations, and avoid overwriting initialized project customizations. |
 | `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
 | `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
 | `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
@@ -202,6 +203,16 @@ python3 skills/version-researcher/scripts/research_versions.py --manifest exampl
 python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 ```
 
+### Upgrade an initialized Project Governor project
+
+```text
+Use @project-governor plugin-upgrade-migrator.
+
+Show what is new, plan a safe migration, and do not overwrite my project customizations.
+```
+
+The migrator uses `CHANGELOG.md`, `releases/FEATURE_MATRIX.json`, `releases/MIGRATIONS.json`, and `.project-governor/INSTALL_MANIFEST.json` when present. It applies only safe add-if-missing or unchanged-file operations automatically; user-modified governance files remain manual review or three-way merge work.
+
 ### Compact memory
 
 ```text
@@ -244,6 +255,8 @@ python3 skills/convention-miner/scripts/detect_repo_conventions.py /path/to/repo
 python3 skills/implementation-guard/scripts/check_iteration_compliance.py examples/guard-input.json
 python3 skills/style-drift-check/scripts/check_style_drift.py examples/style-drift-input.json
 python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py examples/upgrade-candidates.json
+python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
+python3 skills/plugin-upgrade-migrator/scripts/plan_migration.py --project . --plugin-root . --current-version 0.4.2 --target-version 0.4.3
 python3 skills/version-researcher/scripts/research_versions.py --manifest examples/version-research-manifest.json --request "Need better memory and subagent governance"
 python3 skills/research-radar/scripts/score_research_candidates.py --manifest examples/research-candidates.json --need memory --need subagents --need research
 python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
@@ -276,6 +289,7 @@ The tests validate:
 - implementation guard detects rewrite risk, dependency changes, and unjustified new files
 - style drift check detects raw colors and unregistered components
 - upgrade advisor classifies candidates by version distance, requirement relevance, risk, and user-selectable action
+- plugin upgrade migrator compares features, plans safe migrations, detects user-modified files, and applies only safe operations
 - version researcher classifies release candidates by skipped versions, evidence quality, relevance, and risk
 - research radar classifies candidate capabilities by source quality, matched needs, risk, maturity, and user choices
 - task router classifies micro-patches and emits route guard requirements
