@@ -20,9 +20,13 @@ def sha(text: str) -> str:
 
 
 class ProjectHygieneDoctorTest(unittest.TestCase):
-    def run_doctor(self, project: Path, *extra: str) -> tuple[int, dict]:
+    def run_doctor(self, project: Path, *extra: str, plugin_root: Path | None = ROOT) -> tuple[int, dict]:
+        command = [PY, str(SCRIPT), "--project", str(project)]
+        if plugin_root:
+            command.extend(["--plugin-root", str(plugin_root)])
+        command.extend(extra)
         process = subprocess.run(
-            [PY, str(SCRIPT), "--project", str(project), "--plugin-root", str(ROOT), *extra],
+            command,
             text=True,
             capture_output=True,
             timeout=15,
@@ -99,10 +103,40 @@ class ProjectHygieneDoctorTest(unittest.TestCase):
             skill = project / "skills" / "x" / "SKILL.md"
             skill.parent.mkdir(parents=True)
             skill.write_text("---\nname: x\n---\n", encoding="utf-8")
+            agent = project / ".codex" / "agents" / "context-scout.toml"
+            prompt = project / ".codex" / "prompts" / "memory-compact.md"
+            config = project / ".codex" / "config.toml"
+            agent.parent.mkdir(parents=True)
+            prompt.parent.mkdir(parents=True)
+            agent.write_text('name = "context-scout"\n', encoding="utf-8")
+            prompt.write_text("Use memory compact.\n", encoding="utf-8")
+            config.write_text("[project]\n", encoding="utf-8")
 
-            code, report = self.run_doctor(project)
+            code, report = self.run_doctor(project, plugin_root=project)
             self.assertEqual(code, 0)
             self.assertEqual(report["status"], "clean")
+            classifications = {item["path"]: item["classification"] for item in report["findings"]}
+            self.assertEqual(classifications["skills/x/SKILL.md"], "plugin_repo_source")
+            self.assertEqual(classifications[".codex/agents/context-scout.toml"], "plugin_repo_runtime_asset")
+            self.assertEqual(classifications[".codex/prompts/memory-compact.md"], "plugin_repo_runtime_asset")
+            self.assertEqual(classifications[".codex/config.toml"], "plugin_repo_runtime_asset")
+
+    def test_copied_plugin_source_is_flagged_when_project_is_not_plugin_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            manifest = project / ".codex-plugin" / "plugin.json"
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(json.dumps({"name": "codex-project-governor"}), encoding="utf-8")
+            skill = project / "skills" / "x" / "SKILL.md"
+            skill.parent.mkdir(parents=True)
+            skill.write_text("---\nname: x\n---\n", encoding="utf-8")
+
+            code, report = self.run_doctor(project)
+            self.assertEqual(code, 2)
+            self.assertEqual(report["status"], "needs_manual_review")
+            classifications = {item["path"]: item["classification"] for item in report["findings"]}
+            self.assertEqual(classifications[".codex-plugin/plugin.json"], "plugin_source_leak")
+            self.assertEqual(classifications["skills/x/SKILL.md"], "plugin_source_leak")
 
     def test_common_project_tests_are_not_flagged_as_plugin_leaks(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

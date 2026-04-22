@@ -61,3 +61,21 @@ The hygiene doctor needs a skill entry, one deterministic helper script, a polic
 ## Rollback
 
 Revert this task's changed files and restore `.codex-plugin/plugin.json` version `0.4.3`.
+
+## Follow-up: Plugin Repository Self-Inspection
+
+Date: 2026-04-22
+
+Request: Running `project-hygiene-doctor` against this plugin repository should not report the repository's own `.codex/agents`, `.codex/prompts`, or `.codex/config.toml` as target-project hygiene findings.
+
+Existing pattern reused: keep the existing `inspect_project_hygiene.py` classifier and `tests/test_project_hygiene_doctor.py` unittest style. Preserve the existing JSON output fields.
+
+Expected changes: narrow classifier update, focused tests for plugin-root matching and copied plugin-source leaks, and API contract wording for plugin repository detection.
+
+Files not to change: no manifest version change, no release metadata change, no template-path change, no dependency or package files.
+
+Tests: `python3 tests/test_project_hygiene_doctor.py`, `python3 tests/selftest.py`, `python3 -m compileall skills tests`, and a direct hygiene inspection of this plugin repository.
+
+Risk: relying only on `.codex-plugin/plugin.json` can misclassify a target project that accidentally contains copied plugin metadata. Use `--plugin-root` identity when supplied.
+
+Rollback: revert the classifier, tests, and this follow-up note.

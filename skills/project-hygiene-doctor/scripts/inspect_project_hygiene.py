@@ -51,7 +51,9 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
-def is_plugin_repo(project: Path) -> bool:
+def is_plugin_repo(project: Path, plugin_root: Path | None = None) -> bool:
+    if plugin_root:
+        return project.resolve() == plugin_root.resolve()
     return load_json(project / ".codex-plugin" / "plugin.json").get("name") == "codex-project-governor"
 
 
@@ -113,6 +115,18 @@ def classify(project: Path, rel: str, tracked: dict[str, dict[str, Any]], plugin
             "ok",
             "keep",
             "This directory appears to be the Project Governor plugin repository itself.",
+            current_hash,
+            installed_hash,
+            policy,
+        )
+
+    if plugin_repo and (has_prefix(rel, GLOBAL_CODEX_PREFIXES) or rel in GLOBAL_CODEX_FILES):
+        return Finding(
+            rel,
+            "plugin_repo_runtime_asset",
+            "ok",
+            "keep",
+            "This .codex runtime asset belongs to the Project Governor plugin repository itself.",
             current_hash,
             installed_hash,
             policy,
@@ -187,7 +201,7 @@ def recommendation(status: str, safe: list[Finding], manual: list[Finding]) -> s
 def inspect(project: Path, plugin_root: Path | None = None, apply_changes: bool = False) -> dict[str, Any]:
     project = project.resolve()
     tracked = tracked_files(project)
-    plugin_repo = is_plugin_repo(project)
+    plugin_repo = is_plugin_repo(project, plugin_root)
     findings = [
         finding
         for path in iter_files(project)

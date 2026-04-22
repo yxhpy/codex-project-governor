@@ -330,6 +330,7 @@ Behavior:
 
 - Detects plugin-global source-like folders in non-plugin target projects.
 - Detects `.codex/agents`, `.codex/prompts`, and `.codex/config.toml` assets that should normally remain plugin-owned.
+- Treats the Project Governor plugin repository itself as clean only when `--project` matches `--plugin-root`, or when no `--plugin-root` is supplied and the project manifest identifies the plugin.
 - Never removes memory or decision files.
 - With `--apply`, quarantines only unchanged generated global assets under `.project-governor/hygiene-quarantine/`.
 

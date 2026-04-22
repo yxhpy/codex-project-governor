@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.4.4",
+  "current_latest": "0.4.5",
   "versions": [
     {
       "version": "0.4.1",
@@ -92,6 +92,26 @@
           "user_value": "Users can repair initialized projects and reduce upgrade conflicts.",
           "requires_project_migration": true,
           "migration_id": "migration_0_4_4_project_hygiene_doctor"
+        }
+      ]
+    },
+    {
+      "version": "0.4.5",
+      "title": "Hygiene Self-Inspection Fix",
+      "features": [
+        {
+          "id": "plugin_repo_self_inspection",
+          "name": "Plugin Repository Self-Inspection",
+          "summary": "Treats the Project Governor plugin repository itself as clean when --project matches --plugin-root, including its own .codex agents, prompts, and config.",
+          "user_value": "Plugin maintainers can run the hygiene doctor in this source repository without false target-project cleanup warnings.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "copied_plugin_source_detection",
+          "name": "Copied Plugin Source Detection",
+          "summary": "Keeps flagging copied plugin metadata and skills in downstream projects when they are not the configured plugin root.",
+          "user_value": "Target-project cleanup still catches accidental plugin-source leaks while the plugin repository can self-govern.",
+          "requires_project_migration": false
         }
       ]
     }

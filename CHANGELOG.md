@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.5 — Hygiene Self-Inspection Fix
+
+### Fixed
+
+- Fixed `project-hygiene-doctor` self-inspection for the Project Governor plugin repository: when `--project` matches `--plugin-root`, the repository's own `.codex/agents`, `.codex/prompts`, and `.codex/config.toml` are classified as plugin repository runtime assets instead of target-project cleanup findings.
+- Tightened plugin repository detection so a downstream target project that accidentally contains copied `.codex-plugin` or `skills` files is still flagged for manual review when it is not the configured plugin root.
+
 ## 0.4.4 — Project Hygiene Doctor
 
 ### Added

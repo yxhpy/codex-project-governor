@@ -1,6 +1,6 @@
 {
   "name": "codex-project-governor",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Codex Project Governor with clean project initialization, project hygiene cleanup, safe plugin upgrades, automatic workflow orchestration, subagent activation, model routing, and Smart Routing Guard.",
   "author": {
     "name": "yxhpy"

@@ -17,7 +17,7 @@ Do not write:
 |---|---|---|---|
 | Product | `codex-project-governor`, a Codex governance plugin | `README.md`, `.codex-plugin/plugin.json` | confirmed |
 | Primary user | Codex-powered maintainers and project teams that want repository-scoped governance | `README.md`, `skills/init-existing-project/SKILL.md`, `skills/pr-governance-review/SKILL.md` | inferred from evidence |
-| Current phase | v0.4.4 plugin with project hygiene doctor, clean initialization, plugin upgrade migration, routing, quality gates, and self-tests | `.codex-plugin/plugin.json`, `README.md`, `tests/selftest.py` | confirmed |
+| Current phase | v0.4.5 plugin with project hygiene self-inspection fix, clean initialization, plugin upgrade migration, routing, quality gates, and self-tests | `.codex-plugin/plugin.json`, `README.zh-CN.md`, `tests/selftest.py` | confirmed |
 | Success metric | Self-tests pass and initialized repositories receive governance templates without application-code changes | `README.md`, `tests/selftest.py`, `tools/init_project.py` | confirmed |
 
 ## Durable facts
@@ -29,6 +29,7 @@ Do not write:
 | 2026-04-22 | The initializer copies project-owned governance files from `templates/` by default, preserves existing files unless overwrite is requested, and exposes `--profile legacy-full` for bundled `.codex` runtime assets. | v0.4.4 release merge | confirmed | `tools/init_project.py`, `docs/architecture/API_CONTRACTS.md` |
 | 2026-04-21 | The repository has no application runtime, HTTP service, or local UI component implementation. | init-existing-project analysis | confirmed | `.mcp.json`, `README.md`, `assets/icon.png`, file tree |
 | 2026-04-22 | v0.4.4 introduces clean initialization by default and a `project-hygiene-doctor` workflow for diagnosing plugin-global assets in target projects. | v0.4.4 release merge | confirmed | `CHANGELOG.md`, `tools/init_project.py`, `skills/project-hygiene-doctor/SKILL.md`, `releases/0.4.4.md` |
+| 2026-04-22 | v0.4.5 fixes `project-hygiene-doctor` self-inspection so this plugin source repository can keep its own root `.codex` runtime assets while downstream copied plugin-source leaks still require manual review. | v0.4.5 release workflow | confirmed | `CHANGELOG.md`, `skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py`, `tests/test_project_hygiene_doctor.py`, `releases/0.4.5.md` |
 
 ## Durable decisions summary
 
@@ -57,4 +58,4 @@ See `REPEATED_AGENT_MISTAKES.md`.
 ## Last reviewed
 
 - Date: 2026-04-22
-- Reviewer: Codex v0.4.4 release workflow
+- Reviewer: Codex v0.4.5 release workflow
