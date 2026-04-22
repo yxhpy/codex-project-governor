@@ -345,6 +345,100 @@ Output:
 - `applied`
 - `recommendation`
 
+### `skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py`
+
+Input:
+
+- optional `--plugin-dir <path>`
+- optional `--repo-url <url>`
+- optional `--ref <git-ref>`
+- optional `--format {json,shell}`
+
+Output:
+
+- `status`
+- `plugin_dir`
+- `repo_url`
+- `ref`
+- `destructive_actions`
+- `commands`
+- `shell`
+- `notes`
+
+The default JSON output is instructions only. It does not remove or clone files itself.
+
+### `skills/clean-reinstall-manager/scripts/discover_governed_projects.py`
+
+Input:
+
+- repeated `--root <path>`
+- optional `--max-depth <number>`
+
+Output:
+
+- `status`
+- `project_count`
+- `projects[]`
+- `user_choices`
+
+Each project item includes `path`, `evidence`, `is_plugin_source`, and `recommendation`.
+
+### `skills/clean-reinstall-manager/scripts/refresh_project_governance.py`
+
+Input:
+
+- `--project <path>`
+- `--plugin-root <path>`
+- optional `--apply`
+- optional `--delete-trash`
+- optional `--force`
+
+Behavior:
+
+- Stops when `--project` matches `--plugin-root` unless `--force` is supplied.
+- Adds missing project-owned governance templates from `templates/`.
+- Preserves memory and decision files.
+- Merges missing markdown sections when headings are absent.
+- Quarantines plugin-global noise under `.project-governor/trash/<timestamp>/` by default.
+- Deletes noise only when `--delete-trash` is explicitly supplied with `--apply`.
+
+Output:
+
+- `status`
+- `project`
+- `plugin_root`
+- `trash_root`
+- `summary`
+- `operations`
+- `delete_trash`
+- `notes`
+
+Stop outputs use `status=not_project_stop` or `status=plugin_root_stop`.
+
+### `skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py`
+
+Input:
+
+- optional `--path <path>`
+- required `--plugin-root <path>`
+- repeated `--discover-root <path>`
+- optional `--select <ignore|all|comma-separated-paths>`
+- optional `--apply`
+- optional `--delete-trash`
+
+Output:
+
+- `status`
+- `current_path`
+- `reinstall`
+- `discovered_projects` when outside a governed project
+- `refresh` when inside a governed target project
+- `applied` when selected discovered projects are refreshed
+- `user_choices`
+- `next_commands`
+
+The orchestrator stops without modifying files when the current path is not a governed project or when it is the plugin root.
+
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 
 Input:

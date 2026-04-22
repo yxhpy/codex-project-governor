@@ -11,6 +11,7 @@
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
 - 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
+- 需要重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -117,6 +118,7 @@ python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-mic
 python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
+python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -225,7 +227,28 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 ```
 
-## 9. 压缩项目记忆
+## 9. 干净重装或刷新治理项目
+
+v0.4.6 起，`clean-reinstall-manager` 可以生成用户级插件重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+
+```text
+Use @project-governor clean-reinstall-manager.
+
+Cleanly reinstall the user-level Project Governor plugin and refresh initialized projects without polluting project directories.
+```
+
+常用脚本：
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.6
+python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
+python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
+python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
+```
+
+如果当前目录不是 Project Governor 项目，orchestrator 会停止并列出发现的项目，不会修改当前目录。
+
+## 10. 压缩项目记忆
 
 适合阶段性维护、长会话后整理、发布后复盘。
 
@@ -246,7 +269,7 @@ Do not modify application code.
 - 风险写入 `docs/memory/RISK_REGISTER.md`。
 - 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
 
-## 10. PR 或分支治理审查
+## 11. PR 或分支治理审查
 
 ```text
 Use @project-governor pr-governance-review.
@@ -264,7 +287,7 @@ Return blockers, warnings, and required patches.
 - 是否遗漏测试和文档更新。
 - 是否需要把重复问题沉淀进 memory 或 AGENTS.md。
 
-## 11. 发布前检查
+## 12. 发布前检查
 
 发布插件变更前建议执行：
 
@@ -283,7 +306,7 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 - 相关 `templates/` 文件
 - 相关 `docs/` 或任务计划
 
-## 12. 常见误区
+## 13. 常见误区
 
 - 不要把 Project Governor 当应用框架；它是治理插件和模板包。
 - 不要在初始化已有项目时顺手修改应用代码。

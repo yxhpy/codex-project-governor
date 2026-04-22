@@ -1,0 +1,6 @@
+{
+  "path": ".",
+  "plugin_root": "/path/to/codex-project-governor",
+  "select": "ignore",
+  "apply": false
+}

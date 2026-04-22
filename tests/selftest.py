@@ -18,7 +18,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.4.5")
+        self.assertEqual(manifest["version"], "0.4.6")
         self.assertIn("safe plugin upgrades", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
@@ -26,12 +26,13 @@ class ProjectGovernorSelfTest(unittest.TestCase):
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 26)
+        self.assertGreaterEqual(len(skill_dirs), 27)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
             "plugin-upgrade-migrator",
             "project-hygiene-doctor",
+            "clean-reinstall-manager",
             "research-radar",
             "task-router",
             "route-guard",
@@ -69,11 +70,13 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/prompts/upgrade-advisor.md",
             ".codex/prompts/plugin-upgrade-migrator.md",
             ".codex/prompts/project-hygiene-doctor.md",
+            ".codex/prompts/clean-reinstall-manager.md",
             ".codex/hooks/check_iteration_compliance.py",
             ".project-governor/INSTALL_MANIFEST.json",
             "docs/upgrades/UPGRADE_POLICY.md",
             "docs/upgrades/UPGRADE_REGISTER.md",
             "docs/upgrades/PLUGIN_UPGRADE_POLICY.md",
+            "docs/upgrades/CLEAN_REINSTALL_POLICY.md",
             "docs/research/RESEARCH_POLICY.md",
             "docs/research/RESEARCH_REGISTER.md",
             "docs/upgrades/RELEASE_RESEARCH_POLICY.md",
@@ -126,12 +129,13 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.4.5", readme)
+        self.assertIn("0.4.6", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
         self.assertIn("plugin-upgrade-migrator", readme)
         self.assertIn("project-hygiene-doctor", readme)
+        self.assertIn("clean-reinstall-manager", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("memory-compact", usage)

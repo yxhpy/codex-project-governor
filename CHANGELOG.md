@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.6 - Clean Reinstall Manager
+
+### Added
+
+- Added `clean-reinstall-manager` skill for user-level plugin reinstall planning, governed-project discovery, and safe initialized-project refresh.
+- Added deterministic helpers for reinstall instruction generation, governed project discovery, refresh planning, and orchestrated clean reinstall workflows.
+- Added `CLEAN_REINSTALL_POLICY.md`, a clean reinstall prompt template, release metadata, and tests for the new workflow.
+
+### Fixed
+
+- The clean refresh helper stops when the requested project path is the Project Governor plugin root, avoiding accidental quarantine of plugin-owned `skills/`, `templates/`, or `releases/` assets.
+
 ## 0.4.5 — Hygiene Self-Inspection Fix
 
 ### Fixed

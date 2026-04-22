@@ -1,0 +1,20 @@
+{
+  "version": "0.4.6",
+  "title": "Clean Reinstall Manager",
+  "features": [
+    {
+      "id": "clean_reinstall_manager",
+      "name": "Clean Reinstall Manager",
+      "summary": "Adds a skill and deterministic helpers for user-level plugin reinstall, governed-project discovery, and clean project refresh.",
+      "user_value": "Users can reinstall the plugin and refresh initialized projects without copying plugin-global assets or overwriting project customizations.",
+      "requires_project_migration": false
+    },
+    {
+      "id": "project_refresh_trash",
+      "name": "Project refresh trash/quarantine",
+      "summary": "Moves plugin-global noise to .project-governor/trash/<timestamp>/ instead of deleting it.",
+      "user_value": "Projects can be cleaned while preserving recoverability.",
+      "requires_project_migration": false
+    }
+  ]
+}

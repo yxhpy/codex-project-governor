@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.4.5`
+当前版本：`0.4.6`
 
 ## 它解决什么问题
 
@@ -36,7 +36,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、项目卫生检查、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用任务路由、微补丁路由、route guard、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -57,6 +57,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
 | `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
 | `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
+| `clean-reinstall-manager` | 生成用户级插件重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
@@ -229,6 +230,28 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 
 ```bash
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor --apply
+```
+
+### 干净重装或刷新治理项目
+
+当需要重装用户级插件，或刷新已初始化项目的治理文件但不复制插件全局资产时，使用 `clean-reinstall-manager`。
+
+生成用户级重装命令：
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.6
+```
+
+从项目外发现已治理仓库：
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
+```
+
+在已治理项目内生成安全刷新计划：
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 ```
 
 ### 实现新能力前做研究雷达

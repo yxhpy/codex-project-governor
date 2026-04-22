@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.4.5",
+  "current_latest": "0.4.6",
   "versions": [
     {
       "version": "0.4.1",
@@ -111,6 +111,26 @@
           "name": "Copied Plugin Source Detection",
           "summary": "Keeps flagging copied plugin metadata and skills in downstream projects when they are not the configured plugin root.",
           "user_value": "Target-project cleanup still catches accidental plugin-source leaks while the plugin repository can self-govern.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "0.4.6",
+      "title": "Clean Reinstall Manager",
+      "features": [
+        {
+          "id": "clean_reinstall_manager",
+          "name": "Clean Reinstall Manager",
+          "summary": "Adds a skill and deterministic helpers for user-level plugin reinstall, governed-project discovery, and clean project refresh.",
+          "user_value": "Users can reinstall the plugin and refresh initialized projects without copying plugin-global assets or overwriting project customizations.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "project_refresh_trash",
+          "name": "Project refresh trash/quarantine",
+          "summary": "Moves plugin-global noise to .project-governor/trash/<timestamp>/ instead of deleting it.",
+          "user_value": "Projects can be cleaned while preserving recoverability.",
           "requires_project_migration": false
         }
       ]
