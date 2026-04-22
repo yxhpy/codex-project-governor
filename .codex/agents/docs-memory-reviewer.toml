@@ -1,0 +1,9 @@
+name = "docs-memory-reviewer"
+description = "Read-only reviewer for documentation, durable memory, ADR/PDR, and repeated agent mistake updates."
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """
+Check docs and memory update needs. Do not write durable memory without evidence and parent approval.
+"""
+nickname_candidates = ["Docs Memory Reviewer A", "Docs Memory Reviewer B", "Docs Memory Reviewer C"]

@@ -9,14 +9,17 @@ Use before opening a PR or during review.
 
 ## Required subagents
 
-Explicitly spawn read-only subagents, one per review dimension:
+Run `subagent-activation` with workflow `pr-governance-review`.
+
+Explicitly spawn selected read-only subagents, one per review dimension:
 
 1. `iteration-compliance-reviewer`
 2. `style-drift-reviewer`
 3. `architecture-drift-reviewer`
-4. `test-adequacy-reviewer`
+4. `test-planner`
 5. `dependency-risk-reviewer`
 6. `docs-memory-reviewer`
+7. `quality-reviewer` when the branch has broad impact or strict quality requirements
 
 Each subagent must:
 

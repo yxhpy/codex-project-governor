@@ -9,23 +9,29 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 1. Plugin metadata
    - `.codex-plugin/plugin.json`
    - `.mcp.json`
-2. Skill workflows
+2. Project-scoped Codex configuration
+   - `.codex/config.toml`
+   - `.codex/agents/*.toml`
+   - `.codex/prompts/*.md`
+   - `.codex/rules/project.rules`
+   - `.codex/hooks/**`
+3. Skill workflows
    - `skills/<skill>/SKILL.md`
    - Optional deterministic scripts under `skills/<skill>/scripts/`
-3. Template payload
+4. Template payload
    - `templates/AGENTS.md`
    - `templates/docs/**`
    - `templates/.codex/**`
    - `templates/tasks/_template/**`
-4. Initializer and compatibility tools
+5. Initializer and compatibility tools
    - `tools/init_project.py`
    - `tools/init_existing_project.py`
-5. Examples and fixtures
+6. Examples and fixtures
    - `examples/*.json`
    - `examples/cron/**`
    - `examples/launchd/**`
    - `examples/github-actions/**`
-6. Validation
+7. Validation
    - `tests/selftest.py`
    - `.github/workflows/selftest.yml`
 

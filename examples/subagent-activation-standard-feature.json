@@ -1,0 +1,7 @@
+{
+  "workflow": "parallel-feature-builder",
+  "route": "standard_feature",
+  "quality_level": "standard",
+  "confidence": 0.78,
+  "request": "Add a streaming dashboard widget that reuses the existing card layout."
+}

@@ -1,6 +1,6 @@
 ---
 name: version-researcher
-description: Research candidate release versions before upgrade decisions. Use before upgrade-advisor when users ask what changed in newer versions, which releases are relevant, or whether a next version is worth adopting.
+description: Research candidate release versions before upgrade decisions, automatically activating read-only release/risk/docs subagents when multiple versions or unclear evidence are involved.
 ---
 
 # Version Researcher
@@ -10,6 +10,12 @@ description: Research candidate release versions before upgrade decisions. Use b
 Turn release information into a structured, auditable research brief before any upgrade is planned or applied.
 
 This skill is advisory only. It must not edit manifests, lockfiles, application code, or install packages.
+
+## Automatic Subagent Activation
+
+When multiple versions, unclear evidence, security risk, migration risk, or project-wide impact exists, run `subagent-activation` with workflow `version-researcher`.
+
+Spawn selected read-only subagents, wait for all results, and consolidate evidence before `upgrade-advisor` is used.
 
 ## Use when
 

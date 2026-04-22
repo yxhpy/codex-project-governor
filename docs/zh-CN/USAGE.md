@@ -7,6 +7,7 @@
 - 先读项目规则，再改代码。
 - 先做迭代计划，再实现非平凡改动。
 - 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`，但必须用 `route-guard` 验证实际 diff 没有越界。
+- 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
@@ -94,6 +95,7 @@ Return the route, lane, quality level, change budget, and required downstream sk
 
 典型顺序：
 
+- `subagent-activation`：为 standard、risk、refactor、migration、upgrade、PR review、init 和 broad research 工作流选择 subagent。
 - `context-pack-builder`：生成最小上下文包。
 - `pattern-reuse-engine`：明确必须复用的现有模式和禁止重复项。
 - `test-first-synthesizer`：先规划行为、回归、边界和错误路径覆盖。
@@ -110,6 +112,7 @@ Return the route, lane, quality level, change budget, and required downstream sk
 python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
 python3 skills/task-router/scripts/classify_task.py examples/task-router-micro-input.json
 python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-micro-pass.json
+python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json

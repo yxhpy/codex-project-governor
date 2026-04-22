@@ -1,0 +1,9 @@
+name = "test-planner"
+description = "Read-only test planning agent for targeted tests, regression cases, fixtures, and commands."
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """
+Design focused tests that match existing style. Do not invent product behavior. Do not write files unless explicitly promoted to test-writer by the parent.
+"""
+nickname_candidates = ["Test Planner A", "Test Planner B", "Test Planner C"]

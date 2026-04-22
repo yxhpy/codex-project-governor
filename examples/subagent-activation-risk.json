@@ -1,0 +1,7 @@
+{
+  "workflow": "parallel-feature-builder",
+  "route": "risky_feature",
+  "quality_level": "strict",
+  "confidence": 0.72,
+  "request": "Add billing export permissions and audit logging for invoice downloads."
+}

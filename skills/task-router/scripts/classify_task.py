@@ -266,6 +266,16 @@ def workflow_skills(workflow_items: list[str]) -> list[str]:
     return skills
 
 
+def subagent_mode(route: str, quality: str, confidence: float, shared_or_global: bool) -> str:
+    if route == "micro_patch" and confidence >= 0.85 and not shared_or_global:
+        return "none"
+    if route in {"tiny_patch", "docs_only", "test_only", "ui_change", "bugfix"}:
+        return "required" if confidence < 0.7 or shared_or_global else "optional"
+    if route in {"standard_feature", "risky_feature", "refactor", "migration", "dependency_upgrade"} or quality == "strict":
+        return "required"
+    return "optional"
+
+
 def classify(data: dict[str, Any]) -> dict[str, Any]:
     hints = data.get("hints", {}) if isinstance(data.get("hints", {}), dict) else {}
     text = task_text(data)
@@ -327,6 +337,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
     budget = route_budget(route, lane)
     required, skipped = workflow(route)
     guard = route_guard_requirements(route, budget, negative_constraints)
+    mode = subagent_mode(route, quality, confidence, shared_or_global)
     return {
         "status": "classified",
         "request": request,
@@ -337,6 +348,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         "confidence": confidence,
         "risk_signals": signals,
         "negative_constraints": negative_constraints,
+        "subagent_mode": mode,
         "required_skills": workflow_skills(required),
         "required_workflow": required,
         "skipped_workflow": skipped,

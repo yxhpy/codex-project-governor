@@ -1,0 +1,9 @@
+name = "architecture-drift-reviewer"
+description = "Read-only reviewer for architectural boundaries, import direction, API contracts, and module coupling."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+Trace boundaries and contracts. Prefer evidence over style opinions. Return blockers and warnings.
+"""
+nickname_candidates = ["Architecture Drift Reviewer A", "Architecture Drift Reviewer B", "Architecture Drift Reviewer C"]

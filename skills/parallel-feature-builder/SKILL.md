@@ -7,19 +7,28 @@ description: Implement a feature through a quality-gated subagent pipeline that 
 
 Use after task route, context pack, pattern reuse plan, test plan, and change budget exist.
 
+## Automatic subagent activation
+
+Run `subagent-activation` with workflow `parallel-feature-builder`.
+
+The user should not have to choose implementation or review agents manually. Use selected project-scoped agents from `.codex/agents/` when present.
+
+For `micro_patch`, do not spawn subagents unless route-guard fails, confidence is low, or the target unexpectedly touches shared/global scope.
+
 ## Safety rule
 
 Do not let multiple write agents modify overlapping production code. Use parallel read-only subagents first, then one implementation writer, then one bounded test writer.
 
 ## Pipeline
 
-1. Spawn read-only `context-scout`, `pattern-reuse-scout`, `risk-scout`, and `test-planner`.
-2. Consolidate scope and change budget.
-3. Use one implementation writer for the smallest coherent production patch.
-4. Use one test writer for tests and fixtures.
-5. Run `quality-gate`.
-6. Use `repair-loop` only if the gate fails.
-7. Run `merge-readiness`.
+1. Run `subagent-activation`.
+2. Spawn selected read-only scouts and wait for all results.
+3. Consolidate scope and change budget.
+4. Use one implementation writer for the smallest coherent production patch.
+5. Use one test writer for tests and fixtures.
+6. Run `quality-gate`.
+7. Use `repair-loop` only if the gate fails.
+8. Run `merge-readiness`.
 
 ## Output
 

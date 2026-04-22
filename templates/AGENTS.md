@@ -64,6 +64,21 @@ For coding work where speed matters, use the acceleration pipeline instead of ad
 
 Use `micro_patch` only for explicit local style/copy changes. If actual diff exceeds route guard, stop and reroute. Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
 
+## Automatic skill and subagent activation
+
+The user should not need to manually list subagents or pick models after Project Governor initialization.
+
+When a task is non-trivial, the main Codex agent must automatically:
+
+1. Run `task-router` or infer the current route if a route already exists.
+2. Run `subagent-activation` when the route or downstream skill has `subagent_mode` of `optional` or `required`.
+3. Use project-scoped agents from `.codex/agents/` when present.
+4. Use `gpt-5.4-mini` for read-heavy scouting and low-risk support work.
+5. Use `gpt-5.4` with medium/high reasoning for implementation, risk review, architecture review, security-sensitive work, and final quality review.
+6. Explicitly spawn the selected subagents, wait for all read-only subagents, consolidate their findings, and only then write code.
+
+Do not spawn subagents for `micro_patch` unless route-guard fails, confidence is low, or the target unexpectedly touches a shared/global component.
+
 ## Documentation updates
 
 Update docs when changing:

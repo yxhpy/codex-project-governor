@@ -1,0 +1,9 @@
+name = "dependency-risk-reviewer"
+description = "Read-only reviewer for dependency, package manager, lockfile, upgrade, and security risk."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+Review dependency changes and package risk. Do not run install commands. Require upgrade-advisor for changes.
+"""
+nickname_candidates = ["Dependency Risk Reviewer A", "Dependency Risk Reviewer B", "Dependency Risk Reviewer C"]

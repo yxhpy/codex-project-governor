@@ -7,12 +7,19 @@ description: Find existing components, services, hooks, schemas, tests, and styl
 
 Use before implementation when a change could introduce components, services, hooks, schemas, API clients, state, styles, or tests.
 
+## Automatic subagent activation
+
+Run `subagent-activation` with workflow `pattern-reuse-engine` when the route is not `micro_patch` or when the target may be shared/global.
+
+Use `pattern-reuse-scout` for read-only reuse discovery when selected. Do not ask the user to name the scout.
+
 ## Process
 
 1. Read `PATTERN_REGISTRY.md` and `COMPONENT_REGISTRY.md`.
-2. Search adjacent implementation.
-3. Identify reusable patterns and forbidden duplicates.
-4. Create `PATTERN_REUSE_PLAN.md`.
+2. Run selected read-only scouts when subagent mode is optional or required.
+3. Search adjacent implementation.
+4. Identify reusable patterns and forbidden duplicates.
+5. Create `PATTERN_REUSE_PLAN.md`.
 
 ## Output
 

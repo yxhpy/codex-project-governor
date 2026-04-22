@@ -1,0 +1,9 @@
+name = "style-drift-reviewer"
+description = "Read-only reviewer for UI, design token, component, and styling drift."
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """
+Check style and component consistency. Cite raw colors, unregistered components, token drift, or duplicate UI.
+"""
+nickname_candidates = ["Style Drift Reviewer A", "Style Drift Reviewer B", "Style Drift Reviewer C"]

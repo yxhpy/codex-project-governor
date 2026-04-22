@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.4.1`
+当前版本：`0.4.2`
 
 ## 它解决什么问题
 
@@ -36,7 +36,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用任务路由、微补丁路由、route guard、自动 subagent 激活、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -59,6 +59,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
 | `route-guard` | 验证实际 diff 是否仍符合 task-router 选定的路由，尤其是 `micro_patch` 和 fast-lane 改动。 |
+| `subagent-activation` | 按 route、workflow、风险、质量等级和置信度选择项目级 subagent 与模型策略，避免用户手动列 subagent。 |
 | `context-pack-builder` | 构建最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
 | `pattern-reuse-engine` | 找出现有组件、服务、hook、schema、测试和样式模式，避免重复造新模式。 |
 | `parallel-feature-builder` | 用质量门约束的子代理流水线实现功能：先只读分析，再单一实现者，再测试、审查和修复。 |
@@ -183,6 +184,7 @@ Return the route, lane, quality level, change budget, and required downstream sk
 
 - `task-router` 选择 route、lane、quality level 和 change budget。
 - `route-guard` 验证 fast-lane 或 `micro_patch` 的实际 diff 是否越界。
+- `subagent-activation` 为非平凡任务选择项目级 subagent 和模型策略。
 - `context-pack-builder` 建上下文包。
 - `pattern-reuse-engine` 固定必须复用的模式和禁止重复项。
 - `test-first-synthesizer` 先规划行为和回归覆盖。
@@ -249,6 +251,7 @@ python3 skills/research-radar/scripts/score_research_candidates.py --manifest ex
 python3 skills/task-router/scripts/classify_task.py examples/task-router-input.json
 python3 skills/task-router/scripts/classify_task.py examples/task-router-micro-input.json
 python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-micro-pass.json
+python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json

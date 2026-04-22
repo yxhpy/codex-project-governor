@@ -185,6 +185,7 @@ Output includes:
 - `confidence`
 - `risk_signals`
 - `negative_constraints`
+- `subagent_mode`
 - `required_skills`
 - `required_workflow`
 - `skipped_workflow`
@@ -211,6 +212,33 @@ Output:
 - `summary`
 
 The script exits non-zero when route guard violations are present.
+
+### `skills/subagent-activation/scripts/select_subagents.py`
+
+Input JSON fields include:
+
+- `workflow`
+- `skill`
+- `route`
+- `quality_level`
+- `quality_gate`
+- `confidence`
+- `subagent_mode`
+- `target_is_shared_component`
+- `repair_expected`
+
+Output:
+
+- `status`
+- `subagent_mode`
+- `route`
+- `workflow`
+- `selected_agents`
+- `skipped_agents`
+- `model_strategy`
+- `spawn_instructions`
+- `wait_policy`
+- `write_policy`
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 

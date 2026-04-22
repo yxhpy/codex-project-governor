@@ -1,6 +1,6 @@
 ---
 name: init-existing-project
-description: Initialize an existing repository for strict iterative Codex development by mining conventions and creating governance files without modifying application code.
+description: Initialize an existing repository for strict iterative Codex development by mining conventions and creating governance files without modifying application code, using automatic read-only subagent activation.
 ---
 
 # Init Existing Project
@@ -18,17 +18,19 @@ Use this skill when code already exists and the goal is to make the project self
 
 ## Required subagent workflow
 
-Explicitly spawn read-only subagents. Each subagent must cite file paths, distinguish confirmed facts from guesses, avoid writing files, and return concise findings.
+Run `subagent-activation` with workflow `init-existing-project`.
 
-1. `repo-cartographer`: map directories, entrypoints, package boundaries, generated folders, and ignored folders.
-2. `architecture-archeologist`: infer architectural layers, dependency direction, service boundaries, and risky coupling.
-3. `style-miner`: infer naming, formatting, error handling, logging, async, state, and data-fetching patterns.
-4. `component-miner`: infer UI components, design tokens, layout conventions, and reusable patterns.
-5. `test-miner`: infer test frameworks, test commands, test naming, fixtures, mocks, and coverage expectations.
-6. `dependency-risk-miner`: identify package manager, lockfile, dependency patterns, duplicate libraries, and risky additions.
-7. `api-contract-miner`: infer API routes, schema, response shapes, status codes, and error formats.
-8. `product-doc-miner`: infer product identity from README, docs, route names, UI copy, examples, and comments.
-9. `memory-candidate-miner`: find durable facts, open questions, repeated mistakes, risks, and decision candidates.
+Explicitly spawn selected read-only subagents. Each subagent must cite file paths, distinguish confirmed facts from guesses, avoid writing files, and return concise findings.
+
+Preferred project-scoped roles:
+
+1. `context-scout`: map directories, entrypoints, package boundaries, generated folders, and ignored folders.
+2. `architecture-drift-reviewer`: infer architectural layers, dependency direction, service boundaries, and risky coupling.
+3. `style-drift-reviewer`: infer naming, formatting, UI components, design tokens, and layout conventions.
+4. `pattern-reuse-scout`: identify reusable patterns, services, hooks, schemas, and duplicate risks.
+5. `test-planner`: infer test frameworks, test commands, test naming, fixtures, mocks, and coverage expectations.
+6. `dependency-risk-reviewer`: identify package manager, lockfile, dependency patterns, duplicate libraries, and risky additions.
+7. `docs-memory-reviewer`: infer product identity, durable facts, open questions, repeated mistakes, risks, and decision candidates.
 
 ## Consolidation
 

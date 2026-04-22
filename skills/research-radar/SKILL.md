@@ -44,15 +44,16 @@ Prefer sources in this order:
 
 If online research is unavailable, say that the run is offline and use only local docs, release notes, and user-provided evidence.
 
-## Subagent workflow
+## Automatic Subagent Activation
 
-When the user explicitly asks for subagents, delegation, or parallel research, spawn read-only subagents for broad research:
+Run `subagent-activation` with workflow `research-radar` when research is broad, evidence is unclear, or multiple options must be compared.
 
-1. `official-docs-researcher`: read official docs, changelogs, and feature maturity notes.
-2. `compatibility-risk-researcher`: identify breaking changes, sandbox/security implications, and unsupported platforms.
-3. `implementation-fit-researcher`: map each finding to Project Governor's existing skills, templates, and scripts.
-4. `alternative-pattern-researcher`: compare Claude, Letta, Hermes, OpenClaw, or other relevant systems when requested.
-5. `roadmap-synthesizer`: consolidate evidence into release candidates and user choices.
+Spawn selected read-only subagents for broad research:
+
+1. `context-scout`: find local docs, relevant skills, templates, scripts, and examples.
+2. `risk-scout`: identify breaking changes, sandbox/security implications, and unsupported platforms.
+3. `docs-memory-reviewer`: identify documentation, memory, ADR/PDR, and research artifact requirements.
+4. `quality-reviewer`: consolidate evidence into adoption choices and blocking risks.
 
 Each subagent must:
 

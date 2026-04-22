@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "0.4.1",
-  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, research gates, subagent audits, quality-gated acceleration, smart route guardrails, drift checks, upgrade advice, and scheduled memory compaction.",
+  "version": "0.4.2",
+  "description": "Initialize and govern Codex-ready projects with memory layers, iteration discipline, explicit project-scoped subagent activation, model routing, smart route guardrails, quality-gated acceleration, drift checks, upgrade advice, and scheduled memory compaction.",
   "author": {
     "name": "yxhpy"
   },
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Project Governor",
     "shortDescription": "Project initialization, memory, and governance for Codex",
-    "longDescription": "A Codex governance plugin that initializes empty or existing repositories, researches candidate capabilities and releases before implementation, accelerates coding through task routing, context packs, pattern reuse, parallel subagent pipelines, route guard validation, quality gates, repair loops, and merge readiness checks, while enforcing iteration-first development, drift checks, memory compaction, and upgrade advice.",
+    "longDescription": "A Codex governance plugin that initializes repositories with project-scoped custom subagents, model-routing policy, smart task routing, context packs, pattern reuse, quality-gated subagent pipelines, route guard validation, repair loops, merge readiness, memory compaction, research gates, and upgrade advice.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
@@ -43,7 +43,9 @@
       "Use Project Governor to implement this feature through the quality-gated parallel feature builder.",
       "Use Project Governor to run a quality gate, repair loop if needed, and merge-readiness review.",
       "Use Project Governor to route simple explicit edits through micro_patch when safe.",
-      "Use Project Governor route-guard to verify the actual diff still fits the selected route."
+      "Use Project Governor route-guard to verify the actual diff still fits the selected route.",
+      "Use Project Governor subagent-activation automatically when a routed task requires or benefits from parallel subagents.",
+      "Use project-scoped .codex/agents roles and model routing to balance speed and quality without requiring the user to specify subagents manually."
     ]
   }
 }

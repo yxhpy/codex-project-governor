@@ -28,7 +28,8 @@ Use before implementation when speed matters but quality gates must remain intac
 4. Produce a change budget.
 5. Select downstream skills.
 6. Produce route guard requirements for fast or constrained routes.
-7. Do not implement code.
+7. Select `subagent_mode`: `none`, `optional`, or `required`.
+8. Do not implement code.
 
 ## Micro Patch Route
 
@@ -44,6 +45,12 @@ Use `micro_patch` only when all are true:
 
 `micro_patch` skips context packs, pattern reuse, feature-builder, test-first synthesis, and subagent audit. It still requires direct edit, route guard, and a light quality gate.
 
+## Subagent Mode
+
+- `none`: `micro_patch` with high confidence. Do not spawn subagents unless route-guard fails.
+- `optional`: small UI, bugfix, test-only, or docs-only work where confidence is lower or target impact is uncertain.
+- `required`: standard features, risky features, refactors, migrations, dependency upgrades, PR governance, initialization, and broad research.
+
 ## Negative Constraints
 
 Phrases such as "do not change API", "don't touch schema", "不要改接口", "不要改 schema", "no new files", or "without adding dependencies" are guardrails, not risk intent. Convert them into route guard requirements.
@@ -54,4 +61,4 @@ Escalate from `micro_patch` when the target is shared/global, when more files ar
 
 ## Output
 
-Return route, lane, quality level, risk signals, negative constraints, required skills, skipped workflow, change budget, route guard requirements, and escalation triggers.
+Return route, lane, quality level, subagent mode, risk signals, negative constraints, required skills, skipped workflow, change budget, route guard requirements, and escalation triggers.

@@ -18,7 +18,9 @@
 - Change budget policy: `docs/quality/CHANGE_BUDGET_POLICY.md`
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
 - Route guard policy: `docs/quality/ROUTE_GUARD_POLICY.md`
+- Subagent activation policy: `docs/quality/SUBAGENT_ACTIVATION_POLICY.md`
 - Smart routing guard brief: `docs/research/V0.4.1_SMART_ROUTING_GUARD.md`
+- Explicit subagent activation brief: `docs/research/V0.4.2_EXPLICIT_SUBAGENT_ACTIVATION.md`
 
 If implementation conflicts with these files, create or update a decision record first.
 
