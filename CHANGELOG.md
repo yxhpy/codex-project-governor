@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0 - GPT-5.5 Auto Orchestration
+
+### Added
+
+- Added `gpt55-auto-orchestrator` skill for automatic workflow, model, subagent, context-budget, and quality-gate selection.
+- Added `context-indexer` skill plus deterministic context index build/query helpers.
+- Added project-owned GPT-5.5 runtime mode template under `.project-governor/runtime/`.
+- Added clean reinstall helper support for applying latest runtime mode to current or discovered governed projects.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Project runtime mode and context files are project-owned `.project-governor/` state.
+- Plugin-global `.codex` agents, prompts, and config remain outside clean target-project initialization unless legacy-full is explicitly requested.
+
 ## 0.4.7 - DESIGN.md Governor
 
 ### Added

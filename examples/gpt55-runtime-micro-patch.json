@@ -1,0 +1,9 @@
+{
+  "request": "Only change src/pages/settings/page.tsx title margin-top from 16px to 12px. Do not change API or schema.",
+  "available_models": [
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini"
+  ],
+  "prefer_speed": true
+}

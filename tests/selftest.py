@@ -18,15 +18,15 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.4.7")
-        self.assertIn("safe plugin upgrades", manifest["description"])
+        self.assertEqual(manifest["version"], "0.5.0")
+        self.assertIn("GPT-5.5 auto orchestration", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 28)
+        self.assertGreaterEqual(len(skill_dirs), 30)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
@@ -34,6 +34,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "project-hygiene-doctor",
             "clean-reinstall-manager",
             "design-md-governor",
+            "gpt55-auto-orchestrator",
+            "context-indexer",
             "research-radar",
             "task-router",
             "route-guard",
@@ -73,8 +75,11 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/prompts/project-hygiene-doctor.md",
             ".codex/prompts/clean-reinstall-manager.md",
             ".codex/prompts/design-md-governor.md",
+            ".codex/prompts/gpt55-auto-orchestrator.md",
+            ".codex/prompts/context-indexer.md",
             ".codex/hooks/check_iteration_compliance.py",
             ".project-governor/INSTALL_MANIFEST.json",
+            ".project-governor/runtime/GPT55_RUNTIME_MODE.json",
             "docs/upgrades/UPGRADE_POLICY.md",
             "docs/upgrades/UPGRADE_REGISTER.md",
             "docs/upgrades/PLUGIN_UPGRADE_POLICY.md",
@@ -127,6 +132,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         required = [
             "design-md/DESIGN.md.template",
             "design-md/DESIGN_MD_POLICY.md",
+            "runtime/GPT55_AUTO_ORCHESTRATION_POLICY.md",
         ]
         for rel in required:
             self.assertTrue((ROOT / "managed-assets" / rel).exists(), rel)
@@ -139,7 +145,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.4.7", readme)
+        self.assertIn("0.5.0", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -147,9 +153,13 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("project-hygiene-doctor", readme)
         self.assertIn("clean-reinstall-manager", readme)
         self.assertIn("design-md-governor", readme)
+        self.assertIn("gpt55-auto-orchestrator", readme)
+        self.assertIn("context-indexer", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("design-md-governor", usage)
+        self.assertIn("gpt55-auto-orchestrator", usage)
+        self.assertIn("context-indexer", usage)
         self.assertIn("memory-compact", usage)
 
     def test_project_rules_use_valid_decisions(self) -> None:
@@ -185,6 +195,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             self.assertTrue((repo / ".codex" / "rules" / "project.rules").exists())
             self.assertTrue((repo / ".codex" / "hooks" / "check_iteration_compliance.py").exists())
             self.assertTrue((repo / ".codex" / "hooks.json").exists())
+            self.assertTrue((repo / ".project-governor" / "runtime" / "GPT55_RUNTIME_MODE.json").exists())
             self.assertFalse((repo / ".codex" / "agents").exists())
 
     def test_iteration_guard_detects_blockers(self) -> None:

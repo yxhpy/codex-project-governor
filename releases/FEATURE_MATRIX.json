@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.4.7",
+  "current_latest": "0.5.0",
   "versions": [
     {
       "version": "0.4.1",
@@ -151,6 +151,35 @@
           "name": "Bundled DESIGN.md fallback linter",
           "summary": "Provides deterministic Python checks for token references, colors, contrast, section order, duplicate sections, typography, and component properties.",
           "user_value": "Projects can validate DESIGN.md even when the official npm CLI is unavailable.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "0.5.0",
+      "title": "GPT-5.5 Auto Orchestration",
+      "features": [
+        {
+          "id": "gpt55_auto_orchestrator",
+          "name": "GPT-5.5 Auto Orchestrator",
+          "summary": "Automatically chooses Project Governor skills, subagents, models, context budget, and quality gates from the user request.",
+          "user_value": "Users no longer need to manually list Project Governor skills or subagents for common workflows.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_5_0_gpt55_auto_orchestration"
+        },
+        {
+          "id": "context_indexer",
+          "name": "Context Indexer",
+          "summary": "Builds and queries a compact project context index so sessions can avoid reading all initialization docs.",
+          "user_value": "New sessions can retrieve task-specific context faster and with lower token cost.",
+          "requires_project_migration": true,
+          "migration_id": "migration_0_5_0_gpt55_auto_orchestration"
+        },
+        {
+          "id": "clean_reinstall_latest_runtime_mode",
+          "name": "Clean reinstall latest runtime mode",
+          "summary": "Allows clean-reinstall-manager to apply GPT-5.5 runtime mode to current or discovered governed projects without copying plugin-global assets.",
+          "user_value": "Existing governed projects can opt into the latest runtime mode through project-owned state.",
           "requires_project_migration": false
         }
       ]

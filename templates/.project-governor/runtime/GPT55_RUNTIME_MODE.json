@@ -1,0 +1,26 @@
+{
+  "schema": "project-governor-runtime-mode-v1",
+  "mode": "gpt55-auto-orchestration",
+  "model_policy": {
+    "primary": "gpt-5.5",
+    "fallback_primary": "gpt-5.4",
+    "fast_scout": "gpt-5.4-mini",
+    "high_reasoning": "gpt-5.5",
+    "micro_patch_can_use_fast_scout": true
+  },
+  "context_policy": {
+    "read_all_initialization_docs_on_session_start": false,
+    "prefer_session_brief": ".project-governor/context/SESSION_BRIEF.md",
+    "prefer_context_index": ".project-governor/context/CONTEXT_INDEX.json"
+  },
+  "automation_policy": {
+    "auto_select_skills": true,
+    "auto_select_subagents": true,
+    "micro_patch_skips_subagents": true,
+    "strict_routes_require_subagents": true
+  },
+  "hygiene_policy": {
+    "do_not_copy_plugin_global_assets": true,
+    "project_runtime_state_only": true
+  }
+}

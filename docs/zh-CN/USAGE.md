@@ -7,6 +7,8 @@
 - 先读项目规则，再改代码。
 - 先做迭代计划，再实现非平凡改动。
 - 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`，但必须用 `route-guard` 验证实际 diff 没有越界。
+- 面向 GPT-5.5 的实现、研究、升级或清理请求，可以先用 `gpt55-auto-orchestrator` 自动选择工作流、模型、上下文预算、subagent 和质量门。
+- 已初始化项目优先用 `context-indexer` 查询任务相关文件，避免每个会话都读取所有初始化文档。
 - 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
@@ -120,7 +122,11 @@ python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent
 python3 skills/plugin-upgrade-migrator/scripts/compare_features.py --current-version 0.4.1 --target-version 0.4.3 --feature-matrix releases/FEATURE_MATRIX.json
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
+python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py --path . --plugin-root /path/to/codex-project-governor --apply
 python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
+python3 skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py examples/gpt55-runtime-standard-feature.json
+python3 skills/context-indexer/scripts/build_context_index.py --project . --write
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -128,7 +134,35 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 治理 DESIGN.md 设计系统
+## 5. 使用 GPT-5.5 自动编排和上下文索引
+
+v0.5.0 起，`gpt55-auto-orchestrator` 用来从用户请求中自动选择 Project Governor 工作流、模型计划、上下文预算、subagent 和质量门。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+
+```text
+Use @project-governor gpt55-auto-orchestrator.
+
+Automatically choose the Project Governor workflow, models, context budget, subagents, and quality gates for this request.
+Do not ask the user to name skills or subagents.
+Query the context index before reading large initialization docs.
+```
+
+`context-indexer` 会把项目上下文写入项目自有的 `.project-governor/context/`，用于后续任务检索：
+
+```bash
+python3 skills/context-indexer/scripts/build_context_index.py --project . --write
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+```
+
+需要把 v0.5.0 运行模式写入已治理项目时，使用：
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py \
+  --path . \
+  --plugin-root /path/to/codex-project-governor \
+  --apply
+```
+
+## 6. 治理 DESIGN.md 设计系统
 
 v0.4.7 起，`design-md-governor` 可以把项目自己的 `DESIGN.md` 作为 UI/视觉实现前的设计系统真源。它不会自动创建或覆盖 `DESIGN.md`；缺失时只给采纳计划，除非用户明确选择创建。
 
@@ -149,7 +183,7 @@ python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
 ```
 
-## 6. 实现前研究候选能力
+## 7. 实现前研究候选能力
 
 当你想引入新的治理规则、agent 模式、hook、skill、库或自动化方式时，先使用 `research-radar`。
 
@@ -182,7 +216,7 @@ python3 skills/research-radar/scripts/score_research_candidates.py \
   --need research
 ```
 
-## 7. 升级前研究版本
+## 8. 升级前研究版本
 
 当涉及依赖、工具、SDK、运行时或 Project Governor 自身版本变化时，先用 `version-researcher`。
 
@@ -202,7 +236,7 @@ python3 skills/version-researcher/scripts/research_versions.py \
   --request "Need better memory and subagent governance"
 ```
 
-## 8. 升级前给出用户可选路径
+## 9. 升级前给出用户可选路径
 
 `upgrade-advisor` 不直接升级，而是输出菜单和理由。
 
@@ -225,7 +259,7 @@ Show which dependencies or tools are behind, relevant, risky, optional, deferred
 
 只有用户明确选择后，才进入实际升级迭代。
 
-## 9. 检查项目卫生
+## 10. 检查项目卫生
 
 v0.4.4 起，初始化默认使用 clean profile：复制 `AGENTS.md`、`docs/`、`tasks/_template/`、`.project-governor/`、`.codex/rules/`、`.codex/hooks/` 和 `.codex/hooks.json` 等项目治理文件。插件全局 `.codex/agents`、`.codex/prompts` 和 `.codex/config.toml` 默认留在插件安装目录。
 
@@ -250,7 +284,7 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 ```
 
-## 10. 干净重装或刷新治理项目
+## 11. 干净重装或刷新治理项目
 
 v0.4.6 起，`clean-reinstall-manager` 可以生成用户级插件重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 

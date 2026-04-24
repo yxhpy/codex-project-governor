@@ -14,6 +14,7 @@ Use this skill when the user asks to:
 - completely uninstall and reinstall the plugin at the user level
 - find all projects that were initialized with Project Governor
 - run a clean re-initialization for selected projects
+- apply the latest project-owned runtime mode and context index state
 - regenerate `AGENTS.md` and governance docs while preserving project-specific edits
 - move noisy generated/plugin-global assets into a quarantine trash instead of deleting them
 
@@ -108,6 +109,18 @@ python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py \
 
 If `--path` is not a governed project, it returns discovered projects and exits without modifying anything.
 
+### 5. Latest runtime mode
+
+Use this for v0.5.0 GPT-5.5 auto orchestration state. It writes only project-owned files under `.project-governor/runtime/` and `.project-governor/context/`.
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py \
+  --path . \
+  --plugin-root /path/to/codex-project-governor
+```
+
+Add `--apply` only when the user has selected the runtime-mode update path.
+
 ## Output
 
 Return:
@@ -116,6 +129,7 @@ Return:
 - current directory classification
 - discovered projects if outside a project
 - refresh plan if inside a project
+- latest runtime-mode plan or apply result
 - safe operations
 - manual-review operations
 - trash/quarantine path

@@ -1,7 +1,7 @@
 {
   "plugin": {
     "name": "codex-project-governor",
-    "installed_version": "0.4.4",
+    "installed_version": "0.5.0",
     "installed_at": "<iso8601>",
     "source": "<plugin path or git url>"
   },
@@ -9,7 +9,7 @@
     {
       "path": "AGENTS.md",
       "template": "templates/AGENTS.md",
-      "template_version": "0.4.4",
+      "template_version": "0.5.0",
       "template_sha256": "<sha256>",
       "installed_sha256": "<sha256>",
       "upgrade_policy": "three_way_merge"
@@ -17,7 +17,7 @@
     {
       "path": "docs/memory/PROJECT_MEMORY.md",
       "template": "templates/docs/memory/PROJECT_MEMORY.md",
-      "template_version": "0.4.4",
+      "template_version": "0.5.0",
       "template_sha256": "<sha256>",
       "installed_sha256": "<sha256>",
       "upgrade_policy": "append_only"

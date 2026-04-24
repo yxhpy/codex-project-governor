@@ -2,17 +2,17 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, routes GPT-5.5-era workflows automatically, builds compact project context indexes, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 28 bundled Codex skills under `skills/`.
+- 30 bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for initialization, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for initialization, GPT-5.5 runtime planning, context indexing, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -41,6 +41,8 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
 | `route-guard` | Verify that the actual diff still fits the route selected by task-router, especially micro-patch and fast-lane changes. |
 | `subagent-activation` | Select project-scoped subagents and model strategy from route, workflow, risk, quality level, and confidence so users do not manually list subagents. |
+| `gpt55-auto-orchestrator` | Infer the workflow, model plan, context budget, subagents, and quality gate automatically for GPT-5.5-era Codex work. |
+| `context-indexer` | Build and query a compact project context index so Codex can avoid reading all initialization docs in every session. |
 | `context-pack-builder` | Build a minimal task-specific context pack so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
 | `pattern-reuse-engine` | Find existing components, services, hooks, schemas, tests, and style patterns that must be reused before creating new implementation patterns. |
 | `parallel-feature-builder` | Implement a feature through a quality-gated subagent pipeline that uses parallel read-only analysis, one bounded implementation writer, test writing, review, and repair. |
@@ -168,6 +170,22 @@ Then build context and reuse constraints with `context-pack-builder` and `patter
 For explicit local style, copy, spacing, or typo edits, `task-router` can choose `micro_patch`. That skips heavy workflows but still emits route guard requirements; run `route-guard` and a light quality gate before finalizing.
 
 For standard, risky, refactor, migration, upgrade, PR review, initialization, and broad research workflows, run `subagent-activation` so Project Governor selects project-scoped agents and model routing automatically.
+
+### Use GPT-5.5 auto orchestration
+
+```text
+Use @project-governor gpt55-auto-orchestrator.
+
+Automatically choose the workflow, model plan, context budget, subagents, and quality gate for this request.
+Query the context index before reading large initialization docs.
+```
+
+For initialized projects, build or refresh the compact context index:
+
+```bash
+python3 skills/context-indexer/scripts/build_context_index.py --project . --write
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+```
 
 ### Review a PR with subagents
 

@@ -57,6 +57,28 @@
           "reason": "Detect generated global .codex assets or plugin source leakage before applying upgrade migrations."
         }
       ]
+    },
+    {
+      "id": "migration_0_5_0_gpt55_auto_orchestration",
+      "from": "0.4.7",
+      "to": "0.5.0",
+      "title": "GPT-5.5 runtime mode and context index",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/runtime/GPT55_RUNTIME_MODE.json",
+          "source": "templates/.project-governor/runtime/GPT55_RUNTIME_MODE.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add project-owned runtime mode for GPT-5.5 auto orchestration."
+        },
+        {
+          "op": "build_context_index",
+          "path": ".project-governor/context/CONTEXT_INDEX.json",
+          "source": "skills/context-indexer/scripts/build_context_index.py",
+          "upgrade_policy": "diagnostic_only",
+          "reason": "Build generated project-owned context index on demand with context-indexer; do not copy generated context files from the plugin."
+        }
+      ]
     }
   ]
 }

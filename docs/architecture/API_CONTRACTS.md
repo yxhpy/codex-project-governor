@@ -39,6 +39,7 @@ Behavior:
 - Preserves existing files unless `--overwrite` is used.
 - Skips known application/package paths.
 - Writes `.project-governor/INSTALL_MANIFEST.json` for fresh initialization or when overwrite is requested.
+- Copies project-owned runtime templates under `.project-governor/runtime/`.
 - Writes `reports/project-governor/init-report.json`.
 
 JSON output fields:
@@ -491,6 +492,101 @@ Output:
 - `next_commands`
 
 The orchestrator stops without modifying files when the current path is not a governed project or when it is the plugin root.
+
+### `skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py`
+
+Input:
+
+- optional `--path <path>`
+- required `--plugin-root <path>`
+- repeated `--discover-root <path>`
+- optional `--select <current|all|ignore|comma-separated-paths>`
+- optional `--apply`
+
+Behavior:
+
+- Detects whether `--path` is a Project Governor project.
+- Writes project-owned `.project-governor/runtime/GPT55_RUNTIME_MODE.json` only when `--apply` is used.
+- Builds `.project-governor/context/CONTEXT_INDEX.json` and `SESSION_BRIEF.md` only when `--apply` is used and `context-indexer` is installed.
+- Does not copy plugin-global `.codex/agents`, `.codex/prompts`, or `.codex/config.toml`.
+
+Output:
+
+- `status`
+- `result` for current-project mode
+- `discovered_projects` and `user_choices` for stop mode
+- `selected_count` and `results` for selected/all mode
+
+### `skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py`
+
+Input:
+
+- optional JSON file path
+- optional `--request <text>`
+
+Input JSON fields include:
+
+- `request`
+- optional `available_models`
+- optional `prefer_speed`
+- optional `route`
+- optional `quality_level` or `quality_gate`
+
+Output:
+
+- `status`
+- `runtime_version`
+- `route`
+- `lane`
+- `quality_gate`
+- `reasons`
+- `model_plan`
+- `context_budget`
+- `context_retrieval`
+- `skill_sequence`
+- `subagent_mode`
+- `subagents`
+- `skipped_skills`
+- `quality_rules`
+
+### `skills/context-indexer/scripts/build_context_index.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--write`
+
+Output without `--write`:
+
+- `schema`
+- `project`
+- `entry_count`
+- `entries[]`
+
+Output with `--write`:
+
+- `status`
+- `index`
+- `brief`
+- `entry_count`
+
+With `--write`, the script writes `.project-governor/context/CONTEXT_INDEX.json`, `.project-governor/context/SESSION_BRIEF.md`, and `.project-governor/context/INDEX_REPORT.json`.
+
+### `skills/context-indexer/scripts/query_context_index.py`
+
+Input:
+
+- optional `--project <path>`
+- required `--request <text>`
+- optional `--limit <number>`
+
+Output:
+
+- `status`
+- `request`
+- `read_all_initialization_docs`
+- `recommended_files[]`
+- `token_policy`
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 

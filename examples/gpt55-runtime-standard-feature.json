@@ -1,0 +1,9 @@
+{
+  "request": "Add a dashboard widget that reuses the existing card layout and updates tests.",
+  "available_models": [
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini"
+  ],
+  "prefer_speed": true
+}

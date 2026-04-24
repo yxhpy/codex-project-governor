@@ -10,6 +10,8 @@
 - Component registry: `docs/conventions/COMPONENT_REGISTRY.md`
 - Pattern registry: `docs/conventions/PATTERN_REGISTRY.md`
 - DESIGN.md policy: `managed-assets/design-md/DESIGN_MD_POLICY.md`
+- GPT-5.5 runtime policy: `managed-assets/runtime/GPT55_AUTO_ORCHESTRATION_POLICY.md`
+- GPT-5.5 runtime mode template: `templates/.project-governor/runtime/GPT55_RUNTIME_MODE.json`
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
 - Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
 - Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
@@ -38,6 +40,7 @@ If implementation conflicts with these files, create or update a decision record
 - Deterministic script helpers are CLI modules under `tools/` and `skills/*/scripts/`.
 - Governance files copied into downstream repositories come from `templates/`.
 - Optional plugin-owned design-system support files live under `managed-assets/` and are not copied into downstream repositories by default.
+- Optional plugin-owned runtime policy files live under `managed-assets/runtime/`; project runtime state belongs under `.project-governor/runtime/`.
 - Example JSON inputs are stored under `examples/`.
 - Tests use Python standard-library `unittest` in `tests/selftest.py`.
 

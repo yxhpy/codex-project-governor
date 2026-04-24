@@ -1,0 +1,29 @@
+{
+  "version": "0.5.0",
+  "title": "GPT-5.5 Auto Orchestration",
+  "features": [
+    {
+      "id": "gpt55_auto_orchestrator",
+      "title": "GPT-5.5-aware model, skill, and subagent routing",
+      "summary": "Automatically chooses Project Governor skills, subagents, models, and quality gates from the user request.",
+      "requires_project_migration": true,
+      "migration_id": "migration_0_5_0_gpt55_auto_orchestration",
+      "migration_mode": "project_owned_runtime_file_only"
+    },
+    {
+      "id": "context_indexer",
+      "title": "Context index and session brief",
+      "summary": "Avoids reading all initialization docs by querying a compact project context index.",
+      "requires_project_migration": true,
+      "migration_id": "migration_0_5_0_gpt55_auto_orchestration",
+      "migration_mode": "write_project_governor_context"
+    },
+    {
+      "id": "clean_reinstall_latest_runtime_mode",
+      "title": "Clean reinstall latest runtime mode",
+      "summary": "Allows clean-reinstall-manager to apply GPT-5.5 runtime mode to current/all governed projects without copying plugin-global assets.",
+      "requires_project_migration": false,
+      "migration_mode": "on_demand"
+    }
+  ]
+}
