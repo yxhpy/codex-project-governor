@@ -28,16 +28,21 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
    - `managed-assets/runtime/**`
 6. Project-owned runtime and context templates
    - `templates/.project-governor/runtime/**`
+   - `templates/.project-governor/state/**`
+   - `templates/.project-governor/evidence/**`
    - generated target-project context under `.project-governor/context/**`
-7. Initializer and compatibility tools
+7. Harness documentation and release evidence
+   - `docs/harness/**`
+   - `releases/**`
+8. Initializer and compatibility tools
    - `tools/init_project.py`
    - `tools/init_existing_project.py`
-8. Examples and fixtures
+9. Examples and fixtures
    - `examples/*.json`
    - `examples/cron/**`
    - `examples/launchd/**`
    - `examples/github-actions/**`
-9. Validation
+10. Validation
    - `tests/selftest.py`
    - `.github/workflows/selftest.yml`
 
@@ -48,12 +53,14 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 - Skill scripts should remain standalone and should not depend on each other unless explicitly documented.
 - Templates should not depend on generated output under `reports/`.
 - Managed assets are plugin-owned source material. They are not target-project files unless a user explicitly opts in and creates project-owned copies.
-- GPT-5.5 runtime mode files under `templates/.project-governor/runtime/` are project-owned governance state; context indexes are generated in target projects by `context-indexer`.
+- GPT-5.5 runtime mode, Harness v6 state, and evidence templates under `templates/.project-governor/` are project-owned governance state; context indexes are generated in target projects by `context-indexer`.
 
 ## Generated Output
 
 - `tools/init_project.py` writes `reports/project-governor/init-report.json` in the target repository.
-- `skills/context-indexer/scripts/build_context_index.py --write` writes `.project-governor/context/CONTEXT_INDEX.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
+- `skills/context-indexer/scripts/build_context_index.py --write` writes schema-v2 `.project-governor/context/CONTEXT_INDEX.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
+- `skills/session-lifecycle/scripts/session_lifecycle.py start|end` writes `.project-governor/state/**` in the target repository.
+- `skills/evidence-manifest/scripts/write_evidence_manifest.py` writes `.project-governor/evidence/<task-id>/EVIDENCE.json` unless `--validate` is used.
 - `skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py --apply` writes `.project-governor/runtime/GPT55_RUNTIME_MODE.json` and may build the context index in the target repository.
 - `reports/` is ignored by `.gitignore`.
 

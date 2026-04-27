@@ -2,17 +2,17 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. It initializes governance files, mines conventions from existing repositories, forces iteration-first development, researches candidate capabilities and release evidence, routes GPT-5.5-era workflows automatically, builds compact project context indexes, activates project-scoped subagents, advises on upgrades, adds smart route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 30 bundled Codex skills under `skills/`.
+- 33+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for initialization, GPT-5.5 runtime planning, context indexing, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, task routing, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -44,6 +44,9 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `gpt55-auto-orchestrator` | Infer the workflow, model plan, context budget, subagents, and quality gate automatically for GPT-5.5-era Codex work. |
 | `context-indexer` | Build and query a compact project context index so Codex can avoid reading all initialization docs in every session. |
 | `context-pack-builder` | Build a minimal task-specific context pack so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
+| `session-lifecycle` | Start and end Harness v6 task sessions while maintaining project-local state under `.project-governor/state`. |
+| `evidence-manifest` | Create or validate task evidence manifests that map acceptance criteria, tests, reviews, and docs refresh decisions. |
+| `harness-doctor` | Diagnose Harness v6 install shape, context freshness, state files, required skills, and execution readiness. |
 | `pattern-reuse-engine` | Find existing components, services, hooks, schemas, tests, and style patterns that must be reused before creating new implementation patterns. |
 | `parallel-feature-builder` | Implement a feature through a quality-gated subagent pipeline that uses parallel read-only analysis, one bounded implementation writer, test writing, review, and repair. |
 | `test-first-synthesizer` | Produce a targeted test plan or test skeletons before implementation, using existing project test style and covering behavior, regression risk, boundaries, and errors. |
@@ -101,6 +104,22 @@ cp plugins/codex-project-governor/examples/repo-marketplace/marketplace.json .ag
 Restart Codex, open `/plugins`, choose the repository marketplace, and install **Project Governor**.
 
 ## Use
+
+### Use Harness v6.0
+
+Harness v6.0 makes `task-router` the single route source of truth and lets the runtime planner, context index, session state, route guard, quality gate, evidence manifest, and merge-readiness checks share one contract.
+
+```text
+Use Project Governor Harness v6.0 to plan this change with context index, session state, evidence, and route guard checks.
+```
+
+Core validation commands:
+
+```bash
+python3 skills/context-indexer/scripts/build_context_index.py --project . --write
+python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readiness
+python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . --task-id demo --route standard_feature --validate
+```
 
 ### Initialize an empty project
 

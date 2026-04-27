@@ -53,6 +53,38 @@ Primary fields include:
 
 Each candidate includes current/candidate versions, semantic distance, skipped version count, relevance, risk, recommendation, score, reasons, and user choices.
 
+### Harness v6 State
+
+`skills/session-lifecycle/scripts/session_lifecycle.py` maintains project-local state under `.project-governor/state/`.
+
+Core files:
+
+- `SESSION.json`: current task session, route, target files, git status snapshot, and evidence path.
+- `FEATURES.json`: feature registry placeholder.
+- `AGENTS.json`: agent registry placeholder.
+- `ISSUES.json`: issue registry placeholder.
+- `QUALITY_SCORE.json`: quality score placeholder.
+- `PROGRESS.md`: append-only session progress log.
+
+### Harness v6 Evidence
+
+`skills/evidence-manifest/scripts/write_evidence_manifest.py` writes `project-governor-evidence-v1` manifests under `.project-governor/evidence/<task-id>/EVIDENCE.json`.
+
+Primary fields include:
+
+- `task_id`
+- `route`
+- `acceptance_criteria[]`
+- `tests[]`
+- `reviews`
+- `docs_refresh`
+
+### Context Index v2
+
+`skills/context-indexer/scripts/build_context_index.py` writes `project-governor-context-index-v2`.
+
+Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, tokens, summary, sensitivity flag, and stale reason.
+
 ### Memory Classification
 
 `skills/memory-compact/scripts/classify_memory_items.py` returns an array of:

@@ -79,6 +79,84 @@
           "reason": "Build generated project-owned context index on demand with context-indexer; do not copy generated context files from the plugin."
         }
       ]
+    },
+    {
+      "id": "migration_6_0_0_harness_v6",
+      "from": "0.5.0",
+      "to": "6.0.0",
+      "title": "Harness v6 project state and evidence templates",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/FEATURES.json",
+          "source": "templates/.project-governor/state/FEATURES.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 project feature state."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/AGENTS.json",
+          "source": "templates/.project-governor/state/AGENTS.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 project agent state."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/ISSUES.json",
+          "source": "templates/.project-governor/state/ISSUES.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 project issue state."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/PROGRESS.md",
+          "source": "templates/.project-governor/state/PROGRESS.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 progress log."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/SESSION.json",
+          "source": "templates/.project-governor/state/SESSION.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 active session state."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/QUALITY_SCORE.json",
+          "source": "templates/.project-governor/state/QUALITY_SCORE.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 quality score state."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/evidence/_template/EVIDENCE.json",
+          "source": "templates/.project-governor/evidence/_template/EVIDENCE.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 evidence manifest template."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/evidence/_template/ACCEPTANCE_MAP.md",
+          "source": "templates/.project-governor/evidence/_template/ACCEPTANCE_MAP.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add Harness v6 acceptance mapping template."
+        },
+        {
+          "op": "build_context_index",
+          "path": ".project-governor/context/CONTEXT_INDEX.json",
+          "source": "skills/context-indexer/scripts/build_context_index.py",
+          "upgrade_policy": "diagnostic_only",
+          "reason": "Build generated context index v2 on demand; do not copy generated context files from the plugin."
+        },
+        {
+          "op": "run_harness_doctor",
+          "path": ".",
+          "source": "skills/harness-doctor/scripts/doctor.py",
+          "upgrade_policy": "diagnostic_only",
+          "reason": "Verify Harness v6 execution readiness after adding project-owned state and evidence templates."
+        }
+      ]
     }
   ]
 }

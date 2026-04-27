@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any
+
+COLLECT_DIFF = Path(__file__).resolve().with_name("collect_diff_facts.py")
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -19,9 +22,21 @@ def as_list(value: Any) -> list[Any]:
     return [value]
 
 
+def collect_changes(repo: Path) -> dict[str, Any]:
+    spec = importlib.util.spec_from_file_location("project_governor_collect_diff_facts", COLLECT_DIFF)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot import {COLLECT_DIFF}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.collect(repo)
+
+
 def check(data: dict[str, Any]) -> dict[str, Any]:
     req = data.get("route_guard_requirements") or data.get("requirements") or {}
-    changes = data.get("changes") or {}
+    if data.get("collect_diff") or data.get("repo"):
+        changes = collect_changes(Path(data.get("repo", ".")).resolve())
+    else:
+        changes = data.get("changes") or {}
     route = data.get("route") or req.get("route") or "unknown"
     violations: list[dict[str, Any]] = []
 
@@ -34,21 +49,10 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
     added_files = as_list(changes.get("added_files"))
     max_modified = int(req.get("max_modified_files", 9999))
     max_added = int(req.get("max_added_files", 9999))
-
     if len(modified_files) > max_modified:
-        fail(
-            "modified_file_budget_exceeded",
-            f"{len(modified_files)} modified files exceeds route budget {max_modified}.",
-            actual=len(modified_files),
-            limit=max_modified,
-        )
+        fail("modified_file_budget_exceeded", f"{len(modified_files)} modified files exceeds route budget {max_modified}.", actual=len(modified_files), limit=max_modified, paths=modified_files)
     if len(added_files) > max_added:
-        fail(
-            "added_file_budget_exceeded",
-            f"{len(added_files)} added files exceeds route budget {max_added}.",
-            actual=len(added_files),
-            limit=max_added,
-        )
+        fail("added_file_budget_exceeded", f"{len(added_files)} added files exceeds route budget {max_added}.", actual=len(added_files), limit=max_added, paths=added_files)
 
     boolean_checks = [
         ("dependencies_added", "allow_dependencies", "dependency_change_not_allowed", "Dependency changes are not allowed by this route."),
@@ -62,13 +66,12 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
     for actual_key, allow_key, violation_type, message in boolean_checks:
         if bool(changes.get(actual_key)) and not bool(req.get(allow_key, False)):
             fail(violation_type, message)
-
     if changes.get("tests_deleted"):
         fail("tests_deleted", "Tests were deleted; route guard requires explicit justification and rerouting.")
     if changes.get("assertions_weakened"):
         fail("assertions_weakened", "Assertions were weakened; route guard requires explicit justification and rerouting.")
     if changes.get("tests_skipped"):
-        fail("tests_skipped", "Tests were skipped; route guard requires explicit justification and rerouting.")
+        fail("tests_skipped", "Tests were skipped or weakened; route guard requires explicit justification and rerouting.")
 
     touched_shared = as_list(changes.get("shared_components_changed"))
     if touched_shared and not bool(req.get("allow_shared_component_changes", False)):
@@ -81,27 +84,18 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
     if violations:
         if any(v["type"] in {"api_change_not_allowed", "schema_change_not_allowed", "dependency_change_not_allowed"} for v in violations):
             recommended_route = "risk_lane"
-        elif any(
-            v["type"]
-            in {
-                "shared_component_change_not_allowed",
-                "shared_components_changed",
-                "global_style_change_not_allowed",
-                "global_style_files_changed",
-                "new_component_not_allowed",
-            }
-            for v in violations
-        ):
+        elif any(v["type"] in {"shared_component_change_not_allowed", "shared_components_changed", "global_style_change_not_allowed", "global_style_files_changed", "new_component_not_allowed"} for v in violations):
             recommended_route = "standard_lane"
         elif route == "micro_patch":
             recommended_route = "tiny_patch_or_standard_lane"
         else:
             recommended_route = "reroute_and_replan"
-
     return {
         "status": "fail" if violations else "pass",
+        "schema": "project-governor-route-guard-v2",
         "route": route,
         "violations": violations,
+        "changes": changes,
         "required_action": "stop_and_reroute" if violations else "continue",
         "recommended_route": recommended_route,
         "summary": "Route guard failed; original route no longer matches the actual diff." if violations else "Route guard passed.",

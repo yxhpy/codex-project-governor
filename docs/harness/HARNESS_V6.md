@@ -1,0 +1,41 @@
+# Project Governor Harness v6.0
+
+Harness v6.0 upgrades Project Governor from skill collection to project harness.
+
+## Runtime contract
+
+```text
+task-router = single route source of truth
+gpt55-auto-orchestrator = runtime planner
+context-indexer v2 = project-local context memory
+session-lifecycle = state and handoff layer
+route-guard = git-diff-derived guardrail facts
+quality-gate = evidence-aware verification gate
+merge-readiness = evidence-based final readiness
+harness-doctor = install and execution diagnosis
+```
+
+## Required project state
+
+```text
+.project-governor/state/
+  FEATURES.json
+  AGENTS.json
+  ISSUES.json
+  PROGRESS.md
+  SESSION.json
+  QUALITY_SCORE.json
+```
+
+## Required evidence for non-trivial work
+
+```text
+.project-governor/evidence/<task-id>/
+  EVIDENCE.json
+  ACCEPTANCE_MAP.md
+  TEST_LOG.txt (optional)
+```
+
+## Reading policy
+
+Do not read all initialization documents at session start. Read `AGENTS.md`, read the session brief when present, query the context index, and only then read task-specific files.

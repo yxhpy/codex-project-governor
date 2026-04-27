@@ -18,15 +18,15 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "0.5.0")
-        self.assertIn("GPT-5.5 auto orchestration", manifest["description"])
+        self.assertEqual(manifest["version"], "6.0.0")
+        self.assertIn("Harness v6.0", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 30)
+        self.assertGreaterEqual(len(skill_dirs), 33)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
@@ -48,6 +48,9 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "repair-loop",
             "merge-readiness",
             "coding-velocity-report",
+            "session-lifecycle",
+            "evidence-manifest",
+            "harness-doctor",
         }:
             self.assertIn(required, names)
         for skill_dir in skill_dirs:
@@ -77,9 +80,20 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/prompts/design-md-governor.md",
             ".codex/prompts/gpt55-auto-orchestrator.md",
             ".codex/prompts/context-indexer.md",
+            ".codex/prompts/session-lifecycle.md",
+            ".codex/prompts/evidence-manifest.md",
+            ".codex/prompts/harness-doctor.md",
             ".codex/hooks/check_iteration_compliance.py",
             ".project-governor/INSTALL_MANIFEST.json",
             ".project-governor/runtime/GPT55_RUNTIME_MODE.json",
+            ".project-governor/evidence/_template/EVIDENCE.json",
+            ".project-governor/evidence/_template/ACCEPTANCE_MAP.md",
+            ".project-governor/state/FEATURES.json",
+            ".project-governor/state/AGENTS.json",
+            ".project-governor/state/ISSUES.json",
+            ".project-governor/state/PROGRESS.md",
+            ".project-governor/state/SESSION.json",
+            ".project-governor/state/QUALITY_SCORE.json",
             "docs/upgrades/UPGRADE_POLICY.md",
             "docs/upgrades/UPGRADE_REGISTER.md",
             "docs/upgrades/PLUGIN_UPGRADE_POLICY.md",
@@ -133,6 +147,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "design-md/DESIGN.md.template",
             "design-md/DESIGN_MD_POLICY.md",
             "runtime/GPT55_AUTO_ORCHESTRATION_POLICY.md",
+            "runtime/HARNESS_V6_POLICY.md",
         ]
         for rel in required:
             self.assertTrue((ROOT / "managed-assets" / rel).exists(), rel)
@@ -145,7 +160,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("0.5.0", readme)
+        self.assertIn("6.0.0", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -155,6 +170,9 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("design-md-governor", readme)
         self.assertIn("gpt55-auto-orchestrator", readme)
         self.assertIn("context-indexer", readme)
+        self.assertIn("session-lifecycle", readme)
+        self.assertIn("evidence-manifest", readme)
+        self.assertIn("harness-doctor", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("design-md-governor", usage)

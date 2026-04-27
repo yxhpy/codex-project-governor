@@ -127,6 +127,9 @@ python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
 python3 skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py examples/gpt55-runtime-standard-feature.json
 python3 skills/context-indexer/scripts/build_context_index.py --project . --write
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+python3 skills/session-lifecycle/scripts/session_lifecycle.py start --project . --task-id demo --route standard_feature
+python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . --task-id demo --route standard_feature --validate
+python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readiness
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
@@ -134,9 +137,9 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 使用 GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0、GPT-5.5 自动编排和上下文索引
 
-v0.5.0 起，`gpt55-auto-orchestrator` 用来从用户请求中自动选择 Project Governor 工作流、模型计划、上下文预算、subagent 和质量门。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+v6.0.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -153,7 +156,15 @@ python3 skills/context-indexer/scripts/build_context_index.py --project . --writ
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
 ```
 
-需要把 v0.5.0 运行模式写入已治理项目时，使用：
+Harness v6 的项目状态和证据入口：
+
+```bash
+python3 skills/session-lifecycle/scripts/session_lifecycle.py start --project . --task-id demo --route standard_feature
+python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . --task-id demo --route standard_feature --validate
+python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readiness
+```
+
+需要把最新运行模式写入已治理项目时，使用：
 
 ```bash
 python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py \

@@ -2,112 +2,59 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any
 
-RISK_WORDS = {
-    "auth", "authorization", "permission", "rbac", "payment", "billing", "security", "privacy",
-    "schema", "migration", "database", "webhook", "oauth", "token", "pii", "encryption",
-    "api contract", "external integration", "data loss", "production", "compliance",
-}
-MICRO_WORDS = {"style", "spacing", "margin", "padding", "color", "copy", "typo", "text", "label", "css", "class"}
-RESEARCH_WORDS = {"research", "compare", "investigate", "调研", "研究", "对比"}
-UPGRADE_WORDS = {"upgrade", "migrate", "version", "release", "dependency", "升级", "迁移", "版本"}
-CLEAN_WORDS = {"clean", "reinstall", "refresh", "hygiene", "trash", "quarantine", "重装", "清理", "刷新"}
-DESIGN_WORDS = {"design", "design.md", "visual", "token", "typography", "设计", "样式"}
-
-DEFAULT_MODELS = {
-    "primary": "gpt-5.5",
-    "fallback_primary": "gpt-5.4",
-    "fast_scout": "gpt-5.4-mini",
-    "high_reasoning": "gpt-5.5",
-}
+ROOT = Path(__file__).resolve().parents[3]
+TASK_ROUTER = ROOT / "skills" / "task-router" / "scripts" / "classify_task.py"
 
 
-def load_payload(path: str | None) -> dict[str, Any]:
+def load_payload(path: str | None, request: str | None = None) -> dict[str, Any]:
     if path:
         return json.loads(Path(path).read_text(encoding="utf-8"))
+    if request:
+        return {"request": request}
     raw = sys.stdin.read().strip()
     if not raw:
-        raise SystemExit("Provide an input JSON file or JSON on stdin.")
-    return json.loads(raw)
+        raise SystemExit("Provide an input JSON file, --request, or JSON on stdin.")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        data = {"request": raw}
+    return data if isinstance(data, dict) else {"request": str(data)}
 
 
-def low(text: str) -> str:
-    return (text or "").lower()
+def load_task_router() -> Any:
+    spec = importlib.util.spec_from_file_location("project_governor_task_router", TASK_ROUTER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot import task router: {TASK_ROUTER}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def has_any(text: str, words: set[str]) -> bool:
-    t = low(text)
-    return any(w in t for w in words)
+def classify(payload: dict[str, Any]) -> dict[str, Any]:
+    if payload.get("status") == "classified" and payload.get("router_version"):
+        return payload
+    module = load_task_router()
+    merged = dict(payload)
+    if "request" not in merged and "user_request" in merged:
+        merged["request"] = merged["user_request"]
+    return module.classify(merged)
 
 
-def explicit_target_file(text: str) -> bool:
-    return bool(re.search(r"(?:src|app|pages|components|docs|tests?)/[^\s]+\.[a-zA-Z0-9]+", text))
-
-
-def normalized_risk_text(request: str) -> str:
-    text = low(request)
-    for pattern in [
-        r"do not change (?:the )?(?:api|schema|api schema|database|db)",
-        r"don['’]?t change (?:the )?(?:api|schema|api schema|database|db)",
-        r"no (?:api|schema|api schema|database|db) changes?",
-        r"不要改(?:api|schema|数据库|接口)",
-        r"不改(?:api|schema|数据库|接口)",
-    ]:
-        text = re.sub(pattern, " negative_constraint ", text)
-    return text
-
-
-def detect_route(request: str, payload: dict[str, Any]) -> tuple[str, str, str, list[str]]:
-    provided = payload.get("route")
-    quality = payload.get("quality_level") or payload.get("quality_gate")
-    reasons: list[str] = []
-    if provided:
-        route = str(provided)
-        reasons.append("Route provided by upstream task-router.")
-    elif has_any(request, CLEAN_WORDS):
-        route = "clean_reinstall_or_refresh"
-        reasons.append("Request asks for reinstall, refresh, hygiene, or latest-mode application.")
-    elif has_any(request, RESEARCH_WORDS):
-        route = "research"
-        reasons.append("Request asks for research/comparison before implementation.")
-    elif has_any(request, UPGRADE_WORDS):
-        route = "upgrade_or_migration"
-        reasons.append("Request asks for upgrade/migration/version work.")
-    elif has_any(request, DESIGN_WORDS) and "design.md" in low(request):
-        route = "design_governance"
-        reasons.append("Request explicitly mentions DESIGN.md or design governance.")
-    elif explicit_target_file(request) and has_any(request, MICRO_WORDS):
-        route = "micro_patch"
-        reasons.append("Explicit target file plus local style/copy/edit terms detected.")
-    elif has_any(normalized_risk_text(request), RISK_WORDS):
-        route = "risky_feature"
-        reasons.append("Risk-sensitive terms detected.")
-    else:
-        route = "standard_feature"
-        reasons.append("Defaulted to standard feature workflow.")
-
-    if route == "micro_patch":
-        lane, gate = "fast_lane", "light"
-    elif route in {"risky_feature", "upgrade_or_migration"}:
-        lane, gate = "risk_lane", "strict"
-    elif route in {"research", "clean_reinstall_or_refresh", "design_governance"}:
-        lane, gate = "standard_lane", "standard"
-    else:
-        lane, gate = "standard_lane", "standard"
-    if quality:
-        gate = str(quality)
-    return route, lane, gate, reasons
+def normalized_route(route: str) -> str:
+    if route == "dependency_upgrade":
+        return "upgrade_or_migration"
+    return route
 
 
 def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]) -> dict[str, Any]:
     primary = "gpt-5.5" if "gpt-5.5" in available else "gpt-5.4"
     scout = "gpt-5.4-mini" if "gpt-5.4-mini" in available else primary
-    high = primary
     if route == "micro_patch":
         main = scout if prefer_speed else primary
         return {
@@ -116,15 +63,15 @@ def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]
             "scout_model": scout,
             "review_model": primary,
             "reasoning_effort": "low",
-            "fast_mode": prefer_speed and main == "gpt-5.5",
+            "fast_mode": prefer_speed and main == scout,
             "fallback_model": "gpt-5.4",
         }
-    if gate == "strict" or route in {"risky_feature", "upgrade_or_migration", "research"}:
+    if gate == "strict" or route in {"risky_feature", "upgrade_or_migration", "research", "refactor"}:
         return {
-            "main_model": high,
-            "implementation_model": high,
+            "main_model": primary,
+            "implementation_model": primary,
             "scout_model": scout,
-            "review_model": high,
+            "review_model": primary,
             "reasoning_effort": "high",
             "fast_mode": False,
             "fallback_model": "gpt-5.4",
@@ -140,84 +87,129 @@ def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]
     }
 
 
-def choose_workflow(route: str) -> tuple[list[str], list[str], list[str]]:
+def choose_context_budget(route: str, gate: str, confidence: float) -> dict[str, Any]:
     if route == "micro_patch":
-        return ["direct-edit", "route-guard", "quality-gate"], [], [
-            "context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "test-first-synthesizer", "subagent-activation"
-        ]
-    if route == "clean_reinstall_or_refresh":
-        return ["clean-reinstall-manager", "context-indexer", "quality-gate"], ["context-scout"], ["parallel-feature-builder"]
-    if route == "research":
-        return ["research-radar", "context-indexer", "version-researcher"], ["context-scout", "risk-scout", "docs-memory-reviewer"], []
-    if route == "upgrade_or_migration":
-        return ["version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "quality-gate"], ["risk-scout", "dependency-risk-reviewer", "docs-memory-reviewer"], []
-    if route == "design_governance":
-        return ["design-md-governor", "context-indexer", "style-drift-check", "quality-gate"], ["context-scout", "style-drift-reviewer"], []
-    if route == "risky_feature":
-        return ["context-indexer", "task-router", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "quality-gate", "merge-readiness"], ["context-scout", "pattern-reuse-scout", "risk-scout", "test-planner", "quality-reviewer"], []
-    return ["context-indexer", "task-router", "context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "quality-gate", "merge-readiness"], ["context-scout", "pattern-reuse-scout", "test-planner"], []
-
-
-def choose_context_budget(route: str, gate: str) -> dict[str, Any]:
-    if route == "micro_patch":
-        return {"max_files": 3, "max_docs": 1, "max_total_chars": 20000, "read_all_initialization_docs": False}
+        return {"max_files": 3, "max_docs": 1, "max_total_chars": 20_000, "read_all_initialization_docs": False}
+    if route in {"research", "upgrade_or_migration"}:
+        return {"max_files": 36, "max_docs": 12, "max_total_chars": 220_000, "read_all_initialization_docs": False}
     if gate == "strict":
-        return {"max_files": 30, "max_docs": 8, "max_total_chars": 180000, "read_all_initialization_docs": False}
-    return {"max_files": 14, "max_docs": 4, "max_total_chars": 80000, "read_all_initialization_docs": False}
+        return {"max_files": 30, "max_docs": 8, "max_total_chars": 180_000, "read_all_initialization_docs": False}
+    if confidence < 0.70:
+        return {"max_files": 20, "max_docs": 6, "max_total_chars": 110_000, "read_all_initialization_docs": False}
+    return {"max_files": 14, "max_docs": 4, "max_total_chars": 80_000, "read_all_initialization_docs": False}
+
+
+def subagents_for(route: str, mode: str) -> list[str]:
+    if mode == "none":
+        return []
+    base = ["context-scout", "pattern-reuse-scout", "test-planner"]
+    if route in {"risky_feature", "upgrade_or_migration", "refactor"}:
+        base.extend(["risk-scout", "quality-reviewer"])
+    if route == "research":
+        base.extend(["risk-scout", "docs-memory-reviewer"])
+    return list(dict.fromkeys(base))
+
+
+def skill_sequence_from(classification: dict[str, Any], route: str) -> list[str]:
+    seq = list(classification.get("required_workflow") or [])
+    if route == "upgrade_or_migration":
+        seq = ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "quality-gate", "evidence-manifest", "merge-readiness"]
+    if route == "standard_feature" and "test-first-synthesizer" not in seq:
+        idx = seq.index("parallel-feature-builder") if "parallel-feature-builder" in seq else len(seq)
+        seq.insert(idx, "test-first-synthesizer")
+    if classification.get("evidence_required") and "evidence-manifest" not in seq:
+        insert_at = seq.index("merge-readiness") if "merge-readiness" in seq else len(seq)
+        seq.insert(insert_at, "evidence-manifest")
+    if route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"} and "session-lifecycle" not in seq:
+        seq.insert(0, "session-lifecycle")
+    return seq
+
+
+def skipped_skills(classification: dict[str, Any], route: str) -> list[str]:
+    skipped = list(classification.get("skipped_workflow") or [])
+    if route == "micro_patch":
+        skipped.extend(["session-lifecycle", "evidence-manifest", "harness-doctor"])
+    return sorted(set(skipped))
 
 
 def plan(payload: dict[str, Any]) -> dict[str, Any]:
-    request = str(payload.get("request") or payload.get("user_request") or "")
     available = set(payload.get("available_models") or ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini"])
     prefer_speed = bool(payload.get("prefer_speed", True))
-    route, lane, gate, reasons = detect_route(request, payload)
-    skill_sequence, subagents, skipped = choose_workflow(route)
-    models = choose_models(route, gate, prefer_speed, available)
-    context_budget = choose_context_budget(route, gate)
-    if route == "micro_patch":
-        subagent_mode = "none"
-    elif subagents:
-        subagent_mode = "required" if route in {"risky_feature", "upgrade_or_migration", "research"} else "optional"
-    else:
-        subagent_mode = "none"
+    classification = classify(payload)
+    route = normalized_route(str(classification["route"]))
+    gate = str(classification.get("quality_gate") or classification.get("quality_level") or "standard")
+    confidence = float(classification.get("confidence", 0.55))
+    model_plan = choose_models(route, gate, prefer_speed, available)
+    context_budget = choose_context_budget(route, gate, confidence)
+    subagent_mode = str(classification.get("subagent_mode", "optional"))
+    if route in {"standard_feature", "risky_feature", "upgrade_or_migration", "research", "refactor"} and subagent_mode == "optional":
+        subagent_mode = "required"
+    subagents = subagents_for(route, subagent_mode)
+    sequence = skill_sequence_from(classification, route)
+    evidence_required = bool(classification.get("evidence_required"))
+
     return {
         "status": "planned",
-        "runtime_version": "gpt55-auto-orchestration-v1",
+        "runtime_version": "project-governor-harness-v6",
+        "router_version": classification.get("router_version"),
         "route": route,
-        "lane": lane,
+        "lane": classification.get("lane", "standard_lane"),
         "quality_gate": gate,
-        "reasons": reasons,
-        "model_plan": models,
+        "confidence": confidence,
+        "risk_score": classification.get("risk_score", 0.0),
+        "intent": classification.get("intent", "unknown"),
+        "evidence_required": evidence_required,
+        "reasons": classification.get("reasons", []),
+        "classification": classification,
+        "model_plan": model_plan,
         "context_budget": context_budget,
         "context_retrieval": {
-            "first_step": "query_context_index",
-            "fallback": "build_context_index",
+            "first_step": "query_context_index_v2",
+            "fallback": "build_context_index_v2",
             "session_brief": ".project-governor/context/SESSION_BRIEF.md",
             "context_index": ".project-governor/context/CONTEXT_INDEX.json",
+            "read_all_initialization_docs": False,
         },
-        "skill_sequence": skill_sequence,
+        "state_policy": {
+            "state_dir": ".project-governor/state",
+            "session_start": route not in {"micro_patch", "docs_only"},
+            "session_end": route not in {"micro_patch", "docs_only"},
+            "one_active_feature_per_session": True,
+            "collision_detection": True,
+        },
+        "evidence_policy": {
+            "required": evidence_required,
+            "manifest": ".project-governor/evidence/<task-id>/EVIDENCE.json",
+            "acceptance_mapping_required": evidence_required,
+            "commands_required": gate in {"standard", "strict"} and route != "docs_only",
+        },
+        "skill_sequence": sequence,
         "subagent_mode": subagent_mode,
         "subagents": subagents,
-        "skipped_skills": skipped,
+        "skipped_skills": skipped_skills(classification, route),
         "quality_rules": {
             "do_not_read_all_initialization_docs": True,
             "do_not_copy_plugin_global_assets": True,
-            "run_route_guard_for_micro_patch": route == "micro_patch",
+            "run_route_guard": True,
+            "route_guard_uses_git_diff_facts": True,
             "run_quality_gate": True,
+            "require_evidence_manifest": evidence_required,
+            "standard_feature_requires_test_first": True,
         },
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Select a GPT-5.5-aware Project Governor runtime plan.")
+    parser = argparse.ArgumentParser(description="Select a Project Governor Harness v6.0 runtime plan.")
     parser.add_argument("input", nargs="?")
     parser.add_argument("--request", default="")
     args = parser.parse_args()
-    payload = load_payload(args.input) if args.input else {"request": args.request}
+    payload = load_payload(args.input, args.request or None)
     if args.request:
         payload["request"] = args.request
     print(json.dumps(plan(payload), indent=2, ensure_ascii=False))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

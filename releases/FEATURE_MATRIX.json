@@ -1,5 +1,5 @@
 {
-  "current_latest": "0.5.0",
+  "current_latest": "6.0.0",
   "versions": [
     {
       "version": "0.4.1",
@@ -180,6 +180,51 @@
           "name": "Clean reinstall latest runtime mode",
           "summary": "Allows clean-reinstall-manager to apply GPT-5.5 runtime mode to current or discovered governed projects without copying plugin-global assets.",
           "user_value": "Existing governed projects can opt into the latest runtime mode through project-owned state.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.0.0",
+      "title": "Project Governor Harness v6.0",
+      "features": [
+        {
+          "id": "harness_v6_runtime_contract",
+          "name": "Harness v6 runtime contract",
+          "summary": "Makes task-router the single source of truth and lets runtime planning, context retrieval, route guard, quality gate, evidence, and merge readiness share one contract.",
+          "user_value": "Governed projects get a consistent execution path from request classification through final readiness.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_0_harness_v6"
+        },
+        {
+          "id": "context_index_v2",
+          "name": "Context Index v2",
+          "summary": "Adds git metadata, language, symbols, imports, headings, sensitivity detection, stale checks, and redaction to project context indexing.",
+          "user_value": "Sessions retrieve task-specific context faster without exposing secret-like content in summaries.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_0_harness_v6"
+        },
+        {
+          "id": "session_lifecycle_state",
+          "name": "Session Lifecycle State",
+          "summary": "Adds project-owned session, feature, agent, issue, progress, and quality score state templates.",
+          "user_value": "Long-running work can preserve handoff state and progress inside the governed project.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_0_harness_v6"
+        },
+        {
+          "id": "evidence_manifest",
+          "name": "Evidence Manifest",
+          "summary": "Adds task evidence manifests for acceptance criteria, test commands, reviews, and docs refresh decisions.",
+          "user_value": "Non-trivial work has auditable completion evidence before merge readiness.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_0_harness_v6"
+        },
+        {
+          "id": "harness_doctor",
+          "name": "Harness Doctor",
+          "summary": "Diagnoses Harness v6 install shape, context index, state files, required skills, route guard scripts, and execution readiness.",
+          "user_value": "Users can verify a governed project is ready for Harness v6 execution.",
           "requires_project_migration": false
         }
       ]

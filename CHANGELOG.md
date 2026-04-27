@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.0.0 - Project Governor Harness v6.0
+
+### Added
+
+- Added Harness v6 docs, runtime policy, release notes, and plugin manifest positioning.
+- Added `session-lifecycle` state management under `.project-governor/state`.
+- Added `evidence-manifest` templates and helper script under `.project-governor/evidence/<task-id>/`.
+- Added `harness-doctor` for install shape, context freshness, state, and execution readiness checks.
+- Added context-index schema v2 with git metadata, mtime, language, symbols, imports, headings, stale hints, and secret redaction.
+- Added git-derived route guard fact collection.
+
+### Changed
+
+- `task-router` is now the Harness v6 route source of truth.
+- `gpt55-auto-orchestrator` now wraps router classification and performs runtime planning.
+- Standard and risky feature routes include test-first planning and evidence-aware gates.
+- `quality-gate` and `merge-readiness` now understand evidence manifests.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Existing skills and historical release metadata are preserved.
+- Target projects should refresh copied governance templates before relying on Harness v6 state and evidence files.
+
 ## 0.5.0 - GPT-5.5 Auto Orchestration
 
 ### Added

@@ -17,7 +17,7 @@ Do not write:
 |---|---|---|---|
 | Product | `codex-project-governor`, a Codex governance plugin | `README.md`, `.codex-plugin/plugin.json` | confirmed |
 | Primary user | Codex-powered maintainers and project teams that want repository-scoped governance | `README.md`, `skills/init-existing-project/SKILL.md`, `skills/pr-governance-review/SKILL.md` | inferred from evidence |
-| Current phase | v0.5.0 plugin with GPT-5.5 auto orchestration, context indexing, DESIGN.md governance, clean reinstall management, project hygiene self-inspection fix, clean initialization, plugin upgrade migration, routing, quality gates, and self-tests | `.codex-plugin/plugin.json`, `README.zh-CN.md`, `tests/selftest.py` | confirmed |
+| Current phase | v6.0.0 Project Governor Harness with single-source task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, evidence manifests, diff-derived route guard facts, DESIGN.md governance, clean reinstall management, plugin upgrade migration, routing, quality gates, and self-tests | `.codex-plugin/plugin.json`, `README.md`, `README.zh-CN.md`, `tests/selftest.py`, `tests/test_harness_v6.py` | confirmed |
 | Success metric | Self-tests pass and initialized repositories receive governance templates without application-code changes | `README.md`, `tests/selftest.py`, `tools/init_project.py` | confirmed |
 
 ## Durable facts
@@ -25,7 +25,8 @@ Do not write:
 | Date | Fact | Source | Status | Evidence |
 |---|---|---|---|---|
 | 2026-04-21 | The repository is organized around plugin metadata, skills, templates, deterministic scripts, examples, and self-tests. | init-existing-project analysis | confirmed | `.codex-plugin/plugin.json`, `README.md`, `tests/selftest.py` |
-| 2026-04-24 | The project ships 30 bundled skills in `skills/`. | v0.5.0 release workflow | confirmed | `README.md`, `tests/selftest.py`, `skills/gpt55-auto-orchestrator/SKILL.md`, `skills/context-indexer/SKILL.md` |
+| 2026-04-27 | The project ships at least 33 bundled skills in `skills/`. | Harness v6.0 release workflow | confirmed | `README.md`, `tests/selftest.py`, `skills/session-lifecycle/SKILL.md`, `skills/evidence-manifest/SKILL.md`, `skills/harness-doctor/SKILL.md` |
+| 2026-04-27 | v6.0.0 upgrades Project Governor into a Harness with session lifecycle state, evidence manifests, context-index v2, git diff fact collection, evidence-aware quality gates, and harness doctor checks. | Harness v6.0 Downloads upgrade | confirmed | `.codex-plugin/plugin.json`, `docs/harness/HARNESS_V6.md`, `skills/session-lifecycle/SKILL.md`, `skills/evidence-manifest/SKILL.md`, `skills/harness-doctor/SKILL.md`, `tests/test_harness_v6.py` |
 | 2026-04-22 | The initializer copies project-owned governance files from `templates/` by default, preserves existing files unless overwrite is requested, and exposes `--profile legacy-full` for bundled `.codex` runtime assets. | v0.4.4 release merge | confirmed | `tools/init_project.py`, `docs/architecture/API_CONTRACTS.md` |
 | 2026-04-21 | The repository has no application runtime, HTTP service, or local UI component implementation. | init-existing-project analysis | confirmed | `.mcp.json`, `README.md`, `assets/icon.png`, file tree |
 | 2026-04-22 | v0.4.4 introduces clean initialization by default and a `project-hygiene-doctor` workflow for diagnosing plugin-global assets in target projects. | v0.4.4 release merge | confirmed | `CHANGELOG.md`, `tools/init_project.py`, `skills/project-hygiene-doctor/SKILL.md`, `releases/0.4.4.md` |
@@ -60,5 +61,5 @@ See `REPEATED_AGENT_MISTAKES.md`.
 
 ## Last reviewed
 
-- Date: 2026-04-24
-- Reviewer: Codex v0.5.0 GPT-5.5 Auto Orchestration workflow
+- Date: 2026-04-27
+- Reviewer: Codex Harness v6.0 upgrade workflow

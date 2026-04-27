@@ -239,22 +239,28 @@ Input:
 Output includes:
 
 - `status`
+- `router_version`
 - `request`
+- `intent`
 - `route`
 - `lane`
 - `quality_level`
 - `quality_gate`
 - `confidence`
+- `risk_score`
 - `risk_signals`
 - `negative_constraints`
+- `task_shape`
 - `subagent_mode`
 - `required_skills`
 - `required_workflow`
 - `skipped_workflow`
 - `change_budget`
 - `route_guard_requirements`
+- `evidence_required`
 - `escalate_if`
 - `escalation_triggers`
+- `reasons`
 
 ### `skills/route-guard/scripts/check_route_guard.py`
 
@@ -274,6 +280,37 @@ Output:
 - `summary`
 
 The script exits non-zero when route guard violations are present.
+
+### `skills/route-guard/scripts/collect_diff_facts.py`
+
+Input:
+
+- optional `--repo <path>`
+
+Output:
+
+- `status`
+- `repo`
+- `modified_files`
+- `added_files`
+- `deleted_files`
+- `renamed_files`
+- `dependencies_added`
+- `dependency_files_changed`
+- `api_contract_changed`
+- `api_files_changed`
+- `schema_changed`
+- `schema_files_changed`
+- `global_style_changed`
+- `global_style_files_changed`
+- `shared_component_changed`
+- `shared_components_changed`
+- `new_components_added`
+- `rewrite_detected`
+- `tests_deleted`
+- `assertions_weakened`
+- `tests_skipped`
+- `test_files_changed`
 
 ### `skills/subagent-activation/scripts/select_subagents.py`
 
@@ -536,9 +573,13 @@ Output:
 
 - `status`
 - `runtime_version`
+- `router_version`
 - `route`
 - `lane`
 - `quality_gate`
+- `classification`
+- `risk_score`
+- `evidence_required`
 - `reasons`
 - `model_plan`
 - `context_budget`
@@ -560,17 +601,22 @@ Output without `--write`:
 
 - `schema`
 - `project`
+- `built_at`
+- `git`
 - `entry_count`
 - `entries[]`
 
 Output with `--write`:
 
 - `status`
+- `schema`
 - `index`
 - `brief`
 - `entry_count`
 
 With `--write`, the script writes `.project-governor/context/CONTEXT_INDEX.json`, `.project-governor/context/SESSION_BRIEF.md`, and `.project-governor/context/INDEX_REPORT.json`.
+
+Harness v6 writes `schema` as `project-governor-context-index-v2`. Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, tokens, summary, sensitivity, and stale reason. Secret-like content is redacted from summaries.
 
 ### `skills/context-indexer/scripts/query_context_index.py`
 
@@ -584,9 +630,12 @@ Output:
 
 - `status`
 - `request`
+- `route`
+- `confidence`
 - `read_all_initialization_docs`
 - `recommended_files[]`
 - `token_policy`
+- `stale_files[]`
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 
@@ -650,6 +699,7 @@ Input JSON fields include:
 Output:
 
 - `status`
+- `schema`
 - `level`
 - `quality_level`
 - `findings`
@@ -657,6 +707,8 @@ Output:
 - `warnings`
 - `commands`
 - `route_guard`
+- `evidence_required`
+- `evidence`
 - `repair_loop_required`
 - `summary`
 
@@ -678,12 +730,81 @@ Input JSON fields include:
 Output:
 
 - `status`
+- `schema`
 - `blockers`
 - `warnings`
 - `commands_verified`
+- `evidence_required`
+- `evidence_present`
 - `required_before_merge`
 
 The script exits non-zero when merge readiness fails.
+
+### `skills/session-lifecycle/scripts/session_lifecycle.py`
+
+Input:
+
+- subcommand `start` or `end`
+- optional `--project <path>`
+- `start`: optional `--task-id <id>`, `--route <route>`, repeated `--target-file <path>`
+- `end`: optional `--status <status>`, `--summary <text>`, `--evidence-path <path>`, repeated `--command <command>`
+
+Output:
+
+- `status`
+- `session`
+
+Side effects:
+
+- Ensures `.project-governor/state/FEATURES.json`, `AGENTS.json`, `ISSUES.json`, `QUALITY_SCORE.json`, and `PROGRESS.md`.
+- Writes `.project-governor/state/SESSION.json`.
+- Appends session start/end events to `.project-governor/state/PROGRESS.md`.
+
+### `skills/evidence-manifest/scripts/write_evidence_manifest.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--task-id <id>`
+- optional `--route <route>`
+- optional `--input <json-path>`
+- optional `--output <json-path>`
+- optional `--validate`
+
+Output:
+
+- without `--validate`: `status`, `path`, `validation`
+- with `--validate`: `status`, `validation`, `manifest`
+
+Default manifest fields:
+
+- `schema`
+- `task_id`
+- `route`
+- `created_at`
+- `acceptance_criteria[]`
+- `tests[]`
+- `reviews`
+- `docs_refresh`
+
+### `skills/harness-doctor/scripts/doctor.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--execution-readiness`
+
+Output:
+
+- `status`
+- `schema`
+- `project`
+- `execution_readiness`
+- `blockers`
+- `warnings`
+- `summary`
+
+With `--execution-readiness`, Python compile failures for Harness v6 scripts are blockers. Missing context index and state files remain warnings because a fresh project may not have started a Harness session yet.
 
 ### `skills/coding-velocity-report/scripts/build_velocity_report.py`
 

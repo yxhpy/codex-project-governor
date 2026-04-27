@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`0.5.0`
+当前版本：`6.0.0`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用任务路由、微补丁路由、route guard、GPT-5.5 自动编排、上下文索引、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -68,6 +68,9 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `gpt55-auto-orchestrator` | 面向 GPT-5.5 自动选择工作流、模型计划、上下文预算、subagent 和质量门。 |
 | `context-indexer` | 构建和查询紧凑的项目上下文索引，避免每个会话都读取所有初始化文档。 |
 | `context-pack-builder` | 构建最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
+| `session-lifecycle` | 启动和结束 Harness v6 任务会话，并维护 `.project-governor/state` 项目状态。 |
+| `evidence-manifest` | 创建或校验任务证据清单，把验收标准、测试、审查和文档刷新决策关联起来。 |
+| `harness-doctor` | 诊断 Harness v6 安装结构、上下文新鲜度、状态文件、必需技能和执行就绪度。 |
 | `pattern-reuse-engine` | 找出现有组件、服务、hook、schema、测试和样式模式，避免重复造新模式。 |
 | `parallel-feature-builder` | 用质量门约束的子代理流水线实现功能：先只读分析，再单一实现者，再测试、审查和修复。 |
 | `test-first-synthesizer` | 按现有测试风格先产出目标测试计划或测试骨架。 |
@@ -199,6 +202,22 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `quality-gate` 作为最终响应或 PR 前的硬检查。
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
+
+### 使用 Harness v6.0
+
+Harness v6.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、会话状态、route guard、质量门、证据清单和 merge-readiness 共用同一套契约。
+
+```text
+Use Project Governor Harness v6.0 to plan this change with context index, session state, evidence, and route guard checks.
+```
+
+核心验证命令：
+
+```bash
+python3 skills/context-indexer/scripts/build_context_index.py --project . --write
+python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readiness
+python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . --task-id demo --route standard_feature --validate
+```
 
 ### 使用 GPT-5.5 自动编排
 

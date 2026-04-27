@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Governance plugin v0.4.7 with initialized self-governance, advisory research gates, quality-gated acceleration, clean reinstall management, and opt-in DESIGN.md governance.
+Project Governor Harness v6.0 with initialized self-governance, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, context-index v2, session lifecycle state, evidence manifests, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
@@ -11,6 +11,7 @@ Governance plugin v0.4.7 with initialized self-governance, advisory research gat
 - Deterministic helper scripts under `tools/` and `skills/*/scripts/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
+- Harness docs and release notes under `docs/harness/` and `releases/`.
 - Example inputs and scheduled-memory examples under `examples/`.
 - Self-test workflow under `tests/` and `.github/workflows/selftest.yml`.
 
@@ -32,6 +33,6 @@ Governance plugin v0.4.7 with initialized self-governance, advisory research gat
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `0.4.7`.
-- `README.md` lists 28 skills and deterministic script entrypoints.
+- `.codex-plugin/plugin.json` declares version `6.0.0`.
+- `README.md` lists 33+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.
