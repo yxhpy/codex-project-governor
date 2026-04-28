@@ -1,5 +1,30 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/design_md_codex_hook.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking whether DESIGN.md aesthetic gate applies"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^apply_patch$|Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/design_md_codex_hook.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking DESIGN.md read proof before UI edits"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

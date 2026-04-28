@@ -9,12 +9,17 @@
 - 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`，但必须用 `route-guard` 验证实际 diff 没有越界。
 - 面向 GPT-5.5 的实现、研究、升级或清理请求，可以先用 `gpt55-auto-orchestrator` 自动选择工作流、模型、上下文预算、subagent 和质量门。
 - 已初始化项目优先用 `context-indexer` 查询任务相关文件，避免每个会话都读取所有初始化文档。
+- 需要查“为什么当时这样做”或历史决策时，用 `context-indexer --memory-search` 查治理记忆、决策、任务和状态文件，不要拼复杂 shell，也不要默认翻原始聊天记录。
 - 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
 - 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
 - 需要重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
 - 项目采用 `DESIGN.md` 时，先用 `design-md-governor` lint、摘要和 diff，缺失时只给采纳计划，不自动创建。
+- 任何 UI/frontend 编码、视觉润色、组件、页面、CSS 或响应式布局改动，先用 `design-md-aesthetic-governor` 检查 Gemini/Stitch 配置，读取 DESIGN.md、生成 read proof，再按 token 实现并做漂移校验。
+- Gemini/Stitch 配置可以来自 shell 环境变量，也可以来自项目根目录 `.env-design`；必需键为 `GEMINI_BASE_URL`、`GEMINI_API_KEY`、`GEMINI_MODEL`、`STITCH_MCP_API_KEY`，`GEMINI_PROTOCOL` 可选 `auto`、`openai` 或 `gemini`。通过第三方网关走原生 Gemini 时，`GEMINI_BASE_URL` 必须填该网关的 Gemini 协议根，例如提供 `/gemini/v1beta` 时填 `https://host/gemini`。`STITCH_MCP_URL` 默认是 `https://stitch.googleapis.com/mcp`，`.env-design` 不得提交。
+- 默认走托管 Stitch MCP 端点，不需要本地安装 `stitch-mcp`、`npm` 或 `gcloud`；只有项目显式改成本地 MCP server 时才需要安装依赖。
+- 如果用户明确要不用 Gemini/Stitch、只用基础模式做前端，只能设置 shell 环境变量 `DESIGN_BASIC_MODE=1`。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -137,9 +142,9 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 使用 Harness v6.0、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0.2、GPT-5.5 自动编排和上下文索引
 
-v6.0.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+v6.0.2 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -154,7 +159,10 @@ Query the context index before reading large initialization docs.
 ```bash
 python3 skills/context-indexer/scripts/build_context_index.py --project . --write
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "为什么当时选择这个 checkout 流程" --memory-search --auto-build
 ```
+
+`--memory-search` 会把检索范围收窄到受治理的历史资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`。需要给人读的结果时可加 `--format text`。
 
 Harness v6 的项目状态和证据入口：
 

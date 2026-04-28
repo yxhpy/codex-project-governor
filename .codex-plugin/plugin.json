@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "6.0.0",
-  "description": "Codex Project Governor Harness v6.0: session-state, context-index v2, evidence-based quality gates, diff-derived route guards, lifecycle hooks, doctor checks, model routing, and GPT-5.5 orchestration.",
+  "version": "6.0.2",
+  "description": "Codex Project Governor Harness v6.0.2: session-state, context-index v2, governed memory search, evidence gates, route guards, lifecycle hooks, GPT orchestration, and DESIGN.md UI workflows.",
   "author": { "name": "yxhpy" },
   "homepage": "https://github.com/yxhpy/codex-project-governor",
   "repository": "https://github.com/yxhpy/codex-project-governor",
@@ -22,14 +22,14 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Project Governor Harness",
-    "shortDescription": "Harness v6.0 for Codex project governance",
-    "longDescription": "Adds Harness v6.0: one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, and doctor checks. The project carries durable state and auditable evidence while Codex executes, reviews, and compacts work.",
+    "shortDescription": "Harness v6.0.2 for Codex project governance",
+    "longDescription": "Adds Harness v6.0.2: one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, governed memory search, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, doctor checks, and DESIGN.md-gated UI workflows with full-service or basic mode. The project carries durable state and auditable evidence while Codex executes, reviews, searches memory, and compacts work.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use Project Governor Harness v6.0 to plan this change with context index, session state, evidence, and route guard checks.",
+      "Use Project Governor Harness v6.0.2 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.",
       "Use Project Governor to initialize this existing repository without changing application code.",
       "Use Project Governor to create a memory and iteration governance system for this project.",
       "Use Project Governor to plan this change as an iteration, not a rewrite.",
@@ -44,7 +44,8 @@
       "Use Project Governor route-guard with collect_diff_facts to verify the actual git diff still fits the selected route.",
       "Use Project Governor harness-doctor to verify install shape, context freshness, state schemas, execution readiness, and evidence gates.",
       "Use Project Governor clean-reinstall-manager to refresh project-owned governance without copying plugin-global assets.",
-      "Use Project Governor design-md-governor to lint, summarize, diff, or plan opt-in DESIGN.md governance before UI/style work."
+      "Use Project Governor design-md-governor to lint, summarize, diff, or plan opt-in DESIGN.md governance before UI/style work.",
+      "Use Project Governor design-md-aesthetic-governor to require full-service Gemini/Stitch config or DESIGN_BASIC_MODE=1, DESIGN.md read proof, token discipline, aesthetic reference selection, and drift checks before UI/frontend edits."
     ]
   }
 }

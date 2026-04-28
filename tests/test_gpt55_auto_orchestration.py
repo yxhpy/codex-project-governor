@@ -56,6 +56,49 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
             self.assertIn('src/components/DashboardWidget.tsx', paths)
             self.assertFalse(queried['read_all_initialization_docs'])
 
+    def test_context_index_memory_search_auto_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / '.project-governor').mkdir()
+            (project / 'docs/memory').mkdir(parents=True)
+            (project / 'docs/memory/PROJECT_MEMORY.md').write_text('Checkout flow uses Stripe redirect based on ADR-0003.\n', encoding='utf-8')
+            (project / 'docs/decisions').mkdir(parents=True)
+            (project / 'docs/decisions/ADR-0003-checkout.md').write_text('Use Stripe redirect checkout for hosted payment pages.\n', encoding='utf-8')
+            (project / 'tasks/2026-04-28-checkout').mkdir(parents=True)
+            (project / 'tasks/2026-04-28-checkout/ITERATION_PLAN.md').write_text('Investigate checkout redirect regression.\n', encoding='utf-8')
+            (project / 'src').mkdir()
+            (project / 'src/checkout.py').write_text('def checkout():\n    return True\n', encoding='utf-8')
+            data = self.run_json([
+                PY,
+                str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'),
+                '--project',
+                str(project),
+                '--request',
+                'checkout redirect decision history',
+                '--memory-search',
+                '--auto-build',
+            ])
+            self.assertTrue(data['auto_built'])
+            self.assertEqual(data['search_mode'], 'governance_memory')
+            self.assertFalse(data['raw_chat_history_search'])
+            paths = {item['path'] for item in data['recommended_files']}
+            self.assertIn('docs/memory/PROJECT_MEMORY.md', paths)
+            self.assertIn('docs/decisions/ADR-0003-checkout.md', paths)
+            self.assertNotIn('src/checkout.py', paths)
+            text_proc = subprocess.run([
+                PY,
+                str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'),
+                '--project',
+                str(project),
+                '--request',
+                'checkout redirect decision history',
+                '--memory-search',
+                '--format',
+                'text',
+            ], text=True, capture_output=True, check=True, timeout=15)
+            self.assertIn('mode: governance_memory', text_proc.stdout)
+            self.assertIn('docs/memory/PROJECT_MEMORY.md', text_proc.stdout)
+
     def test_clean_reinstall_apply_latest_mode_for_project(self):
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / 'app'

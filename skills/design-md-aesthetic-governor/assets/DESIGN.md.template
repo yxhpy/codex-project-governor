@@ -1,0 +1,91 @@
+---
+version: alpha
+name: Project Design System
+description: Replace this template with the project's real visual identity before UI implementation.
+colors:
+  primary: "#111827"
+  secondary: "#4B5563"
+  accent: "#2563EB"
+  surface: "#FFFFFF"
+  surface-muted: "#F9FAFB"
+  border: "#E5E7EB"
+  danger: "#DC2626"
+typography:
+  headline-lg:
+    fontFamily: Inter
+    fontSize: 48px
+    fontWeight: 700
+    lineHeight: 1.05
+    letterSpacing: -0.03em
+  body-md:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.6
+  label-sm:
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: 0.04em
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  2xl: 48px
+rounded:
+  sm: 6px
+  md: 12px
+  lg: 20px
+  full: 9999px
+components:
+  button-primary:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.md}"
+    padding: 12px
+  card-default:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.primary}"
+    rounded: "{rounded.lg}"
+    padding: 24px
+---
+
+# Project Design System
+
+## Overview
+
+Define the product's visual identity here before implementation. Describe mood, density, audience, and the type of trust the UI should create.
+
+## Colors
+
+- Primary is used for core text and major headings.
+- Secondary is used for metadata and lower-emphasis labels.
+- Accent is reserved for primary actions and active states.
+- Danger is reserved for destructive or urgent states.
+
+## Typography
+
+Use headline-lg for hero or major page headings. Use body-md for main reading text. Use label-sm for metadata and compact controls.
+
+## Layout
+
+Use a consistent spacing rhythm. Group related controls in cards or sections. Avoid decorative spacing that is not tied to hierarchy.
+
+## Elevation & Depth
+
+Prefer borders and tonal surfaces over heavy shadows unless the product design specifically calls for depth.
+
+## Shapes
+
+Use rounded.md for controls and rounded.lg for cards. Avoid mixing many radius values.
+
+## Components
+
+Primary buttons use the accent token. Cards use the surface token and project spacing values.
+
+## Do's and Don'ts
+
+Do use the defined tokens. Do not introduce new hardcoded colors or fonts inside UI components without first updating this file.

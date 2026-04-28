@@ -111,6 +111,10 @@ def role_for(rel: str, text: str) -> list[str]:
         roles.append("agent_instructions")
     if "docs/memory" in low or ".project-governor/state" in low:
         roles.append("memory")
+    if low.startswith("tasks/") or ".project-governor/state" in low:
+        roles.append("task_history")
+    if low.startswith(("docs/upgrades/", "docs/research/", "releases/")):
+        roles.append("governance_history")
     if "docs/decisions" in low or "adr" in low or "pdr" in low:
         roles.append("decision")
     if "docs/conventions" in low or "pattern" in low or "component_registry" in low:
@@ -242,7 +246,7 @@ def build(project: Path) -> dict:
 
 def session_brief(index: dict) -> str:
     entries = index["entries"]
-    core = [e for e in entries if any(r in e["roles"] for r in ["agent_instructions", "conventions", "quality", "memory", "decision", "design"])]
+    core = [e for e in entries if any(r in e["roles"] for r in ["agent_instructions", "conventions", "quality", "memory", "decision", "task_history", "governance_history", "design"])]
     lines = [
         "# Project Governor Harness v6 Session Brief",
         "",

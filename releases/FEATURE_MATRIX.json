@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.0",
+  "current_latest": "6.0.2",
   "versions": [
     {
       "version": "0.4.1",
@@ -225,6 +225,61 @@
           "name": "Harness Doctor",
           "summary": "Diagnoses Harness v6 install shape, context index, state files, required skills, route guard scripts, and execution readiness.",
           "user_value": "Users can verify a governed project is ready for Harness v6 execution.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.0.1",
+      "title": "DESIGN.md Aesthetic Governor",
+      "features": [
+        {
+          "id": "design_md_aesthetic_governor",
+          "name": "DESIGN.md Aesthetic Governor",
+          "summary": "Gates UI/frontend work through remote Stitch MCP/Gemini configuration, DESIGN.md read proof, design mode selection, token discipline, and drift verification.",
+          "user_value": "Frontend work can use full-service Stitch/Gemini support or explicit DESIGN_BASIC_MODE while still preserving project-owned design rules.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_1_design_md_aesthetic_governor"
+        },
+        {
+          "id": "remote_stitch_mcp_smoke",
+          "name": "Remote Stitch MCP Smoke",
+          "summary": "Configures the hosted Stitch MCP endpoint and adds a real-service smoke script that initializes MCP without a local npm or gcloud dependency.",
+          "user_value": "Users can validate Stitch/Gemini setup from .env-design or shell environment with minimal manual setup and without committing API keys.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "gemini_protocol_review_script",
+          "name": "Gemini Protocol Review Script",
+          "summary": "Adds explicit Gemini protocol selection and a full-service review script that records Gemini critique plus Stitch MCP tool availability.",
+          "user_value": "Projects can choose native Gemini generateContent or OpenAI-compatible gateways and keep repeatable UI review evidence.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "design_basic_mode",
+          "name": "Design Basic Mode",
+          "summary": "Allows users to set DESIGN_BASIC_MODE=1 to do frontend work without Gemini/Stitch setup while retaining local DESIGN.md checks.",
+          "user_value": "Projects can continue frontend implementation in constrained environments without silently disabling design governance.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.0.2",
+      "title": "Governed Memory Search",
+      "features": [
+        {
+          "id": "governed_memory_search",
+          "name": "Governed Memory Search",
+          "summary": "Adds context-indexer memory-search mode for project memory, decisions, task history, releases, upgrade docs, research docs, and project state.",
+          "user_value": "Users can ask why something was decided or what happened before without building shell pipelines or scanning raw chat transcripts.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "context_index_history_roles",
+          "name": "Context index history roles",
+          "summary": "Adds task_history and governance_history roles to context-index v2 entries.",
+          "user_value": "Task plans, release notes, upgrade records, and research docs become first-class retrieval targets for future sessions.",
           "requires_project_migration": false
         }
       ]

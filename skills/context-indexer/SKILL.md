@@ -30,14 +30,19 @@ It does not copy plugin-global assets into the project.
 3. Query the index for the user's request.
 4. Read only the returned files before implementation.
 5. Escalate to broader scanning only when the index is insufficient.
+6. For memory/history questions, use `--memory-search` so retrieval stays on governed project memory, decisions, tasks, release notes, and state files instead of raw chat transcripts.
 
 ## Deterministic helpers
 
 ```bash
 python3 skills/context-indexer/scripts/build_context_index.py --project . --write
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "why did we choose Stripe redirect" --memory-search --auto-build
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "checkout decision history" --memory-search --format text
 ```
 
 ## Output
 
 Return a ranked list of files and docs with roles, reasons, and recommended token budget.
+
+Memory search mode is read-only and intentionally searches curated governance artifacts, not raw conversation history. Durable facts still belong in `docs/memory/`, decisions in `docs/decisions/`, and required team rules in `AGENTS.md`.

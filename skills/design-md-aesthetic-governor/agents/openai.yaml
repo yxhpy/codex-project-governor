@@ -1,0 +1,7 @@
+interface:
+  display_name: "DESIGN.md Aesthetic Governor"
+  short_description: "Forces UI/frontend coding through DESIGN.md read-proof, aesthetic selection, and design drift checks."
+  brand_color: "#111827"
+  default_prompt: "Use $design-md-aesthetic-governor before editing UI files. Read DESIGN.md, create read proof, then implement with token discipline."
+policy:
+  allow_implicit_invocation: true

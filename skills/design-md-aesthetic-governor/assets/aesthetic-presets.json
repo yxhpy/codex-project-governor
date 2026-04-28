@@ -1,0 +1,326 @@
+{
+  "version": "0.1.0",
+  "source": "VoltAgent/awesome-design-md README-derived compact index",
+  "presets": [
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "category": "Developer Tools & IDEs",
+      "mood": "black and white precision, Geist-like developer minimalism",
+      "best_for": [
+        "developer tools",
+        "deployment",
+        "SaaS dashboard",
+        "docs",
+        "B2B"
+      ],
+      "avoid_for": [
+        "playful consumer app"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "category": "Productivity & SaaS",
+      "mood": "ultra-minimal, precise, purple accent, low-noise productivity",
+      "best_for": [
+        "issue tracker",
+        "admin dashboard",
+        "project management",
+        "settings"
+      ],
+      "avoid_for": [
+        "image-heavy marketing"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "category": "Backend, Database & DevOps",
+      "mood": "dark emerald, code-first, database console energy",
+      "best_for": [
+        "developer platform",
+        "database",
+        "API console",
+        "technical SaaS"
+      ],
+      "avoid_for": [
+        "warm editorial"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "voltagent",
+      "name": "VoltAgent",
+      "category": "AI & LLM Platforms",
+      "mood": "void-black canvas, emerald accent, terminal-native agent framework",
+      "best_for": [
+        "AI agent platform",
+        "terminal UI",
+        "technical landing",
+        "developer dashboard"
+      ],
+      "avoid_for": [
+        "consumer lifestyle"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "category": "Developer Tools & IDEs",
+      "mood": "sleek dark interface, gradient accents, AI-first coding",
+      "best_for": [
+        "AI coding",
+        "IDE",
+        "devtool landing",
+        "editor UI"
+      ],
+      "avoid_for": [
+        "enterprise whitepaper"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "category": "Fintech & Crypto",
+      "mood": "purple gradients, thin-weight typography, payment infrastructure polish",
+      "best_for": [
+        "payments",
+        "fintech",
+        "checkout",
+        "B2B platform"
+      ],
+      "avoid_for": [
+        "terminal-first products"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "revolut",
+      "name": "Revolut",
+      "category": "Fintech & Crypto",
+      "mood": "sleek dark interface, gradient cards, fintech precision",
+      "best_for": [
+        "banking",
+        "finance dashboard",
+        "cards",
+        "pricing"
+      ],
+      "avoid_for": [
+        "docs-only product"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "coinbase",
+      "name": "Coinbase",
+      "category": "Fintech & Crypto",
+      "mood": "clean blue identity, trust-focused, institutional",
+      "best_for": [
+        "crypto",
+        "finance",
+        "regulated onboarding",
+        "trust pages"
+      ],
+      "avoid_for": [
+        "playful creative"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "category": "Productivity & SaaS",
+      "mood": "warm minimalism, serif headings, soft surfaces",
+      "best_for": [
+        "knowledge base",
+        "notes",
+        "workspace",
+        "editorial SaaS"
+      ],
+      "avoid_for": [
+        "high-density trading"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "mintlify",
+      "name": "Mintlify",
+      "category": "Productivity & SaaS",
+      "mood": "clean, green-accented, reading-optimized documentation",
+      "best_for": [
+        "docs",
+        "developer portal",
+        "API reference",
+        "knowledge base"
+      ],
+      "avoid_for": [
+        "cinematic campaign"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "category": "Media & Consumer Tech",
+      "mood": "premium whitespace, SF Pro-like clarity, cinematic product imagery",
+      "best_for": [
+        "consumer product",
+        "hardware",
+        "premium marketing",
+        "feature launch"
+      ],
+      "avoid_for": [
+        "data-dense admin"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "category": "E-commerce & Retail",
+      "mood": "warm coral, photography-driven, rounded hospitality UI",
+      "best_for": [
+        "travel",
+        "marketplace",
+        "consumer search",
+        "lifestyle"
+      ],
+      "avoid_for": [
+        "developer terminal"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "category": "E-commerce & Retail",
+      "mood": "dark-first cinematic, neon green accent, commerce growth energy",
+      "best_for": [
+        "ecommerce",
+        "merchant tools",
+        "storefront builder",
+        "growth dashboard"
+      ],
+      "avoid_for": [
+        "minimal finance"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "category": "Design & Creative Tools",
+      "mood": "vibrant multi-color, playful yet professional collaboration",
+      "best_for": [
+        "design tool",
+        "collaboration",
+        "creative SaaS",
+        "canvas product"
+      ],
+      "avoid_for": [
+        "austere enterprise"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "webflow",
+      "name": "Webflow",
+      "category": "Design & Creative Tools",
+      "mood": "blue-accented, polished marketing site, motion/design-forward",
+      "best_for": [
+        "website builder",
+        "marketing",
+        "creative tools"
+      ],
+      "avoid_for": [
+        "dense ops dashboards"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "sentry",
+      "name": "Sentry",
+      "category": "Backend, Database & DevOps",
+      "mood": "dark dashboard, data-dense, pink-purple accent",
+      "best_for": [
+        "observability",
+        "error monitoring",
+        "logs",
+        "analytics"
+      ],
+      "avoid_for": [
+        "light lifestyle"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse",
+      "category": "Backend, Database & DevOps",
+      "mood": "yellow-accented, technical documentation style",
+      "best_for": [
+        "analytics",
+        "database",
+        "infra docs",
+        "technical benchmark"
+      ],
+      "avoid_for": [
+        "soft consumer"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "ibm",
+      "name": "IBM",
+      "category": "Media & Consumer Tech",
+      "mood": "Carbon-like structured blue enterprise system",
+      "best_for": [
+        "enterprise dashboard",
+        "governance",
+        "B2B compliance",
+        "AI platform"
+      ],
+      "avoid_for": [
+        "playful consumer"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "nvidia",
+      "name": "NVIDIA",
+      "category": "Media & Consumer Tech",
+      "mood": "green-black technical power, GPU compute energy",
+      "best_for": [
+        "AI infra",
+        "GPU",
+        "technical launch",
+        "performance dashboard"
+      ],
+      "avoid_for": [
+        "finance trust pages"
+      ],
+      "source": "awesome-design-md"
+    },
+    {
+      "id": "wired",
+      "name": "WIRED",
+      "category": "Media & Consumer Tech",
+      "mood": "paper-white broadsheet density, serif/editorial, ink links",
+      "best_for": [
+        "editorial",
+        "news",
+        "long-form",
+        "research reports"
+      ],
+      "avoid_for": [
+        "app settings"
+      ],
+      "source": "awesome-design-md"
+    }
+  ]
+}

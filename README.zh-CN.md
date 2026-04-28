@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.0`
+当前版本：`6.0.2`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0.2、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -60,13 +60,14 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
 | `clean-reinstall-manager` | 生成用户级插件重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
 | `design-md-governor` | 把 Google Labs Code DESIGN.md 作为可选设计系统真源，支持 lint、摘要、diff 和迁移建议，但不自动创建项目设计文件。 |
+| `design-md-aesthetic-governor` | 在 UI/frontend 编码前强制检查 Gemini/Stitch 配置、读取 DESIGN.md、生成 read proof、选择审美参考、按 token 实现并校验漂移。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
 | `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
 | `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
 | `route-guard` | 验证实际 diff 是否仍符合 task-router 选定的路由，尤其是 `micro_patch` 和 fast-lane 改动。 |
 | `subagent-activation` | 按 route、workflow、风险、质量等级和置信度选择项目级 subagent 与模型策略，避免用户手动列 subagent。 |
 | `gpt55-auto-orchestrator` | 面向 GPT-5.5 自动选择工作流、模型计划、上下文预算、subagent 和质量门。 |
-| `context-indexer` | 构建和查询紧凑的项目上下文索引，避免每个会话都读取所有初始化文档。 |
+| `context-indexer` | 构建和查询紧凑的项目上下文索引，并支持治理记忆/历史搜索，避免每个会话都读取所有初始化文档。 |
 | `context-pack-builder` | 构建最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
 | `session-lifecycle` | 启动和结束 Harness v6 任务会话，并维护 `.project-governor/state` 项目状态。 |
 | `evidence-manifest` | 创建或校验任务证据清单，把验收标准、测试、审查和文档刷新决策关联起来。 |
@@ -203,12 +204,12 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0
+### 使用 Harness v6.0.2
 
-Harness v6.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、会话状态、route guard、质量门、证据清单和 merge-readiness 共用同一套契约。
+Harness v6.0.2 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.0 to plan this change with context index, session state, evidence, and route guard checks.
+Use Project Governor Harness v6.0.2 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -233,7 +234,10 @@ Query the context index before reading large initialization docs.
 ```bash
 python3 skills/context-indexer/scripts/build_context_index.py --project . --write
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "为什么当时选择这个 checkout 流程" --memory-search --auto-build
 ```
+
+记忆搜索模式只查受治理的项目资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`，不默认扫描原始聊天记录。
 
 ### 升级前做版本研究
 
@@ -312,6 +316,44 @@ Do not create or overwrite DESIGN.md unless the user explicitly opts in.
 python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
+```
+
+### 用 DESIGN.md 约束 UI 编码
+
+当任务涉及 React、Next.js、Tailwind、CSS、页面、组件、dashboard、landing page、响应式布局、视觉润色或 redesign 时，使用 `design-md-aesthetic-governor`。
+
+```text
+Use @project-governor design-md-aesthetic-governor.
+
+Require Gemini/Stitch config from environment variables or project .env-design.
+Read DESIGN.md before UI edits.
+Run preflight to create .codex/design-md-governor/read-proof.json.
+Use DESIGN.md tokens and rationale during implementation.
+Verify drift after edits.
+```
+
+必需配置键：
+
+```dotenv
+GEMINI_BASE_URL=
+GEMINI_API_KEY=
+GEMINI_MODEL=
+GEMINI_PROTOCOL=auto
+STITCH_MCP_URL=https://stitch.googleapis.com/mcp
+STITCH_MCP_API_KEY=
+```
+
+`.env-design` 是项目本地密钥配置，不得提交。环境变量优先于 `.env-design`。`GEMINI_PROTOCOL` 可以是 `auto`、`openai` 或 `gemini`；`gemini` 表示原生 Gemini `generateContent`，`openai` 表示 OpenAI-compatible 网关。通过第三方网关走原生 Gemini 时，`GEMINI_BASE_URL` 必须填该网关的 Gemini 协议根，例如提供 `/gemini/v1beta` 时填 `https://host/gemini`。`STITCH_MCP_URL` 默认是 `https://stitch.googleapis.com/mcp`。
+如需不用 Gemini/Stitch、只用基础模式做前端，只能在 shell 环境变量中设置 `DESIGN_BASIC_MODE=1`；`.env-design` 里的 basic/skip 标记无效。
+
+完整模式的流程是：GPT/Codex 负责编排和代码实现，Stitch MCP 负责视觉原型探索，Gemini 负责按 `DESIGN.md` 做外部设计审查，最后 GPT/Codex 把通过的方向落到代码、测试和本地校验里。默认使用托管 Stitch MCP 端点，不需要本地安装 `stitch-mcp`、`npm` 或 `gcloud`；只有项目明确改成本地 MCP server 时才需要安装本地依赖。基础模式会跳过 Stitch 和 Gemini，但仍然要求读取 `DESIGN.md`、使用本地 lint、按 token 实现并做漂移检查。
+
+真实服务冒烟测试：
+
+```bash
+python3 skills/design-md-aesthetic-governor/scripts/design_service_smoke.py --dry-run
+python3 skills/design-md-aesthetic-governor/scripts/design_service_smoke.py --task "<service smoke task>"
+python3 skills/design-md-aesthetic-governor/scripts/design_service_review.py --task "<ui task>"
 ```
 
 ### 实现新能力前做研究雷达

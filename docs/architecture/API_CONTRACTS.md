@@ -166,6 +166,105 @@ Output:
 
 The script exits non-zero when `regression=true`.
 
+### `skills/design-md-aesthetic-governor/scripts/design_env_check.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--write-template`
+
+Output:
+
+- `ok`
+- `status`
+- `mode`
+- `env_file`
+- `gemini_protocol`
+- `stitch_mcp_url`
+- `required`
+- `provided`
+- `missing`
+- `template_created`
+- `git_exclude_updated`
+- `instructions`
+
+The script exits with code `2` when required values are missing. It never prints API key values. `provided` records only whether each required key came from a shell environment variable or project-root `.env-design`. With `--write-template`, it may create a blank `.env-design` template and add `.env-design` to `.git/info/exclude`. Shell environment variable `DESIGN_BASIC_MODE=1` returns `status=basic_mode` and `mode=basic`; legacy `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are accepted. Basic-mode flags in `.env-design` are not honored. `GEMINI_PROTOCOL` is optional and may be `auto`, `openai`, or `gemini`; `DESIGN_GEMINI_PROTOCOL` is accepted as an alias. `STITCH_MCP_URL` is optional and defaults to `https://stitch.googleapis.com/mcp`; `DESIGN_STITCH_MCP_URL`, `STITCH_MCP_ENDPOINT`, and `DESIGN_STITCH_MCP_ENDPOINT` are accepted aliases.
+
+### `skills/design-md-aesthetic-governor/scripts/design_md_gate.py`
+
+Input:
+
+- `preflight --task <text>`
+- optional `--design <path>`
+- optional `--inspiration <id>`
+- `check`
+- optional `--design <path>`
+
+Successful preflight output:
+
+- `ok`
+- `timestamp`
+- `task`
+- `task_is_ui`
+- `design_path`
+- `design_sha256`
+- `lint_summary`
+- `design_env`
+- `required_final_section`
+- `aesthetic_reference`
+
+Generated files:
+
+- `.codex/design-md-governor/read-proof.json`
+- `.codex/design-md-governor/lint-report.json`
+- `.codex/design-md-governor/DESIGN_MD_READ_REPORT.md`
+- `.codex/design-md-governor/design-env-report.json`
+
+Missing Gemini/Stitch design-service configuration exits with code `2` and outputs `ok`, `blocked`, `reason`, and `design_env`. Missing `DESIGN.md` exits with code `2` and creates `docs/design/DESIGN_MD_ADOPTION_PLAN.md`.
+
+### `skills/design-md-aesthetic-governor/scripts/design_service_smoke.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--task <text>`
+- optional `--timeout <seconds>`
+- optional `--dry-run`
+
+Output:
+
+- `ok`
+- `status`
+- `design_env` when blocked
+- `gemini`
+- `stitch`
+
+The script reads Gemini/Stitch configuration from shell environment variables and project-root `.env-design`, but never prints API key values. `GEMINI_PROTOCOL=openai` uses an OpenAI-compatible `POST <GEMINI_BASE_URL>/v1/chat/completions` request unless the base URL already ends with `/v1` or `/chat/completions`. `GEMINI_PROTOCOL=gemini` uses native Gemini `POST <GEMINI_BASE_URL>/v1beta/models/<GEMINI_MODEL>:generateContent` unless the base URL already includes a version, model, or `:generateContent` suffix. When a gateway serves native Gemini under a subpath such as `/gemini/v1beta`, `GEMINI_BASE_URL` must include that protocol root, for example `https://host/gemini`. `GEMINI_PROTOCOL=auto` chooses native Gemini for official Google Gemini hostnames and OpenAI-compatible chat completions otherwise. Gemini success requires a valid JSON response shape (`choices` for OpenAI-compatible, `candidates` for native Gemini), not just a 2xx status. Stitch smoke uses remote MCP initialization against `STITCH_MCP_URL` / `DESIGN_STITCH_MCP_URL`, falling back to `https://stitch.googleapis.com/mcp`, and sends the API key only in the `X-Goog-Api-Key` header.
+
+### `skills/design-md-aesthetic-governor/scripts/design_service_review.py`
+
+Input:
+
+- required `--task <text>`
+- optional `--project <path>`
+- optional `--design <path>`
+- optional `--timeout <seconds>`
+- optional `--write-template`
+
+Output:
+
+- `ok`
+- `status`
+- `task`
+- `design`
+- `design_sha256`
+- `lint_summary`
+- `gemini`
+- `stitch`
+- `evidence`
+
+The script is the repeatable full-service UI review step. It reads `DESIGN.md`, lints it, sends the task and design summary to Gemini using the configured protocol, initializes Stitch MCP, calls `tools/list`, and writes `.codex/design-md-governor/service-review.json` plus `.codex/design-md-governor/SERVICE_REVIEW.md`. It does not create remote Stitch projects or modify application code.
+
 ### `skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py`
 
 Input JSON fields include:
@@ -624,18 +723,29 @@ Input:
 
 - optional `--project <path>`
 - required `--request <text>`
+- optional `--route <name>`
 - optional `--limit <number>`
+- optional `--memory-search`
+- optional `--auto-build`
+- optional `--include-sensitive`
+- optional `--format {json,text}`
 
 Output:
 
 - `status`
 - `request`
 - `route`
+- `search_mode`
+- `searched_roles`
+- `auto_built`
+- `raw_chat_history_search`
 - `confidence`
 - `read_all_initialization_docs`
 - `recommended_files[]`
 - `token_policy`
 - `stale_files[]`
+
+Default behavior remains general context retrieval. With `--memory-search`, the script searches governed project memory/history surfaces such as `docs/memory/**`, `docs/decisions/**`, `tasks/**`, `.project-governor/state/**`, release notes, upgrade docs, research docs, quality docs, conventions, design docs, and agent instructions. It does not scan raw chat transcripts. With `--auto-build`, a missing context index is built before querying. With `--format text`, the same result is rendered as a concise human-readable list instead of JSON.
 
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 

@@ -10,6 +10,7 @@
 - Component registry: `docs/conventions/COMPONENT_REGISTRY.md`
 - Pattern registry: `docs/conventions/PATTERN_REGISTRY.md`
 - DESIGN.md policy: `managed-assets/design-md/DESIGN_MD_POLICY.md`
+- DESIGN.md aesthetic gate policy: `docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md`
 - GPT-5.5 runtime policy: `managed-assets/runtime/GPT55_AUTO_ORCHESTRATION_POLICY.md`
 - Harness v6 runtime policy: `managed-assets/runtime/HARNESS_V6_POLICY.md`
 - Harness v6 contract: `docs/harness/HARNESS_V6.md`
@@ -23,7 +24,8 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.0.0.md`
+- Versioned release notes: `releases/6.0.2.md`
+- Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`

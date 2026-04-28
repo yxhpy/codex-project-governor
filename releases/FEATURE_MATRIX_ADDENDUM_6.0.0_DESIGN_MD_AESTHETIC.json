@@ -1,0 +1,29 @@
+{
+  "base_version": "6.0.0",
+  "title": "DESIGN.md Aesthetic Governor addendum",
+  "features": [
+    {
+      "id": "design_md_aesthetic_governor",
+      "name": "DESIGN.md Aesthetic Governor",
+      "summary": "Forces UI/frontend coding through Gemini/Stitch configuration, DESIGN.md read proof, aesthetic reference selection, token discipline, and design drift verification.",
+      "user_value": "Codex cannot silently improvise visual language before UI edits; it must verify design-service configuration, read the project design source, and produce a reusable compliance trail.",
+      "requires_project_migration": false
+    },
+    {
+      "id": "design_md_codex_hook",
+      "name": "DESIGN.md Codex hook guard",
+      "summary": "Adds UserPromptSubmit and PreToolUse hooks that remind on UI prompts and block common UI edit paths until design-service configuration and read-proof exist.",
+      "user_value": "UI changes are enforced by deterministic hooks in addition to skill instructions.",
+      "requires_project_migration": true,
+      "migration_id": "manual_enable_design_md_aesthetic_hooks"
+    }
+  ],
+  "manual_enablement": [
+    "Ensure the governed project has Gemini/Stitch configuration from shell environment variables or project-root .env-design.",
+    "Use DESIGN_BASIC_MODE=1 when the user intentionally chooses local-only basic mode for frontend work.",
+    "Ensure the governed project has a root DESIGN.md.",
+    "Ensure Codex hooks are enabled in an active config layer: [features] codex_hooks = true.",
+    "Copy or merge templates/.codex/hooks.json and templates/.codex/hooks/design_md_codex_hook.py into the governed project if they are not already present.",
+    "For UI work, invoke $design-md-aesthetic-governor or rely on the skill description trigger."
+  ]
+}

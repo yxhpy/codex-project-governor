@@ -2,17 +2,17 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.2 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 33+ bundled Codex skills under `skills/`.
+- 34+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -36,13 +36,14 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `project-hygiene-doctor` | Detect plugin-global assets copied into target projects and quarantine safe generated `.codex` runtime files. |
 | `clean-reinstall-manager` | Generate user-level reinstall instructions, discover governed projects, and refresh project-owned governance without copying plugin-global assets. |
 | `design-md-governor` | Adopt Google Labs Code DESIGN.md as an opt-in design-system source of truth; lint, summarize, diff, and plan migrations without auto-creating project design files. |
+| `design-md-aesthetic-governor` | Gate UI/frontend coding through Gemini/Stitch configuration, DESIGN.md read proof, aesthetic reference selection, token discipline, and drift verification. |
 | `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
 | `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
 | `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
 | `route-guard` | Verify that the actual diff still fits the route selected by task-router, especially micro-patch and fast-lane changes. |
 | `subagent-activation` | Select project-scoped subagents and model strategy from route, workflow, risk, quality level, and confidence so users do not manually list subagents. |
 | `gpt55-auto-orchestrator` | Infer the workflow, model plan, context budget, subagents, and quality gate automatically for GPT-5.5-era Codex work. |
-| `context-indexer` | Build and query a compact project context index so Codex can avoid reading all initialization docs in every session. |
+| `context-indexer` | Build and query a compact project context index, including governed memory/history search, so Codex can avoid reading all initialization docs in every session. |
 | `context-pack-builder` | Build a minimal task-specific context pack so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
 | `session-lifecycle` | Start and end Harness v6 task sessions while maintaining project-local state under `.project-governor/state`. |
 | `evidence-manifest` | Create or validate task evidence manifests that map acceptance criteria, tests, reviews, and docs refresh decisions. |
@@ -105,12 +106,12 @@ Restart Codex, open `/plugins`, choose the repository marketplace, and install *
 
 ## Use
 
-### Use Harness v6.0
+### Use Harness v6.0.2
 
-Harness v6.0 makes `task-router` the single route source of truth and lets the runtime planner, context index, session state, route guard, quality gate, evidence manifest, and merge-readiness checks share one contract.
+Harness v6.0.2 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.0 to plan this change with context index, session state, evidence, and route guard checks.
+Use Project Governor Harness v6.0.2 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -204,7 +205,10 @@ For initialized projects, build or refresh the compact context index:
 ```bash
 python3 skills/context-indexer/scripts/build_context_index.py --project . --write
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "why did we choose this checkout flow" --memory-search --auto-build
 ```
+
+Memory search mode reads governed project artifacts such as `docs/memory/`, `docs/decisions/`, `tasks/`, release notes, and `.project-governor/state/`. It does not scan raw chat transcripts.
 
 ### Review a PR with subagents
 
@@ -309,6 +313,36 @@ Dependency-free fallback helpers:
 python3 skills/design-md-governor/scripts/lint_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
+```
+
+### Gate UI coding with DESIGN.md
+
+Use `design-md-aesthetic-governor` for React, Next.js, Tailwind, CSS, pages, components, dashboards, landing pages, responsive layout, visual polish, redesign, or any task that changes user-facing UI.
+
+```text
+Use @project-governor design-md-aesthetic-governor.
+
+Read DESIGN.md before UI edits.
+Require Gemini/Stitch config from environment variables or project .env-design.
+Run preflight to create .codex/design-md-governor/read-proof.json.
+Use DESIGN.md tokens and rationale during implementation.
+Verify drift after edits.
+```
+
+Required design-service keys are `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; use `gemini` for native `generateContent` and `openai` for OpenAI-compatible gateways. For native Gemini through a gateway, `GEMINI_BASE_URL` must include the gateway's Gemini protocol root, for example `https://host/gemini` when the provider serves `/gemini/v1beta`. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`. Environment variables take precedence over project-root `.env-design`. To intentionally use basic mode without Gemini/Stitch for a session, set shell environment variable `DESIGN_BASIC_MODE=1`.
+
+Full-service workflow: GPT/Codex orchestrates the repository work, Stitch MCP supports visual prototype exploration, Gemini reviews the design against `DESIGN.md`, then GPT/Codex implements the accepted direction in code and runs local verification. The hosted Stitch MCP endpoint is configured by default, so no local `stitch-mcp`, `npm`, or `gcloud` install is required unless a project opts into a local MCP server. Basic mode skips Stitch and Gemini while still requiring `DESIGN.md`, bundled lint, token discipline, and drift checks.
+
+Dependency-free helpers:
+
+```bash
+python3 skills/design-md-aesthetic-governor/scripts/design_env_check.py --write-template
+python3 skills/design-md-aesthetic-governor/scripts/design_service_smoke.py --dry-run
+python3 skills/design-md-aesthetic-governor/scripts/design_service_smoke.py --task "<service smoke task>"
+python3 skills/design-md-aesthetic-governor/scripts/design_service_review.py --task "<ui task>"
+python3 skills/design-md-aesthetic-governor/scripts/design_md_gate.py preflight --task "<task>"
+python3 skills/design-md-aesthetic-governor/scripts/select_aesthetic.py --task "<task>"
+python3 skills/design-md-aesthetic-governor/scripts/verify_design_usage.py
 ```
 
 ### Compact memory

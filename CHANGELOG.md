@@ -1,5 +1,36 @@
 # Changelog
 
+## 6.0.2 - Governed Memory Search
+
+### Added
+
+- Added `context-indexer --memory-search --auto-build` for governed project memory/history lookup without raw chat transcript scanning or complex shell pipelines.
+- Added memory-search text output for quick human-readable lookup results.
+- Added `task_history` and `governance_history` context roles so task plans, project state, release notes, research docs, and upgrade docs can be retrieved as history.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Existing context-index JSON output remains additive; default context queries keep their prior behavior.
+
+## 6.0.1 - DESIGN.md Aesthetic Governor
+
+### Added
+
+- Added `design-md-aesthetic-governor` for UI/frontend review, prototyping, and implementation gates.
+- Added full-service design workflow: GPT/Codex orchestrates, Stitch MCP supports visual prototype exploration, and Gemini reviews design quality against `DESIGN.md`.
+- Added `DESIGN_BASIC_MODE=1` so users can intentionally do frontend work without Gemini/Stitch setup while retaining local DESIGN.md checks.
+- Added `.env-design` support for project-local Gemini/Stitch configuration without committing secrets.
+- Added remote Stitch MCP configuration at `https://stitch.googleapis.com/mcp` and real-service smoke checks for Gemini-compatible chat completions plus Stitch MCP initialization.
+- Added explicit `GEMINI_PROTOCOL=auto|openai|gemini` support and `design_service_review.py` to record repeatable Gemini/Stitch full-service design review evidence.
+- Added native Gemini gateway-root guidance and HTML-response hints so gateways that expose `/gemini/v1beta` can be configured correctly.
+- Added Codex hooks for UI prompt reminders and UI edit preflight checks.
+
+### Compatibility
+
+- No new third-party Python dependencies.
+- `.env-design` is ignored by the plugin repository and target projects can add it to `.git/info/exclude`.
+
 ## 6.0.0 - Project Governor Harness v6.0
 
 ### Added
