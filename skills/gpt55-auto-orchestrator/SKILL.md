@@ -42,10 +42,12 @@ Do not read all initialization docs at session start.
 Instead:
 
 1. read `AGENTS.md` only when available and small,
-2. read `.project-governor/context/SESSION_BRIEF.md` if present,
-3. query `.project-governor/context/CONTEXT_INDEX.json`,
-4. read only the files returned by the query,
-5. escalate to `context-indexer` if the index is missing or stale.
+2. read `.project-governor/context/DOCS_MANIFEST.json` if present,
+3. read `.project-governor/context/SESSION_BRIEF.md` if present,
+4. query `.project-governor/context/CONTEXT_INDEX.json`,
+5. read returned `recommended_sections` line ranges before full documents,
+6. read full files only when sections are insufficient or confidence is low,
+7. escalate to `context-indexer` if the index is missing or stale.
 
 ## Workflow policy
 
@@ -65,6 +67,7 @@ Return:
 - selected model plan,
 - selected subagents,
 - context budget,
+- route doc pack,
 - skill sequence,
 - skipped skills with reasons,
 - quality gate level,

@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.5",
+  "current_latest": "6.0.6",
   "versions": [
     {
       "version": "0.4.1",
@@ -330,6 +330,44 @@
           "user_value": "Project Governor actively uses governed memory instead of letting repeated mistakes depend on user reminders.",
           "requires_project_migration": true,
           "migration_id": "rule_template_drift"
+        }
+      ]
+    },
+    {
+      "version": "6.0.6",
+      "title": "Token-Efficient Docs Navigation",
+      "features": [
+        {
+          "id": "docs_manifest",
+          "name": "Generated docs manifest",
+          "summary": "Adds generated DOCS_MANIFEST.json so agents can inspect a compact documentation map before opening large docs.",
+          "user_value": "New sessions spend fewer tokens locating the right governance docs.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_6_context_navigation"
+        },
+        {
+          "id": "section_level_context_retrieval",
+          "name": "Section-level context retrieval",
+          "summary": "Adds Markdown section indexing, recommended section line ranges, query-aware compression, and stale/superseded doc filtering.",
+          "user_value": "Agents can read the relevant section first instead of loading full documents.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_6_context_navigation"
+        },
+        {
+          "id": "route_doc_packs",
+          "name": "Route-specific doc packs",
+          "summary": "Adds route doc packs and context budget gates to task-router and GPT runtime planning.",
+          "user_value": "Each workflow gets a bounded read plan matched to its risk and route.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
+        },
+        {
+          "id": "env_design_basic_mode",
+          "name": ".env-design basic mode",
+          "summary": "Lets DESIGN.md UI gates and PreToolUse hooks honor DESIGN_BASIC_MODE=1 from project-root .env-design, not only inherited shell environment variables.",
+          "user_value": "Windows and long-lived Codex hook processes can enter basic mode without fragile per-shell environment inheritance.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_6_context_navigation"
         }
       ]
     }

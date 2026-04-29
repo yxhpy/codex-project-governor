@@ -21,6 +21,8 @@ IGNORE_PREFIXES = (
 )
 TEXT_EXTS = {".md", ".py", ".ts", ".tsx", ".js", ".jsx", ".json", ".toml", ".yaml", ".yml", ".css", ".scss", ".html", ".go", ".rs", ".vue", ".svelte"}
 IMPORTANT_FILES = {"AGENTS.md", "DESIGN.md", "package.json", "pyproject.toml", "pnpm-lock.yaml", "package-lock.json", "yarn.lock", "README.md", "README.zh-CN.md"}
+DOC_ROLES = {"agent_instructions", "conventions", "quality", "memory", "decision", "task_history", "governance_history", "design", "doc"}
+DOC_STATUSES = ("active", "draft", "stale", "superseded")
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|secret|token|password|passwd|private[_-]?key)\s*[:=]\s*['\"]?[^'\"\s]{8,}"),
     re.compile(r"sk-[A-Za-z0-9_-]{16,}"),
@@ -209,6 +211,135 @@ def summarize(text: str) -> str:
     return words
 
 
+def approx_tokens(text: str) -> int:
+    return max(1, len(text) // 4)
+
+
+def slugify(text: str, fallback: str = "section") -> str:
+    slug = re.sub(r"[^a-zA-Z0-9\u4e00-\u9fff]+", "-", text.strip().lower()).strip("-")
+    return slug[:80] or fallback
+
+
+def doc_status_for(rel: str, text: str) -> str:
+    low_rel = rel.lower()
+    low = text[:4_000].lower()
+    match = re.search(r"(?im)^\s*(?:status|状态)\s*[:|]\s*([a-z_ -]+|有效|草稿|过期|已取代)", text[:4_000])
+    if match:
+        raw = match.group(1).strip().lower().replace(" ", "_").replace("-", "_")
+        aliases = {
+            "有效": "active",
+            "草稿": "draft",
+            "过期": "stale",
+            "已取代": "superseded",
+            "deprecated": "stale",
+            "obsolete": "stale",
+            "superseded_by": "superseded",
+        }
+        status = aliases.get(raw, raw)
+        if status in DOC_STATUSES:
+            return status
+    if "superseded_by:" in low or "superseded by:" in low or "已取代" in low:
+        return "superseded"
+    if "status: draft" in low or "draft:" in low_rel:
+        return "draft"
+    if "status: stale" in low or "deprecated:" in low:
+        return "stale"
+    return "active"
+
+
+def extract_sections(rel: str, text: str, doc_status: str) -> list[dict[str, object]]:
+    if language_for(Path(rel)) != "markdown":
+        return []
+    lines = text.splitlines()
+    headings: list[tuple[int, int, str]] = []
+    for idx, line in enumerate(lines, start=1):
+        match = re.match(r"^(#{1,4})\s+(.+?)\s*$", line)
+        if match:
+            headings.append((idx, len(match.group(1)), match.group(2).strip()))
+    if not headings and lines:
+        body = "\n".join(lines[:80])
+        return [{
+            "id": "root",
+            "heading": Path(rel).name,
+            "level": 0,
+            "line_start": 1,
+            "line_end": min(len(lines), 80),
+            "status": doc_status,
+            "summary": summarize(body),
+            "tokens": tokens(body)[:80],
+            "char_count": len(body),
+            "token_estimate": approx_tokens(body),
+        }]
+    sections: list[dict[str, object]] = []
+    seen: dict[str, int] = {}
+    for pos, (line_no, level, heading) in enumerate(headings[:40]):
+        next_line = headings[pos + 1][0] - 1 if pos + 1 < len(headings) else len(lines)
+        body = "\n".join(lines[line_no - 1:next_line])
+        section_id_base = slugify(heading)
+        seen[section_id_base] = seen.get(section_id_base, 0) + 1
+        section_id = section_id_base if seen[section_id_base] == 1 else f"{section_id_base}-{seen[section_id_base]}"
+        section_status = doc_status_for(rel, body)
+        if section_status == "active":
+            section_status = doc_status
+        sections.append({
+            "id": section_id,
+            "heading": heading,
+            "level": level,
+            "line_start": line_no,
+            "line_end": next_line,
+            "status": section_status,
+            "summary": summarize(body),
+            "tokens": tokens(heading + "\n" + body)[:80],
+            "char_count": len(body),
+            "token_estimate": approx_tokens(body),
+        })
+    return sections
+
+
+def docs_manifest(index: dict) -> dict[str, object]:
+    docs = []
+    status_counts = {status: 0 for status in DOC_STATUSES}
+    for entry in index["entries"]:
+        roles = set(entry.get("roles", []))
+        is_doc = entry.get("language") == "markdown" or bool(roles & DOC_ROLES) or entry.get("path") in IMPORTANT_FILES
+        if not is_doc:
+            continue
+        status = str(entry.get("doc_status", "active"))
+        status_counts[status] = status_counts.get(status, 0) + 1
+        docs.append({
+            "path": entry["path"],
+            "status": status,
+            "roles": entry.get("roles", []),
+            "headings": entry.get("headings", [])[:12],
+            "section_count": len(entry.get("sections", [])),
+            "token_estimate": entry.get("token_estimate", 0),
+            "summary": entry.get("summary", ""),
+            "sha256": entry.get("sha256", ""),
+            "mtime": entry.get("mtime", 0),
+        })
+    return {
+        "schema": "project-governor-docs-manifest-v1",
+        "built_at": index["built_at"],
+        "project": index["project"],
+        "project_fingerprint": index["project_fingerprint"],
+        "generated_from": ".project-governor/context/CONTEXT_INDEX.json",
+        "doc_count": len(docs),
+        "status_counts": status_counts,
+        "docs": docs,
+        "read_policy": {
+            "order": [
+                "read DOCS_MANIFEST.json",
+                "read SESSION_BRIEF.md",
+                "query CONTEXT_INDEX.json",
+                "read recommended_sections by line range",
+                "read full documents only when confidence is low or sections are insufficient",
+            ],
+            "exclude_statuses_by_default": ["stale", "superseded"],
+            "full_doc_requires_reason": True,
+        },
+    }
+
+
 def build(project: Path) -> dict:
     entries = []
     for path in iter_files(project):
@@ -217,18 +348,23 @@ def build(project: Path) -> dict:
         language = language_for(path)
         stat = path.stat()
         sensitive = contains_secret(text)
+        roles = role_for(rel, text)
+        doc_status = doc_status_for(rel, text)
         entries.append({
             "path": rel,
             "size": stat.st_size,
             "mtime": int(stat.st_mtime),
             "sha256": sha(path),
             "language": language,
-            "roles": role_for(rel, text),
+            "roles": roles,
             "symbols": [] if sensitive else extract_symbols(language, text),
             "imports": [] if sensitive else extract_imports(language, text),
             "headings": extract_headings(redact(text)),
+            "sections": [] if sensitive else extract_sections(rel, redact(text), doc_status),
             "tokens": tokens(rel + "\n" + text),
             "summary": summarize(text),
+            "token_estimate": approx_tokens(text),
+            "doc_status": doc_status,
             "sensitive": sensitive,
             "stale_reason": None,
         })
@@ -268,8 +404,11 @@ def session_brief(index: dict) -> str:
         "## Policy",
         "",
         "- Do not read all initialization documents unless the context query is insufficient.",
+        "- Read `.project-governor/context/DOCS_MANIFEST.json` before deciding which large docs to open.",
+        "- Prefer `recommended_sections` line ranges from context queries before opening full documents.",
         "- At session start, run memory-search for prior command failures, repeated mistakes, stale-memory notes, decisions, and task history related to the request.",
         "- Prefer task-specific retrieval from `.project-governor/context/CONTEXT_INDEX.json`.",
+        "- Treat stale or superseded docs as avoid-by-default unless the task is explicitly about cleanup or history.",
         "- Start non-trivial work with `.project-governor/state/SESSION.json`; finish with evidence and `record_session_learning.py` for failed commands or stale memories.",
         "- Use fast read-only scouting for retrieval and high-reasoning models for implementation/review when available.",
     ])
@@ -286,10 +425,28 @@ def main() -> int:
     if args.write:
         out = project / ".project-governor" / "context"
         out.mkdir(parents=True, exist_ok=True)
+        manifest = docs_manifest(index)
         (out / "CONTEXT_INDEX.json").write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        (out / "DOCS_MANIFEST.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         (out / "SESSION_BRIEF.md").write_text(session_brief(index), encoding="utf-8")
-        (out / "INDEX_REPORT.json").write_text(json.dumps({"status": "written", "schema": index["schema"], "entry_count": index["entry_count"], "built_at": index["built_at"]}, indent=2) + "\n", encoding="utf-8")
-        print(json.dumps({"status": "written", "index": str(out / "CONTEXT_INDEX.json"), "brief": str(out / "SESSION_BRIEF.md"), "entry_count": index["entry_count"], "schema": index["schema"]}, indent=2, ensure_ascii=False))
+        section_count = sum(len(entry.get("sections", [])) for entry in index["entries"])
+        (out / "INDEX_REPORT.json").write_text(json.dumps({
+            "status": "written",
+            "schema": index["schema"],
+            "entry_count": index["entry_count"],
+            "section_count": section_count,
+            "docs_manifest": str(out / "DOCS_MANIFEST.json"),
+            "built_at": index["built_at"],
+        }, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps({
+            "status": "written",
+            "index": str(out / "CONTEXT_INDEX.json"),
+            "docs_manifest": str(out / "DOCS_MANIFEST.json"),
+            "brief": str(out / "SESSION_BRIEF.md"),
+            "entry_count": index["entry_count"],
+            "section_count": section_count,
+            "schema": index["schema"],
+        }, indent=2, ensure_ascii=False))
     else:
         print(json.dumps(index, indent=2, ensure_ascii=False))
     return 0

@@ -10,7 +10,7 @@ Use this skill when upgrading, reinstalling, or diagnosing a governed project.
 Checks include:
 
 - plugin manifest version and skill directory shape
-- context-index v2 presence and freshness metadata
+- context-index v2 and docs-manifest presence and freshness metadata
 - state files under `.project-governor/state`
 - route guard diff collector presence
 - Python script compile readiness

@@ -20,9 +20,11 @@ When subagents are selected, explicitly spawn the selected read-only scouts, wai
 1. Read task route and project conventions.
 2. If subagent mode is optional or required, run selected read-only scouts.
 3. Search adjacent code, tests, docs, APIs, and components.
-4. Mark files as `must_read`, `maybe_read`, or `avoid`.
-5. Create `tasks/<date>-<slug>/CONTEXT_PACK.md`.
+4. Prefer context-index `must_read_sections` before whole documents.
+5. Mark files as `must_read`, `maybe_read`, or `avoid`.
+6. Record token budget, compression policy, stale/superseded docs to avoid, and full-document escalation conditions.
+7. Create `tasks/<date>-<slug>/CONTEXT_PACK.md`.
 
 ## Output
 
-Return relevant files, selected/skipped subagents, tests, docs, existing behavior, required patterns, avoid list, and risk notes.
+Return relevant files, section line ranges, selected/skipped subagents, tests, docs, existing behavior, required patterns, token budget, compression policy, avoid list, and risk notes.

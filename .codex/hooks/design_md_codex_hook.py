@@ -8,6 +8,7 @@ UI_FILE_RE = re.compile(r"(^|/)(app|pages|src/app|src/pages|components|src/compo
 STATE_DIR = Path(".codex/design-md-governor")
 ENV_FILE = ".env-design"
 SKIP_ENV_KEYS = ("DESIGN_BASIC_MODE", "DESIGN_ENV_SKIP", "DESIGN_SERVICE_CONFIG_SKIP")
+TRUTHY_VALUES = {"1", "true", "yes", "on"}
 REQUIRED_ENV = (
     ("GEMINI_BASE_URL", ("GEMINI_BASE_URL", "DESIGN_GEMINI_BASE_URL")),
     ("GEMINI_API_KEY", ("GEMINI_API_KEY", "DESIGN_GEMINI_API_KEY")),
@@ -41,10 +42,15 @@ def parse_env_file(path: Path) -> dict[str, str]:
         values[key.strip()] = value.strip().strip('"').strip("'")
     return values
 
+def is_truthy(value: object) -> bool:
+    return str(value).strip().lower() in TRUTHY_VALUES
+
 def design_env_ok(root: Path):
-    if any(os.environ.get(key, "").strip() in {"1", "true", "TRUE", "yes", "YES"} for key in SKIP_ENV_KEYS):
-        return True, "ok"
     file_values = parse_env_file(root / ENV_FILE)
+    if any(is_truthy(os.environ.get(key, "")) for key in SKIP_ENV_KEYS):
+        return True, "ok"
+    if any(is_truthy(file_values.get(key, "")) for key in SKIP_ENV_KEYS):
+        return True, "ok"
     missing = []
     for canonical, aliases in REQUIRED_ENV:
         if any(os.environ.get(key, "").strip() for key in aliases):
@@ -53,7 +59,7 @@ def design_env_ok(root: Path):
             continue
         missing.append(canonical)
     if missing:
-        return False, "Design service config missing: " + ", ".join(missing) + ". Set shell environment variables or fill project .env-design before UI edits."
+        return False, "Design service config missing: " + ", ".join(missing) + ". Set shell environment variables, fill project .env-design, or set DESIGN_BASIC_MODE=1 in .env-design before UI edits."
     return True, "ok"
 
 def proof_ok(root: Path):
@@ -106,7 +112,7 @@ def main() -> int:
         if UI_PROMPT_RE.search(prompt):
             (root / STATE_DIR).mkdir(parents=True, exist_ok=True)
             (root / STATE_DIR / "last-ui-prompt.json").write_text(json.dumps({"prompt": prompt}, indent=2, ensure_ascii=False), encoding="utf-8")
-            msg = "This appears to be UI/frontend work. Use $design-md-aesthetic-governor, configure Gemini/Stitch via environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 for basic mode. Then read DESIGN.md, run preflight, and edit UI files."
+            msg = "This appears to be UI/frontend work. Use $design-md-aesthetic-governor, configure Gemini/Stitch via environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 in the shell environment or .env-design for basic mode. Then read DESIGN.md, run preflight, and edit UI files."
             print(json.dumps({"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":msg}}, ensure_ascii=False))
         return 0
     if name == "PreToolUse":

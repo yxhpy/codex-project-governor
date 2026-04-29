@@ -85,7 +85,39 @@ Primary fields include:
 
 `skills/context-indexer/scripts/build_context_index.py` writes `project-governor-context-index-v2`.
 
-Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, tokens, summary, sensitivity flag, and stale reason.
+Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, sections, tokens, summary, token estimate, doc status, sensitivity flag, and stale reason.
+
+Markdown section records include:
+
+- `id`
+- `heading`
+- `level`
+- `line_start`
+- `line_end`
+- `status`
+- `summary`
+- `tokens`
+- `char_count`
+- `token_estimate`
+
+`doc_status` and section `status` use `active`, `draft`, `stale`, or `superseded`. Context queries exclude stale and superseded docs by default unless `--include-stale` is supplied.
+
+### Docs Manifest
+
+`skills/context-indexer/scripts/build_context_index.py --write` also writes `.project-governor/context/DOCS_MANIFEST.json` with `schema=project-governor-docs-manifest-v1`.
+
+Primary fields include:
+
+- `built_at`
+- `project`
+- `project_fingerprint`
+- `generated_from`
+- `doc_count`
+- `status_counts`
+- `docs[]`
+- `read_policy`
+
+Each doc entry includes path, status, roles, headings, section count, token estimate, summary, hash, and mtime.
 
 ### Memory Classification And Session Learning
 

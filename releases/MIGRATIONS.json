@@ -208,6 +208,42 @@
           "reason": "Add project-owned stale/superseded memory hygiene queue."
         }
       ]
+    },
+    {
+      "id": "migration_6_0_6_context_navigation",
+      "from": "6.0.5",
+      "to": "6.0.6",
+      "title": "Token-efficient context navigation",
+      "operations": [
+        {
+          "op": "build_context_index",
+          "path": ".project-governor/context/CONTEXT_INDEX.json",
+          "source": "skills/context-indexer/scripts/build_context_index.py",
+          "upgrade_policy": "diagnostic_only",
+          "reason": "Rebuild generated context state so DOCS_MANIFEST.json and section-level context entries are available."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "AGENTS.md",
+          "source": "templates/AGENTS.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Surface the context navigation policy without overwriting user-modified project rules."
+        },
+        {
+          "op": "merge_template_file",
+          "path": ".codex/hooks/design_md_codex_hook.py",
+          "source": "templates/.codex/hooks/design_md_codex_hook.py",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Update the DESIGN.md PreToolUse hook so project-root .env-design DESIGN_BASIC_MODE=1 works when hook processes do not inherit later shell variables."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md",
+          "source": "templates/docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Document that DESIGN_BASIC_MODE=1 may come from either shell environment variables or project-root .env-design."
+        }
+      ]
     }
   ]
 }

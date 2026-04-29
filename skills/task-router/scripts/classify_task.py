@@ -33,6 +33,85 @@ DOCS_TERMS = {"docs", "documentation", "readme", "guide", "manual", "文档", "�
 BUG_TERMS = {"bug", "fix", "broken", "error", "crash", "regression", "修复", "错误", "失败", "崩溃"}
 MICRO_TERMS = {"style", "css", "class", "margin", "padding", "spacing", "color", "font", "label", "copy", "typo", "text", "文案", "错别字", "颜色", "标题", "间距"}
 GLOBAL_SHARED_TERMS = {"shared", "global", "common", "design token", "theme", "tokens", "components/ui", "design-system", "全局", "共享", "通用", "设计 token"}
+DOC_PACKS = {
+    "micro_patch": {
+        "primary_roles": ["agent_instructions"],
+        "max_initial_docs": 1,
+        "max_sections": 3,
+        "max_total_chars_first": 12_000,
+        "memory_search": False,
+    },
+    "docs_only": {
+        "primary_roles": ["doc", "agent_instructions", "governance_history"],
+        "max_initial_docs": 3,
+        "max_sections": 8,
+        "max_total_chars_first": 40_000,
+        "memory_search": False,
+    },
+    "test_only": {
+        "primary_roles": ["test", "code", "conventions"],
+        "max_initial_docs": 2,
+        "max_sections": 8,
+        "max_total_chars_first": 50_000,
+        "memory_search": True,
+    },
+    "standard_feature": {
+        "primary_roles": ["agent_instructions", "conventions", "test", "code", "quality"],
+        "max_initial_docs": 4,
+        "max_sections": 10,
+        "max_total_chars_first": 80_000,
+        "memory_search": True,
+    },
+    "ui_change": {
+        "primary_roles": ["design", "ui_or_component", "conventions", "test"],
+        "max_initial_docs": 4,
+        "max_sections": 10,
+        "max_total_chars_first": 80_000,
+        "memory_search": True,
+    },
+    "risky_feature": {
+        "primary_roles": ["agent_instructions", "decision", "quality", "test", "security", "auth", "payment", "data_model"],
+        "max_initial_docs": 8,
+        "max_sections": 16,
+        "max_total_chars_first": 140_000,
+        "memory_search": True,
+    },
+    "refactor": {
+        "primary_roles": ["architecture", "decision", "conventions", "test", "quality"],
+        "max_initial_docs": 8,
+        "max_sections": 14,
+        "max_total_chars_first": 120_000,
+        "memory_search": True,
+    },
+    "dependency_upgrade": {
+        "primary_roles": ["governance_history", "decision", "quality", "test", "data_model"],
+        "max_initial_docs": 8,
+        "max_sections": 14,
+        "max_total_chars_first": 140_000,
+        "memory_search": True,
+    },
+    "upgrade_or_migration": {
+        "primary_roles": ["governance_history", "decision", "quality", "test", "data_model"],
+        "max_initial_docs": 8,
+        "max_sections": 14,
+        "max_total_chars_first": 140_000,
+        "memory_search": True,
+    },
+    "research": {
+        "primary_roles": ["doc", "decision", "memory", "task_history", "governance_history"],
+        "max_initial_docs": 10,
+        "max_sections": 18,
+        "max_total_chars_first": 160_000,
+        "memory_search": True,
+    },
+    "clean_reinstall_or_refresh": {
+        "primary_roles": ["agent_instructions", "governance_history", "quality"],
+        "max_initial_docs": 5,
+        "max_sections": 10,
+        "max_total_chars_first": 80_000,
+        "memory_search": True,
+    },
+}
 
 NEGATIVE_PATTERNS = [
     ("do_not_change_api", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(api|接口|contract|response|public contract)"),
@@ -252,6 +331,43 @@ def route_guard_requirements(route: str, budget: dict[str, Any], negative_constr
     return guard
 
 
+def route_doc_pack(route: str, quality: str) -> dict[str, Any]:
+    config = dict(DOC_PACKS.get(route, DOC_PACKS["standard_feature"]))
+    if quality == "strict":
+        config["max_initial_docs"] = max(config["max_initial_docs"], 6)
+        config["max_sections"] = max(config["max_sections"], 14)
+    return {
+        "id": f"{route}_doc_pack",
+        "route": route,
+        "primary_roles": config["primary_roles"],
+        "read_order": [
+            ".project-governor/context/DOCS_MANIFEST.json",
+            ".project-governor/context/SESSION_BRIEF.md",
+            "memory_search" if config["memory_search"] else "skip_memory_search_for_route",
+            "query_context_index.recommended_sections",
+            "full_documents_only_if_sections_insufficient",
+        ],
+        "context_budget_gate": {
+            "max_initial_docs": config["max_initial_docs"],
+            "max_sections": config["max_sections"],
+            "max_total_chars_first": config["max_total_chars_first"],
+            "full_doc_requires_reason": True,
+            "exclude_doc_statuses_by_default": ["stale", "superseded"],
+        },
+        "compression": {
+            "strategy": "query_aware_section_excerpts",
+            "prefer_section_summary": True,
+            "defer_full_documents": True,
+        },
+        "escalate_to_full_docs_if": [
+            "context_index_missing_or_stale",
+            "query_confidence_below_threshold",
+            "public_contract_or_template_path_change_requires_source_of_truth",
+            "section_excerpt_conflicts_with_adjacent_code",
+        ],
+    }
+
+
 def workflow(route: str) -> tuple[list[str], list[str]]:
     if route == "micro_patch":
         return ["direct-edit", "route-guard", "quality-gate", "evidence-manifest-lite"], [
@@ -377,6 +493,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         "required_workflow": required,
         "skipped_workflow": skipped,
         "change_budget": budget,
+        "route_doc_pack": route_doc_pack(route, quality),
         "route_guard_requirements": guard,
         "evidence_required": evidence_required,
         "escalate_if": escalations,

@@ -1,5 +1,28 @@
 # Changelog
 
+## 6.0.6 - Token-Efficient Docs Navigation
+
+### Added
+
+- Added generated `.project-governor/context/DOCS_MANIFEST.json` so agents can inspect a compact documentation map before opening large docs.
+- Added section-level Markdown indexing and `recommended_sections` / `must_read_sections` query output with line ranges.
+- Added route-specific doc packs from `task-router` and surfaced them in `gpt55-auto-orchestrator` runtime plans.
+- Added context-pack token budgets, compression policy, progressive read plans, and stale/superseded doc avoid lists.
+
+### Changed
+
+- Updated context policies so agents prefer docs manifest, session brief, memory search, and section ranges before full documents.
+- Updated `AGENTS.md` templates so initialized projects can receive the new context navigation workflow through upgrade planning.
+
+### Fixed
+
+- Fixed DESIGN.md basic mode for Codex hooks and Windows sessions by honoring `DESIGN_BASIC_MODE=1` from project-root `.env-design`, not only inherited shell environment variables.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Existing context-index JSON fields remain additive; consumers can ignore the new docs manifest, section, route doc pack, and token-budget fields.
+
 ## 6.0.5 - Session Learning Memory Loop
 
 ### Added

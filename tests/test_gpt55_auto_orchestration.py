@@ -31,6 +31,10 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertIn('context-scout', data['subagents'])
         self.assertEqual(data['model_plan']['main_model'], 'gpt-5.5')
         self.assertEqual(data['model_plan']['scout_model'], 'gpt-5.4-mini')
+        self.assertEqual(data['context_retrieval']['docs_manifest'], '.project-governor/context/DOCS_MANIFEST.json')
+        self.assertEqual(data['context_retrieval']['query_granularity'], 'section')
+        self.assertTrue(data['quality_rules']['prefer_section_ranges_before_full_docs'])
+        self.assertIn('route_doc_pack', data)
 
     def test_risky_feature_uses_strict_high_reasoning(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), str(ROOT / 'examples/gpt55-runtime-risky-feature.json')])
@@ -51,10 +55,12 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
             (project / 'docs/conventions/PATTERN_REGISTRY.md').write_text('Dashboard widget card pattern.\n', encoding='utf-8')
             built = self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/build_context_index.py'), '--project', str(project), '--write'])
             self.assertEqual(built['status'], 'written')
+            self.assertTrue((project / '.project-governor/context/DOCS_MANIFEST.json').exists())
             queried = self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'), '--project', str(project), '--request', 'dashboard widget'])
             paths = {item['path'] for item in queried['recommended_files']}
             self.assertIn('src/components/DashboardWidget.tsx', paths)
             self.assertFalse(queried['read_all_initialization_docs'])
+            self.assertIn('must_read_sections', queried)
 
     def test_context_index_memory_search_auto_build(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -81,6 +87,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
             self.assertTrue(data['auto_built'])
             self.assertEqual(data['search_mode'], 'governance_memory')
             self.assertFalse(data['raw_chat_history_search'])
+            self.assertIn('progressive_read_plan', data)
             paths = {item['path'] for item in data['recommended_files']}
             self.assertIn('docs/memory/PROJECT_MEMORY.md', paths)
             self.assertIn('docs/decisions/ADR-0003-checkout.md', paths)

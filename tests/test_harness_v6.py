@@ -19,8 +19,8 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.0.5')
-        self.assertIn('Harness v6.0.5', manifest['description'])
+        self.assertEqual(manifest['version'], '6.0.6')
+        self.assertIn('Harness v6.0.6', manifest['description'])
 
     def test_orchestrator_uses_router_and_evidence(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'Add dashboard export feature with tests'])
@@ -41,7 +41,10 @@ class HarnessV6Test(unittest.TestCase):
             (project / 'src/auth.py').write_text('API_TOKEN="sk-secretsecretsecretsecret"\ndef login():\n    return True\n', encoding='utf-8')
             built = self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/build_context_index.py'), '--project', str(project), '--write'])
             self.assertEqual(built['schema'], 'project-governor-context-index-v2')
+            self.assertIn('docs_manifest', built)
             index = json.loads((project / '.project-governor/context/CONTEXT_INDEX.json').read_text(encoding='utf-8'))
+            manifest = json.loads((project / '.project-governor/context/DOCS_MANIFEST.json').read_text(encoding='utf-8'))
+            self.assertEqual(manifest['schema'], 'project-governor-docs-manifest-v1')
             auth_entry = next(e for e in index['entries'] if e['path'] == 'src/auth.py')
             self.assertTrue(auth_entry['sensitive'])
             self.assertNotIn('sk-secretsecretsecretsecret', auth_entry['summary'])
@@ -50,6 +53,39 @@ class HarnessV6Test(unittest.TestCase):
             queried = self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'), '--project', str(project), '--request', 'auth login', '--route', 'risky_feature'])
             self.assertIn('confidence', queried)
             self.assertFalse(queried['read_all_initialization_docs'])
+            self.assertIn('progressive_read_plan', queried)
+
+    def test_context_query_returns_sections_and_filters_stale_docs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / '.project-governor').mkdir()
+            (project / 'AGENTS.md').write_text('Project rules.\n', encoding='utf-8')
+            (project / 'docs').mkdir()
+            (project / 'docs/active.md').write_text(
+                '# Active Guide\n\n## Checkout Redirect\n\nUse the hosted checkout redirect for payment handoff.\n',
+                encoding='utf-8',
+            )
+            (project / 'docs/old.md').write_text(
+                '# Old Guide\n\nStatus: superseded\n\n## Checkout Redirect\n\nLegacy embedded checkout notes.\n',
+                encoding='utf-8',
+            )
+            self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/build_context_index.py'), '--project', str(project), '--write'])
+            queried = self.run_json([
+                PY,
+                str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'),
+                '--project',
+                str(project),
+                '--request',
+                'checkout redirect',
+            ])
+            paths = {item['path'] for item in queried['recommended_files']}
+            section_headings = {item['heading'] for item in queried['recommended_sections']}
+            avoided = {item['path'] for item in queried['avoid_docs']}
+            self.assertIn('docs/active.md', paths)
+            self.assertIn('Checkout Redirect', section_headings)
+            self.assertNotIn('docs/old.md', paths)
+            self.assertIn('docs/old.md', avoided)
+            self.assertTrue(queried['context_compression']['full_documents_deferred'])
 
     def test_quality_gate_requires_evidence_when_strict(self):
         payload = {

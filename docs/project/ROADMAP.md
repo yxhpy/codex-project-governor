@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Project Governor Harness v6.0.5 with initialized self-governance, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
+Project Governor Harness v6.0.6 with initialized self-governance, token-efficient docs navigation through `DOCS_MANIFEST.json`, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
@@ -33,6 +33,6 @@ Project Governor Harness v6.0.5 with initialized self-governance, session-learni
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `6.0.5`.
+- `.codex-plugin/plugin.json` declares version `6.0.6`.
 - `README.md` lists 34+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.

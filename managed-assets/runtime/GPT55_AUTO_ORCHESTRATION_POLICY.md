@@ -14,10 +14,12 @@ Use GPT-5.5 as the default high-capability Codex model while reducing user promp
 
 At session start, do not read all initialization docs. Prefer:
 
-1. `.project-governor/context/SESSION_BRIEF.md`
-2. `.project-governor/context/CONTEXT_INDEX.json`
-3. task-specific context query
-4. only then broader scanning
+1. `.project-governor/context/DOCS_MANIFEST.json`
+2. `.project-governor/context/SESSION_BRIEF.md`
+3. `.project-governor/context/CONTEXT_INDEX.json`
+4. task-specific section query with `recommended_sections`
+5. full documents only when sections are insufficient
+6. only then broader scanning
 
 ## Skill routing
 

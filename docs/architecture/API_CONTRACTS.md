@@ -223,9 +223,12 @@ Output:
 - `missing`
 - `template_created`
 - `git_exclude_updated`
+- `basic_mode_source` (basic mode only)
+- `basic_mode_key` (basic mode only)
+- `basic_mode_env` (basic mode only, retained for shell-environment compatibility)
 - `instructions`
 
-The script exits with code `2` when required values are missing. It never prints API key values. `provided` records only whether each required key came from a shell environment variable or project-root `.env-design`. With `--write-template`, it may create a blank `.env-design` template and add `.env-design` to `.git/info/exclude`. Shell environment variable `DESIGN_BASIC_MODE=1` returns `status=basic_mode` and `mode=basic`; legacy `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are accepted. Basic-mode flags in `.env-design` are not honored. `GEMINI_PROTOCOL` is optional and may be `auto`, `openai`, or `gemini`; `DESIGN_GEMINI_PROTOCOL` is accepted as an alias. `STITCH_MCP_URL` is optional and defaults to `https://stitch.googleapis.com/mcp`; `DESIGN_STITCH_MCP_URL`, `STITCH_MCP_ENDPOINT`, and `DESIGN_STITCH_MCP_ENDPOINT` are accepted aliases.
+The script exits with code `2` when required values are missing. It never prints API key values. `provided` records only whether each required key came from a shell environment variable or project-root `.env-design`. With `--write-template`, it may create a blank `.env-design` template and add `.env-design` to `.git/info/exclude`. `DESIGN_BASIC_MODE=1` from either the shell environment or project-root `.env-design` returns `status=basic_mode` and `mode=basic`; legacy `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are accepted from either source. Basic-mode reports include `basic_mode_source` and `basic_mode_key`, and keep `basic_mode_env` for shell-environment compatibility. `GEMINI_PROTOCOL` is optional and may be `auto`, `openai`, or `gemini`; `DESIGN_GEMINI_PROTOCOL` is accepted as an alias. `STITCH_MCP_URL` is optional and defaults to `https://stitch.googleapis.com/mcp`; `DESIGN_STITCH_MCP_URL`, `STITCH_MCP_ENDPOINT`, and `DESIGN_STITCH_MCP_ENDPOINT` are accepted aliases.
 
 ### `skills/design-md-aesthetic-governor/scripts/design_md_gate.py`
 
@@ -392,11 +395,14 @@ Output includes:
 - `required_workflow`
 - `skipped_workflow`
 - `change_budget`
+- `route_doc_pack`
 - `route_guard_requirements`
 - `evidence_required`
 - `escalate_if`
 - `escalation_triggers`
 - `reasons`
+
+`route_doc_pack` includes primary context roles, read order, context budget gate, stale/superseded doc filtering, compression policy, and full-document escalation conditions. Existing consumers may ignore it.
 
 ### `skills/route-guard/scripts/check_route_guard.py`
 
@@ -682,7 +688,7 @@ Behavior:
 
 - Detects whether `--path` is a Project Governor project.
 - Writes project-owned `.project-governor/runtime/GPT55_RUNTIME_MODE.json` only when `--apply` is used.
-- Builds `.project-governor/context/CONTEXT_INDEX.json` and `SESSION_BRIEF.md` only when `--apply` is used and `context-indexer` is installed.
+- Builds `.project-governor/context/CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, and `SESSION_BRIEF.md` only when `--apply` is used and `context-indexer` is installed.
 - Does not copy plugin-global `.codex/agents`, `.codex/prompts`, or `.codex/config.toml`.
 
 Output:
@@ -721,12 +727,15 @@ Output:
 - `reasons`
 - `model_plan`
 - `context_budget`
+- `route_doc_pack`
 - `context_retrieval`
 - `skill_sequence`
 - `subagent_mode`
 - `subagents`
 - `skipped_skills`
 - `quality_rules`
+
+`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available.
 
 ### `skills/context-indexer/scripts/build_context_index.py`
 
@@ -749,12 +758,16 @@ Output with `--write`:
 - `status`
 - `schema`
 - `index`
+- `docs_manifest`
 - `brief`
 - `entry_count`
+- `section_count`
 
-With `--write`, the script writes `.project-governor/context/CONTEXT_INDEX.json`, `.project-governor/context/SESSION_BRIEF.md`, and `.project-governor/context/INDEX_REPORT.json`.
+With `--write`, the script writes `.project-governor/context/CONTEXT_INDEX.json`, `.project-governor/context/DOCS_MANIFEST.json`, `.project-governor/context/SESSION_BRIEF.md`, and `.project-governor/context/INDEX_REPORT.json`.
 
-Harness v6 writes `schema` as `project-governor-context-index-v2`. Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, tokens, summary, sensitivity, and stale reason. Secret-like content is redacted from summaries.
+Harness v6 writes `schema` as `project-governor-context-index-v2`. Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, sections, tokens, summary, token estimate, doc status, sensitivity, and stale reason. Secret-like content is redacted from summaries.
+
+`DOCS_MANIFEST.json` uses `schema=project-governor-docs-manifest-v1` and summarizes documentation paths, statuses, roles, headings, section counts, token estimates, hashes, and the progressive read policy. It is generated runtime state, not a template copied into projects.
 
 ### `skills/context-indexer/scripts/query_context_index.py`
 
@@ -767,6 +780,7 @@ Input:
 - optional `--memory-search`
 - optional `--auto-build`
 - optional `--include-sensitive`
+- optional `--include-stale`
 - optional `--format {json,text}`
 
 Output:
@@ -781,10 +795,15 @@ Output:
 - `confidence`
 - `read_all_initialization_docs`
 - `recommended_files[]`
+- `recommended_sections[]`
+- `must_read_sections[]`
+- `avoid_docs[]`
+- `progressive_read_plan[]`
+- `context_compression`
 - `token_policy`
 - `stale_files[]`
 
-Default behavior remains general context retrieval. With `--memory-search`, the script searches governed project memory/history surfaces such as `docs/memory/**`, `docs/decisions/**`, `tasks/**`, `.project-governor/state/**`, release notes, upgrade docs, research docs, quality docs, conventions, design docs, and agent instructions. It does not scan raw chat transcripts. With `--auto-build`, a missing context index is built before querying. With `--format text`, the same result is rendered as a concise human-readable list instead of JSON.
+Default behavior remains general context retrieval, but the first-pass read plan prefers `recommended_sections` line ranges and excludes docs marked `stale` or `superseded`. `--include-stale` opts stale/superseded docs back into results. With `--memory-search`, the script searches governed project memory/history surfaces such as `docs/memory/**`, `docs/decisions/**`, `tasks/**`, `.project-governor/state/**`, release notes, upgrade docs, research docs, quality docs, conventions, design docs, and agent instructions. It does not scan raw chat transcripts. With `--auto-build`, a missing context index is built before querying. With `--format text`, the same result is rendered as a concise human-readable list instead of JSON.
 
 ### `skills/memory-compact/scripts/record_session_learning.py`
 
@@ -836,7 +855,12 @@ Output includes:
 - `related_tests`
 - `related_docs`
 - `maybe_read`
+- `must_read_sections`
+- `progressive_read_plan`
+- `compression_policy`
+- `token_budget`
 - `avoid`
+- `avoid_docs`
 - `subagents`
 
 ### `skills/pattern-reuse-engine/scripts/find_reuse_candidates.py`

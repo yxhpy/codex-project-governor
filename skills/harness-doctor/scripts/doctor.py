@@ -45,8 +45,8 @@ def diagnose(project: Path, execution_readiness: bool = False) -> dict[str, Any]
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if manifest.get("version") != "6.0.0":
-                warnings.append(f"manifest version is {manifest.get('version')}, expected 6.0.0")
+            if manifest.get("version") != "6.0.6":
+                warnings.append(f"manifest version is {manifest.get('version')}, expected 6.0.6")
         except Exception as exc:
             blockers.append(f"plugin manifest is invalid JSON: {exc}")
     skills_dir = project / "skills"
@@ -69,6 +69,16 @@ def diagnose(project: Path, execution_readiness: bool = False) -> dict[str, Any]
             blockers.append(f"context index invalid JSON: {exc}")
     else:
         warnings.append("context index is missing; run context-indexer --write")
+    docs_manifest = project / ".project-governor" / "context" / "DOCS_MANIFEST.json"
+    if docs_manifest.exists():
+        try:
+            data = json.loads(docs_manifest.read_text(encoding="utf-8"))
+            if data.get("schema") != "project-governor-docs-manifest-v1":
+                warnings.append(f"docs manifest schema is {data.get('schema')}, expected project-governor-docs-manifest-v1")
+        except Exception as exc:
+            blockers.append(f"docs manifest invalid JSON: {exc}")
+    else:
+        warnings.append("docs manifest is missing; run context-indexer --write")
     state = project / ".project-governor" / "state"
     for rel in ["FEATURES.json", "AGENTS.json", "ISSUES.json", "PROGRESS.md", "SESSION.json"]:
         if not (state / rel).exists():

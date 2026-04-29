@@ -17,6 +17,7 @@
 - GPT-5.5 runtime mode template: `templates/.project-governor/runtime/GPT55_RUNTIME_MODE.json`
 - Harness v6 state templates: `templates/.project-governor/state/`
 - Harness v6 evidence templates: `templates/.project-governor/evidence/_template/`
+- Generated docs manifest: `.project-governor/context/DOCS_MANIFEST.json`
 - Iteration contract: `docs/conventions/ITERATION_CONTRACT.md`
 - Upgrade policy: `docs/upgrades/UPGRADE_POLICY.md`
 - Upgrade register: `docs/upgrades/UPGRADE_REGISTER.md`
@@ -24,7 +25,7 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.0.5.md`
+- Versioned release notes: `releases/6.0.6.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - User plugin install/update helper: `tools/install_or_update_user_plugin.py`

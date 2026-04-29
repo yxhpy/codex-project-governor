@@ -11,6 +11,7 @@ from typing import Mapping
 ENV_FILE = ".env-design"
 DEFAULT_STITCH_MCP_URL = "https://stitch.googleapis.com/mcp"
 SKIP_ENV_KEYS = ("DESIGN_BASIC_MODE", "DESIGN_ENV_SKIP", "DESIGN_SERVICE_CONFIG_SKIP")
+TRUTHY_VALUES = {"1", "true", "yes", "on"}
 GEMINI_PROTOCOL_ALIASES = ("GEMINI_PROTOCOL", "DESIGN_GEMINI_PROTOCOL")
 STITCH_URL_ALIASES = ("STITCH_MCP_URL", "DESIGN_STITCH_MCP_URL", "STITCH_MCP_ENDPOINT", "DESIGN_STITCH_MCP_ENDPOINT")
 REQUIRED_KEYS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -49,6 +50,20 @@ def parse_env_file(path: Path) -> dict[str, str]:
     return values
 
 
+def is_truthy(value: object) -> bool:
+    return str(value).strip().lower() in TRUTHY_VALUES
+
+
+def basic_mode_source(env: Mapping[str, str], file_values: Mapping[str, str]) -> tuple[str, str]:
+    for key in SKIP_ENV_KEYS:
+        if is_truthy(env.get(key, "")):
+            return "environment", key
+    for key in SKIP_ENV_KEYS:
+        if is_truthy(file_values.get(key, "")):
+            return ENV_FILE, key
+    return "", ""
+
+
 def write_template(path: Path) -> bool:
     if path.exists():
         return False
@@ -57,6 +72,8 @@ def write_template(path: Path) -> bool:
             [
                 "# Project-local design tooling configuration. Do not commit this file.",
                 "# Shell environment variables with the same names take precedence.",
+                "# Uncomment to use DESIGN.md-only basic mode without Gemini/Stitch:",
+                "# DESIGN_BASIC_MODE=1",
                 "GEMINI_BASE_URL=",
                 "GEMINI_API_KEY=",
                 "GEMINI_MODEL=",
@@ -125,29 +142,31 @@ def check_design_env(
 ) -> dict[str, object]:
     project = root_dir(root)
     env = environ if environ is not None else os.environ
-    skip_key = next((key for key in SKIP_ENV_KEYS if str(env.get(key, "")).strip() in {"1", "true", "TRUE", "yes", "YES"}), "")
+    env_file = project / ENV_FILE
+    file_values = parse_env_file(env_file)
+    skip_source, skip_key = basic_mode_source(env, file_values)
     if skip_key:
         return {
             "ok": True,
             "status": "basic_mode",
             "mode": "basic",
             "env_file": ENV_FILE,
-            "gemini_protocol": resolve_gemini_protocol(env),
-            "stitch_mcp_url": resolve_stitch_mcp_url(env),
-            "basic_mode_env": skip_key,
+            "gemini_protocol": resolve_gemini_protocol(env, file_values),
+            "stitch_mcp_url": resolve_stitch_mcp_url(env, file_values),
+            "basic_mode_env": skip_key if skip_source == "environment" else "",
+            "basic_mode_source": skip_source,
+            "basic_mode_key": skip_key,
             "required": [canonical for canonical, _aliases in REQUIRED_KEYS],
             "provided": {},
             "missing": [],
             "template_created": False,
             "git_exclude_updated": False,
             "instructions": [
-                "Design-service configuration was intentionally bypassed by shell environment variable; use basic mode.",
+                f"Design-service configuration was intentionally bypassed by {skip_source}:{skip_key}; use basic mode.",
                 "Basic mode allows frontend work with DESIGN.md, local lint, token discipline, and drift checks, but without Gemini/Stitch review or prototyping assistance.",
-                "Do not place basic-mode flags in .env-design; use a shell environment variable for intentional bypass only.",
+                "Keep .env-design local and uncommitted; remove the basic-mode line to require full Gemini/Stitch configuration again.",
             ],
         }
-    env_file = project / ENV_FILE
-    file_values = parse_env_file(env_file)
     gemini_protocol = resolve_gemini_protocol(env, file_values)
     stitch_mcp_url = resolve_stitch_mcp_url(env, file_values)
     provided: dict[str, str] = {}

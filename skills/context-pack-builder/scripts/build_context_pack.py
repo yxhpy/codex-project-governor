@@ -72,24 +72,33 @@ def load_index_query() -> Any | None:
     return module
 
 
-def from_index(repo: Path, request: str, limit: int, route: str) -> tuple[list[dict[str, Any]], float]:
+def from_index(repo: Path, request: str, limit: int, route: str) -> tuple[list[dict[str, Any]], float, dict[str, Any]]:
     if not (repo / ".project-governor" / "context" / "CONTEXT_INDEX.json").exists():
-        return [], 0.0
+        return [], 0.0, {}
     module = load_index_query()
     if module is None:
-        return [], 0.0
+        return [], 0.0, {}
     try:
         result = module.query(repo, request, limit, route)
     except Exception:
-        return [], 0.0
+        return [], 0.0, {}
     items = []
     for row in result.get("recommended_files", []):
         path = repo / row["path"]
         if path.exists() and path.is_file() and not row.get("sensitive"):
             item = make_item(repo, path, int(row.get("score", 1)), list(row.get("matched_terms", [])), source="context-index")
             item["roles"] = row.get("roles", [])
+            item["recommended_sections"] = row.get("recommended_sections", [])
+            item["doc_status"] = row.get("doc_status", "active")
             items.append(item)
-    return items, float(result.get("confidence", 0.0))
+    return items, float(result.get("confidence", 0.0)), {
+        "must_read_sections": result.get("must_read_sections", []),
+        "recommended_sections": result.get("recommended_sections", []),
+        "progressive_read_plan": result.get("progressive_read_plan", []),
+        "context_compression": result.get("context_compression", {}),
+        "token_policy": result.get("token_policy", {}),
+        "avoid_docs": result.get("avoid_docs", []),
+    }
 
 
 def categorize(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -109,7 +118,7 @@ def categorize(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[
 
 def build(repo: Path, request: str, limit: int = 12, route: str = "standard_feature") -> dict[str, Any]:
     terms = tokenize(request)
-    indexed, confidence = from_index(repo, request, limit, route)
+    indexed, confidence, index_meta = from_index(repo, request, limit, route)
     source = "context-index" if indexed and confidence >= 0.25 else "bounded-scan"
     if indexed and confidence >= 0.25:
         must_read, tests, docs, maybe = categorize(indexed[:limit])
@@ -132,7 +141,21 @@ def build(repo: Path, request: str, limit: int = 12, route: str = "standard_feat
         "related_tests": tests,
         "related_docs": docs,
         "maybe_read": maybe,
+        "must_read_sections": index_meta.get("must_read_sections", []),
+        "progressive_read_plan": index_meta.get("progressive_read_plan", []),
+        "compression_policy": index_meta.get("context_compression", {
+            "strategy": "bounded_file_scan",
+            "use_section_summaries_first": False,
+            "full_documents_deferred": True,
+        }),
+        "token_budget": {
+            "max_files_to_read_first": index_meta.get("token_policy", {}).get("max_files_to_read_first", min(limit, 12)),
+            "max_sections_to_read_first": index_meta.get("token_policy", {}).get("max_sections_to_read_first", 0),
+            "max_total_chars_first": index_meta.get("token_policy", {}).get("max_total_chars_first", 60_000),
+            "full_doc_requires_reason": index_meta.get("token_policy", {}).get("full_doc_requires_reason", True),
+        },
         "avoid": ["node_modules", "dist", "build", ".git", ".project-governor/context", ".project-governor/evidence"],
+        "avoid_docs": index_meta.get("avoid_docs", []),
         "subagents": ["context-scout", "test-scout", "docs-scout"],
     }
 

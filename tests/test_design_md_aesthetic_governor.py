@@ -9,7 +9,7 @@ python3 tests/test_design_md_aesthetic_governor.py
 This test intentionally avoids installing dependencies.
 """
 from __future__ import annotations
-import importlib.util, json, subprocess, sys, tempfile
+import hashlib, importlib.util, json, subprocess, sys, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +53,11 @@ def load_script(name: str):
     spec.loader.exec_module(mod)
     return mod
 
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    digest.update(path.read_bytes())
+    return digest.hexdigest()
+
 def main():
     lint = load_script("design_md_lint.py")
     verify = load_script("verify_design_usage.py")
@@ -70,6 +75,7 @@ def main():
         assert missing["ok"] is False, missing
         assert missing["missing"] == ["GEMINI_BASE_URL", "GEMINI_API_KEY", "GEMINI_MODEL", "STITCH_MCP_API_KEY"], missing
         assert (p / ".env-design").exists(), missing
+        assert "# DESIGN_BASIC_MODE=1" in (p / ".env-design").read_text(encoding="utf-8")
         (p / ".env-design").write_text(
             "\n".join(
                 [
@@ -149,6 +155,70 @@ def main():
         assert basic["status"] == "basic_mode", basic
         assert basic["mode"] == "basic", basic
         assert not (Path(td) / ".env-design").exists(), basic
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td)
+        (p / "DESIGN.md").write_text(DESIGN, encoding="utf-8")
+        (p / ".env-design").write_text("DESIGN_BASIC_MODE=1\n", encoding="utf-8")
+        basic_file = env_check.check_design_env(p, environ={}, write_missing_template=True)
+        assert basic_file["ok"] is True, basic_file
+        assert basic_file["status"] == "basic_mode", basic_file
+        assert basic_file["mode"] == "basic", basic_file
+        assert basic_file["basic_mode_source"] == ".env-design", basic_file
+        assert basic_file["basic_mode_key"] == "DESIGN_BASIC_MODE", basic_file
+        assert basic_file["basic_mode_env"] == "", basic_file
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(SKILL / "scripts" / "design_md_gate.py"),
+                "preflight",
+                "--task",
+                "ui prototype",
+            ],
+            cwd=p,
+            text=True,
+            capture_output=True,
+            check=True,
+            env={},
+        )
+        proof = json.loads(proc.stdout)
+        assert proof["ok"] is True, proof
+        assert proof["design_env"]["ok"] is True, proof
+        assert proof["design_env"]["mode"] == "basic", proof
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td)
+        design = p / "DESIGN.md"
+        design.write_text(DESIGN, encoding="utf-8")
+        state = p / ".codex" / "design-md-governor"
+        state.mkdir(parents=True)
+        (state / "read-proof.json").write_text(json.dumps({"ok": True, "design_sha256": sha256(design)}), encoding="utf-8")
+        event = {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "apply_patch",
+            "tool_input": {
+                "command": "*** Begin Patch\n*** Update File: src/components/App.tsx\n@@\n+export const x = 1;\n*** End Patch\n"
+            },
+        }
+        blocked = subprocess.run(
+            [sys.executable, str(ROOT / "templates" / ".codex" / "hooks" / "design_md_codex_hook.py")],
+            cwd=p,
+            input=json.dumps(event),
+            text=True,
+            capture_output=True,
+            check=True,
+            env={},
+        )
+        assert "permissionDecision" in blocked.stdout, blocked.stdout
+        (p / ".env-design").write_text("DESIGN_BASIC_MODE=1\n", encoding="utf-8")
+        allowed = subprocess.run(
+            [sys.executable, str(ROOT / "templates" / ".codex" / "hooks" / "design_md_codex_hook.py")],
+            cwd=p,
+            input=json.dumps(event),
+            text=True,
+            capture_output=True,
+            check=True,
+            env={},
+        )
+        assert allowed.stdout.strip() == "", allowed.stdout
     print("OK")
 
 if __name__ == "__main__":

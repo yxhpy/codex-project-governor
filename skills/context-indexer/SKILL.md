@@ -17,6 +17,7 @@ This skill writes only project-owned runtime state:
 
 ```text
 .project-governor/context/CONTEXT_INDEX.json
+.project-governor/context/DOCS_MANIFEST.json
 .project-governor/context/SESSION_BRIEF.md
 .project-governor/context/INDEX_REPORT.json
 ```
@@ -27,10 +28,13 @@ It does not copy plugin-global assets into the project.
 
 1. Build or refresh `CONTEXT_INDEX.json` when missing or stale.
 2. Build `SESSION_BRIEF.md` as a compact startup document.
-3. Query the index for the user's request.
-4. Read only the returned files before implementation.
-5. Escalate to broader scanning only when the index is insufficient.
-6. For memory/history questions, use `--memory-search` so retrieval stays on governed project memory, decisions, tasks, release notes, and state files instead of raw chat transcripts.
+3. Read `DOCS_MANIFEST.json` and `SESSION_BRIEF.md` before choosing large docs.
+4. Query the index for the user's request.
+5. Prefer returned `recommended_sections` line ranges before full files.
+6. Read only the returned files before implementation when sections are insufficient.
+7. Escalate to broader scanning only when the index is insufficient.
+8. For memory/history questions, use `--memory-search` so retrieval stays on governed project memory, decisions, tasks, release notes, and state files instead of raw chat transcripts.
+9. Treat docs marked `stale` or `superseded` as avoid-by-default unless the request explicitly asks for history or cleanup.
 
 ## Deterministic helpers
 
@@ -44,5 +48,7 @@ python3 skills/context-indexer/scripts/query_context_index.py --project . --requ
 ## Output
 
 Return a ranked list of files and docs with roles, reasons, and recommended token budget.
+
+Query output also includes `recommended_sections`, `must_read_sections`, `progressive_read_plan`, `context_compression`, and `avoid_docs` so agents can read a few line ranges before opening full documents.
 
 Memory search mode is read-only and intentionally searches curated governance artifacts, not raw conversation history. Durable facts still belong in `docs/memory/`, decisions in `docs/decisions/`, and required team rules in `AGENTS.md`.

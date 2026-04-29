@@ -8,7 +8,7 @@
 - 先做迭代计划，再实现非平凡改动。
 - 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`，但必须用 `route-guard` 验证实际 diff 没有越界。
 - 面向 GPT-5.5 的实现、研究、升级或清理请求，可以先用 `gpt55-auto-orchestrator` 自动选择工作流、模型、上下文预算、subagent 和质量门。
-- 已初始化项目优先用 `context-indexer` 查询任务相关文件，避免每个会话都读取所有初始化文档。
+- 已初始化项目优先用 `context-indexer` 查询任务相关章节，先读 `DOCS_MANIFEST.json`、`SESSION_BRIEF.md` 和 `recommended_sections`，避免每个会话都读取所有初始化文档。
 - 需要查“为什么当时这样做”或历史决策时，用 `context-indexer --memory-search` 查治理记忆、决策、任务和状态文件，不要拼复杂 shell，也不要默认翻原始聊天记录。
 - 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
@@ -19,7 +19,7 @@
 - 任何 UI/frontend 编码、视觉润色、组件、页面、CSS 或响应式布局改动，先用 `design-md-aesthetic-governor` 检查 Gemini/Stitch 配置，读取 DESIGN.md、生成 read proof，再按 token 实现并做漂移校验。
 - Gemini/Stitch 配置可以来自 shell 环境变量，也可以来自项目根目录 `.env-design`；必需键为 `GEMINI_BASE_URL`、`GEMINI_API_KEY`、`GEMINI_MODEL`、`STITCH_MCP_API_KEY`，`GEMINI_PROTOCOL` 可选 `auto`、`openai` 或 `gemini`。通过第三方网关走原生 Gemini 时，`GEMINI_BASE_URL` 必须填该网关的 Gemini 协议根，例如提供 `/gemini/v1beta` 时填 `https://host/gemini`。`STITCH_MCP_URL` 默认是 `https://stitch.googleapis.com/mcp`，`.env-design` 不得提交。
 - 默认走托管 Stitch MCP 端点，不需要本地安装 `stitch-mcp`、`npm` 或 `gcloud`；只有项目显式改成本地 MCP server 时才需要安装依赖。
-- 如果用户明确要不用 Gemini/Stitch、只用基础模式做前端，只能设置 shell 环境变量 `DESIGN_BASIC_MODE=1`。
+- 如果用户明确要不用 Gemini/Stitch、只用基础模式做前端，可以在 shell 环境变量或项目根 `.env-design` 中设置 `DESIGN_BASIC_MODE=1`；这能避开 Codex hook 或 Windows 进程没有继承后来 shell 变量的问题。
 - 先做研究和升级建议，再改 manifest、lockfile、SDK 或工具版本。
 - 只把有证据的事实写入项目记忆。
 - 初始化已有项目时只写治理文件，不改应用代码。
@@ -143,16 +143,16 @@ python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/
 python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
-## 5. 使用 Harness v6.0.5、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0.6、GPT-5.5 自动编排和上下文索引
 
-v6.0.5 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
+v6.0.6 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
 
 Automatically choose the Project Governor workflow, models, context budget, subagents, and quality gates for this request.
 Do not ask the user to name skills or subagents.
-Query the context index before reading large initialization docs.
+Read DOCS_MANIFEST, then query section-level context before reading large initialization docs.
 ```
 
 `context-indexer` 会把项目上下文写入项目自有的 `.project-governor/context/`，用于后续任务检索：
@@ -162,6 +162,8 @@ python3 skills/context-indexer/scripts/build_context_index.py --project . --writ
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "为什么当时选择这个 checkout 流程" --memory-search --auto-build
 ```
+
+`build_context_index.py --write` 会生成 `.project-governor/context/DOCS_MANIFEST.json`。`query_context_index.py` 会返回 `recommended_sections`、`must_read_sections`、`progressive_read_plan` 和 `avoid_docs`；默认排除标记为 `stale` 或 `superseded` 的文档，只有历史、清理或迁移审查任务才使用 `--include-stale`。
 
 `--memory-search` 会把检索范围收窄到受治理的历史资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`。需要给人读的结果时可加 `--format text`。
 
@@ -320,7 +322,7 @@ python3 tools/init_project.py --mode existing --profile legacy-full --target /pa
 
 ## 11. 干净重装或刷新治理项目
 
-v6.0.5 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+v6.0.6 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
 ```text
 Use @project-governor clean-reinstall-manager.
@@ -331,8 +333,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
+python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor

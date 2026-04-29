@@ -18,16 +18,16 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.0.5")
-        self.assertIn("Harness v6.0.5", manifest["description"])
+        self.assertEqual(manifest["version"], "6.0.6")
+        self.assertIn("Harness v6.0.6", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.0.5")
+        self.assertEqual(feature_matrix["current_latest"], "6.0.6")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.0.5", versions)
-        self.assertTrue((ROOT / "releases" / "6.0.5.md").exists())
+        self.assertIn("6.0.6", versions)
+        self.assertTrue((ROOT / "releases" / "6.0.6.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -172,7 +172,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.0.5", readme)
+        self.assertIn("6.0.6", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -420,6 +420,9 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             context = json.loads(context_proc.stdout)
             self.assertIn("src/components/DashboardChart.tsx", {item["path"] for item in context["must_read"]})
             self.assertTrue(context["related_tests"])
+            self.assertIn("token_budget", context)
+            self.assertTrue(context["token_budget"]["full_doc_requires_reason"])
+            self.assertIn("compression_policy", context)
 
             reuse_proc = subprocess.run(
                 [

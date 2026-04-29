@@ -10,8 +10,11 @@
   },
   "context_policy": {
     "read_all_initialization_docs_on_session_start": false,
+    "prefer_docs_manifest": ".project-governor/context/DOCS_MANIFEST.json",
     "prefer_session_brief": ".project-governor/context/SESSION_BRIEF.md",
-    "prefer_context_index": ".project-governor/context/CONTEXT_INDEX.json"
+    "prefer_context_index": ".project-governor/context/CONTEXT_INDEX.json",
+    "prefer_recommended_sections_before_full_docs": true,
+    "exclude_doc_statuses_by_default": ["stale", "superseded"]
   },
   "automation_policy": {
     "auto_select_skills": true,

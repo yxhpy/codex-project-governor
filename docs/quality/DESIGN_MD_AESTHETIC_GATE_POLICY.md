@@ -14,7 +14,7 @@ The gate requires:
 4. Token-aware implementation using `DESIGN.md` values and rationale.
 5. Post-edit drift verification.
 
-Required design-service keys are `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`. `.env-design` is local secret configuration and must not be committed. A user may intentionally use basic mode only with shell environment variable `DESIGN_BASIC_MODE=1`; legacy `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are still accepted. Basic-mode flags in `.env-design` are not honored.
+Required design-service keys are `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`. `.env-design` is local secret configuration and must not be committed. A user may intentionally use basic mode with `DESIGN_BASIC_MODE=1` in either the shell environment or project-root `.env-design`; legacy `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are still accepted from either source. This avoids Codex hook or Windows process-inheritance failures when a shell variable is set after the hook process starts.
 
 ## Stitch / Gemini / GPT workflow
 

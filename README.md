@@ -2,7 +2,7 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.5 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.6 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
@@ -12,7 +12,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 - 34+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, docs manifest generation, section-level context queries, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -43,8 +43,8 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `route-guard` | Verify that the actual diff still fits the route selected by task-router, especially micro-patch and fast-lane changes. |
 | `subagent-activation` | Select project-scoped subagents and model strategy from route, workflow, risk, quality level, and confidence so users do not manually list subagents. |
 | `gpt55-auto-orchestrator` | Infer the workflow, model plan, context budget, subagents, and quality gate automatically for GPT-5.5-era Codex work. |
-| `context-indexer` | Build and query a compact project context index, including governed memory/history search, so Codex can avoid reading all initialization docs in every session. |
-| `context-pack-builder` | Build a minimal task-specific context pack so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
+| `context-indexer` | Build `CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, section-level retrieval, and governed memory/history search so Codex can avoid reading all initialization docs in every session. |
+| `context-pack-builder` | Build a minimal task-specific context pack with section line ranges, token budgets, and compression policy so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
 | `session-lifecycle` | Start and end Harness v6 task sessions while maintaining project-local state under `.project-governor/state`. |
 | `evidence-manifest` | Create or validate task evidence manifests that map acceptance criteria, tests, reviews, and docs refresh decisions. |
 | `harness-doctor` | Diagnose Harness v6 install shape, context freshness, state files, required skills, and execution readiness. |
@@ -63,7 +63,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -100,13 +100,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
-After v6.0.5 is installed, the same helper is available from the plugin checkout:
+After v6.0.6 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -114,7 +114,7 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.5
+git -C "$PLUGIN_DIR" checkout --detach v6.0.6
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -136,12 +136,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.0.5
+### Use Harness v6.0.6
 
-Harness v6.0.5 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.0.6 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.0.5 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.6 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -238,6 +238,8 @@ python3 skills/context-indexer/scripts/query_context_index.py --project . --requ
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "why did we choose this checkout flow" --memory-search --auto-build
 ```
 
+`build_context_index.py --write` generates `.project-governor/context/DOCS_MANIFEST.json`; `query_context_index.py` returns `recommended_sections`, `must_read_sections`, `progressive_read_plan`, and `avoid_docs` before recommending full files.
+
 Memory search mode reads governed project artifacts such as `docs/memory/`, `docs/decisions/`, `tasks/`, release notes, and `.project-governor/state/`. It does not scan raw chat transcripts.
 
 ### Record session learnings
@@ -322,13 +324,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
 ```
 
 Discover governed projects from outside a project:
@@ -378,7 +380,7 @@ Use DESIGN.md tokens and rationale during implementation.
 Verify drift after edits.
 ```
 
-Required design-service keys are `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; use `gemini` for native `generateContent` and `openai` for OpenAI-compatible gateways. For native Gemini through a gateway, `GEMINI_BASE_URL` must include the gateway's Gemini protocol root, for example `https://host/gemini` when the provider serves `/gemini/v1beta`. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`. Environment variables take precedence over project-root `.env-design`. To intentionally use basic mode without Gemini/Stitch for a session, set shell environment variable `DESIGN_BASIC_MODE=1`.
+Required design-service keys are `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; use `gemini` for native `generateContent` and `openai` for OpenAI-compatible gateways. For native Gemini through a gateway, `GEMINI_BASE_URL` must include the gateway's Gemini protocol root, for example `https://host/gemini` when the provider serves `/gemini/v1beta`. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`. Environment variables take precedence over project-root `.env-design` for service keys. To intentionally use basic mode without Gemini/Stitch for a session, set `DESIGN_BASIC_MODE=1` in the shell environment or project-root `.env-design`; `.env-design` is useful when Codex hooks or Windows processes do not inherit later shell changes.
 
 Full-service workflow: GPT/Codex orchestrates the repository work, Stitch MCP supports visual prototype exploration, Gemini reviews the design against `DESIGN.md`, then GPT/Codex implements the accepted direction in code and runs local verification. The hosted Stitch MCP endpoint is configured by default, so no local `stitch-mcp`, `npm`, or `gcloud` install is required unless a project opts into a local MCP server. Basic mode skips Stitch and Gemini while still requiring `DESIGN.md`, bundled lint, token discipline, and drift checks.
 
@@ -431,7 +433,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.5
+python3 tools/install_or_update_user_plugin.py --ref v6.0.6
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

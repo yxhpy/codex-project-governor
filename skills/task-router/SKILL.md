@@ -26,10 +26,11 @@ Use before implementation when speed matters but quality gates must remain intac
 2. Choose lane: `fast_lane`, `standard_lane`, `risk_lane`, or `refactor_lane`.
 3. Choose quality level: `light`, `standard`, or `strict`.
 4. Produce a change budget.
-5. Select downstream skills.
-6. Produce route guard requirements for fast or constrained routes.
-7. Select `subagent_mode`: `none`, `optional`, or `required`.
-8. Do not implement code.
+5. Produce a route-specific documentation pack with primary roles, read order, section budget, stale-doc filtering, and compression policy.
+6. Select downstream skills.
+7. Produce route guard requirements for fast or constrained routes.
+8. Select `subagent_mode`: `none`, `optional`, or `required`.
+9. Do not implement code.
 
 ## Micro Patch Route
 
@@ -61,4 +62,4 @@ Escalate from `micro_patch` when the target is shared/global, when more files ar
 
 ## Output
 
-Return route, lane, quality level, subagent mode, risk signals, negative constraints, required skills, skipped workflow, change budget, route guard requirements, and escalation triggers.
+Return route, lane, quality level, subagent mode, risk signals, negative constraints, required skills, skipped workflow, change budget, route doc pack, route guard requirements, and escalation triggers.

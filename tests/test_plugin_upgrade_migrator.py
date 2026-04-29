@@ -118,6 +118,56 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertEqual(operations["run_hygiene_check"]["action"], "manual_review")
             self.assertEqual(data["summary"]["manual_review_count"], 1)
 
+    def test_plan_migration_updates_design_hook_for_env_design_basic_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            hook_path = project / ".codex" / "hooks" / "design_md_codex_hook.py"
+            policy_path = project / "docs" / "quality" / "DESIGN_MD_AESTHETIC_GATE_POLICY.md"
+            hook_path.parent.mkdir(parents=True)
+            policy_path.parent.mkdir(parents=True)
+            old_hook = "# old hook\n"
+            old_policy = "# old policy\n"
+            hook_path.write_text(old_hook, encoding="utf-8")
+            policy_path.write_text(old_policy, encoding="utf-8")
+            (project / ".project-governor").mkdir()
+            manifest = {
+                "plugin": {"installed_version": "6.0.5"},
+                "generated_files": [
+                    {
+                        "path": ".codex/hooks/design_md_codex_hook.py",
+                        "template": "templates/.codex/hooks/design_md_codex_hook.py",
+                        "installed_sha256": sha(old_hook),
+                        "upgrade_policy": "three_way_merge",
+                    },
+                    {
+                        "path": "docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md",
+                        "template": "templates/docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md",
+                        "installed_sha256": sha(old_policy),
+                        "upgrade_policy": "three_way_merge",
+                    },
+                ],
+            }
+            (project / ".project-governor" / "INSTALL_MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.0.5",
+                    "--target-version",
+                    "6.0.6",
+                ]
+            )
+            operations = {operation["path"]: operation for operation in data["operations"]}
+            self.assertEqual(operations[".codex/hooks/design_md_codex_hook.py"]["action"], "replace_from_template")
+            self.assertEqual(operations[".codex/hooks/design_md_codex_hook.py"]["status"], "safe_update_unchanged_from_install")
+            self.assertEqual(operations["docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md"]["action"], "replace_from_template")
+            self.assertEqual(operations["docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md"]["status"], "safe_update_unchanged_from_install")
+
     def test_plan_migration_surfaces_agents_template_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)

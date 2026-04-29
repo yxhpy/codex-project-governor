@@ -16,6 +16,8 @@ Codex must work as an iterative maintainer, not as a greenfield developer.
 7. Relevant nested `AGENTS.md` files
 8. Adjacent existing code
 
+When `.project-governor/context/DOCS_MANIFEST.json` and `CONTEXT_INDEX.json` are available, use them first to locate relevant sections. Read line-range `recommended_sections` before opening whole documents; escalate to full required-reading files only when the section results are insufficient, stale, or the change touches public contracts/templates.
+
 ## Iteration-first rule
 
 Before implementation:
@@ -78,6 +80,13 @@ When a task is non-trivial, the main Codex agent must automatically:
 6. Explicitly spawn the selected subagents, wait for all read-only subagents, consolidate their findings, and only then write code.
 
 Do not spawn subagents for `micro_patch` unless route-guard fails, confidence is low, or the target unexpectedly touches a shared/global component.
+
+## Context navigation policy
+
+- Start with `.project-governor/context/DOCS_MANIFEST.json`, `.project-governor/context/SESSION_BRIEF.md`, and `query_context_index.py`.
+- Prefer route-specific doc packs and `must_read_sections` line ranges before full documents.
+- Exclude docs marked `stale` or `superseded` unless the task explicitly asks for history, cleanup, or migration review.
+- Stay within the route context budget; if full documents are needed, record the reason in the task context pack or final evidence.
 
 ## Project Governor upgrades
 

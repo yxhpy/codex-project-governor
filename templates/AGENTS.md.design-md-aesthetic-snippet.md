@@ -12,7 +12,7 @@ For any task that creates or edits user-facing UI, frontend routes, React/Next.j
    ```
 
 5. Do not edit UI files until `.codex/design-md-governor/read-proof.json` exists and matches the current `DESIGN.md` hash.
-6. If `.env-design` is missing or incomplete, stop UI work and ask the user to fill `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`, unless shell environment variables already provide them or the user intentionally sets `DESIGN_BASIC_MODE=1` for basic mode. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`.
+6. If `.env-design` is missing or incomplete, stop UI work and ask the user to fill `GEMINI_BASE_URL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, and `STITCH_MCP_API_KEY`, unless shell environment variables already provide them or the user intentionally sets `DESIGN_BASIC_MODE=1` in the shell environment or project `.env-design` for basic mode. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`.
 7. If `DESIGN.md` is missing, stop UI coding and create `docs/design/DESIGN_MD_ADOPTION_PLAN.md` instead of inventing styling.
 8. Use `VoltAgent/awesome-design-md` references only as aesthetic inspiration. Do not copy protected logos, brand names, assets, or exact visual identity unless explicitly authorized.
 9. After edits, run:

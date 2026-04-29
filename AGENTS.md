@@ -16,6 +16,8 @@ Before non-trivial changes, read:
 6. `.codex-plugin/plugin.json`
 7. Adjacent files under `skills/`, `templates/`, `tools/`, `tests/`, or `examples/`
 
+When `.project-governor/context/DOCS_MANIFEST.json` and `CONTEXT_INDEX.json` are available, use them first to locate relevant sections. Read line-range `recommended_sections` before opening whole documents; escalate to full required-reading files only when the section results are insufficient, stale, or the change touches public contracts/templates.
+
 ## Repository Boundaries
 
 - Plugin metadata lives in `.codex-plugin/plugin.json`.
@@ -76,6 +78,13 @@ Update governance docs when changing:
 
 Every durable memory update must include date, status, source, and evidence. If confidence is low, record an open question instead.
 For non-trivial sessions, run memory search at startup for related prior failures and run `record_session_learning.py` before final response when a command failed, an assumption was corrected, or memory looked stale.
+
+## Context Navigation Policy
+
+- Start with `.project-governor/context/DOCS_MANIFEST.json`, `.project-governor/context/SESSION_BRIEF.md`, and `query_context_index.py`.
+- Prefer route-specific doc packs and `must_read_sections` line ranges before full documents.
+- Exclude docs marked `stale` or `superseded` unless the task explicitly asks for history, cleanup, or migration review.
+- Stay within the route context budget; if full documents are needed, record the reason in the task context pack or final evidence.
 
 ## Verification
 

@@ -58,7 +58,7 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 ## Generated Output
 
 - `tools/init_project.py` writes `reports/project-governor/init-report.json` in the target repository.
-- `skills/context-indexer/scripts/build_context_index.py --write` writes schema-v2 `.project-governor/context/CONTEXT_INDEX.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
+- `skills/context-indexer/scripts/build_context_index.py --write` writes schema-v2 `.project-governor/context/CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
 - `skills/session-lifecycle/scripts/session_lifecycle.py start|end` writes `.project-governor/state/**` in the target repository.
 - `skills/evidence-manifest/scripts/write_evidence_manifest.py` writes `.project-governor/evidence/<task-id>/EVIDENCE.json` unless `--validate` is used.
 - `skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py --apply` writes `.project-governor/runtime/GPT55_RUNTIME_MODE.json` and may build the context index in the target repository.

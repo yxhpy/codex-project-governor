@@ -39,7 +39,7 @@ STITCH_MCP_API_KEY=
 
 Environment variables with those names take precedence. The aliases `DESIGN_GEMINI_BASE_URL`, `DESIGN_GEMINI_API_KEY`, `DESIGN_GEMINI_MODEL`, `DESIGN_GEMINI_PROTOCOL`, `DESIGN_STITCH_MCP_URL`, and `DESIGN_STITCH_MCP_API_KEY` are also accepted. `GEMINI_PROTOCOL` may be `auto`, `openai`, or `gemini`; `openai` means OpenAI-compatible chat completions, and `gemini` means native Gemini `generateContent`. For native Gemini through a gateway, `GEMINI_BASE_URL` must be the gateway's Gemini protocol root, such as `https://host/gemini` when the provider serves `/gemini/v1beta`. `STITCH_MCP_URL` defaults to `https://stitch.googleapis.com/mcp`.
 
-To use basic mode without Gemini/Stitch service configuration, the user must set a shell environment variable `DESIGN_BASIC_MODE=1`. Legacy bypass variables `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are also accepted. Do not put basic-mode flags in `.env-design`; the mode choice is meant to be explicit per environment/session.
+To use basic mode without Gemini/Stitch service configuration, the user must set `DESIGN_BASIC_MODE=1` either as a shell environment variable or in the project-root `.env-design` file. Legacy bypass variables `DESIGN_ENV_SKIP=1` and `DESIGN_SERVICE_CONFIG_SKIP=1` are also accepted from either source. `.env-design` is preferred when Codex hooks or Windows processes may not inherit shell variables set after startup; keep it local and uncommitted.
 
 Run:
 
@@ -225,7 +225,7 @@ If any required gate failed, say `NOT SHIPPED` and list the failing gate.
 
 ## Missing setup behavior
 
-If Gemini/Stitch design-service configuration is missing and basic mode is not enabled, do not begin UI review, prototyping, or UI coding. Run `design_env_check.py --write-template`, ask the user to fill `.env-design`, and stop until all required values are present, shell environment variables provide them, or the user intentionally sets `DESIGN_BASIC_MODE=1`.
+If Gemini/Stitch design-service configuration is missing and basic mode is not enabled, do not begin UI review, prototyping, or UI coding. Run `design_env_check.py --write-template`, ask the user to fill `.env-design`, and stop until all required values are present, shell environment variables provide them, or the user intentionally sets `DESIGN_BASIC_MODE=1` in the shell environment or project `.env-design`.
 
 ## Missing DESIGN.md behavior
 

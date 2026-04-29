@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.5`
+当前版本：`6.0.6`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0.5、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0.6、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -67,8 +67,8 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `route-guard` | 验证实际 diff 是否仍符合 task-router 选定的路由，尤其是 `micro_patch` 和 fast-lane 改动。 |
 | `subagent-activation` | 按 route、workflow、风险、质量等级和置信度选择项目级 subagent 与模型策略，避免用户手动列 subagent。 |
 | `gpt55-auto-orchestrator` | 面向 GPT-5.5 自动选择工作流、模型计划、上下文预算、subagent 和质量门。 |
-| `context-indexer` | 构建和查询紧凑的项目上下文索引，并支持治理记忆/历史搜索，避免每个会话都读取所有初始化文档。 |
-| `context-pack-builder` | 构建最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
+| `context-indexer` | 构建 `CONTEXT_INDEX.json`、`DOCS_MANIFEST.json`、章节级检索和治理记忆/历史搜索，避免每个会话都读取所有初始化文档。 |
+| `context-pack-builder` | 构建带章节行号、token 预算和压缩策略的最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
 | `session-lifecycle` | 启动和结束 Harness v6 任务会话，并维护 `.project-governor/state` 项目状态。 |
 | `evidence-manifest` | 创建或校验任务证据清单，把验收标准、测试、审查和文档刷新决策关联起来。 |
 | `harness-doctor` | 诊断 Harness v6 安装结构、上下文新鲜度、状态文件、必需技能和执行就绪度。 |
@@ -87,7 +87,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -124,13 +124,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
-安装到 v6.0.5 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.0.6 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -138,7 +138,7 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.5
+git -C "$PLUGIN_DIR" checkout --detach v6.0.6
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -234,12 +234,12 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0.5
+### 使用 Harness v6.0.6
 
-Harness v6.0.5 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.0.6 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.0.5 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.6 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -256,7 +256,7 @@ python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . 
 Use @project-governor gpt55-auto-orchestrator.
 
 Automatically choose the workflow, model plan, context budget, subagents, and quality gate for this request.
-Query the context index before reading large initialization docs.
+Read DOCS_MANIFEST, then query section-level context before reading large initialization docs.
 ```
 
 初始化过的项目可以先生成或刷新紧凑上下文索引：
@@ -266,6 +266,8 @@ python3 skills/context-indexer/scripts/build_context_index.py --project . --writ
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "dashboard widget"
 python3 skills/context-indexer/scripts/query_context_index.py --project . --request "为什么当时选择这个 checkout 流程" --memory-search --auto-build
 ```
+
+`build_context_index.py --write` 会生成 `.project-governor/context/DOCS_MANIFEST.json`；`query_context_index.py` 会先返回 `recommended_sections`、`must_read_sections`、`progressive_read_plan` 和 `avoid_docs`，再把全文文件作为低置信度或章节不足时的后备。
 
 记忆搜索模式只查受治理的项目资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`，不默认扫描原始聊天记录。
 
@@ -335,13 +337,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
 ```
 
 从项目外发现已治理仓库：
@@ -403,7 +405,7 @@ STITCH_MCP_API_KEY=
 ```
 
 `.env-design` 是项目本地密钥配置，不得提交。环境变量优先于 `.env-design`。`GEMINI_PROTOCOL` 可以是 `auto`、`openai` 或 `gemini`；`gemini` 表示原生 Gemini `generateContent`，`openai` 表示 OpenAI-compatible 网关。通过第三方网关走原生 Gemini 时，`GEMINI_BASE_URL` 必须填该网关的 Gemini 协议根，例如提供 `/gemini/v1beta` 时填 `https://host/gemini`。`STITCH_MCP_URL` 默认是 `https://stitch.googleapis.com/mcp`。
-如需不用 Gemini/Stitch、只用基础模式做前端，只能在 shell 环境变量中设置 `DESIGN_BASIC_MODE=1`；`.env-design` 里的 basic/skip 标记无效。
+如需不用 Gemini/Stitch、只用基础模式做前端，可以在 shell 环境变量或项目根 `.env-design` 中设置 `DESIGN_BASIC_MODE=1`；当 Codex hook 或 Windows 进程没有继承后来设置的 shell 变量时，`.env-design` 仍会被门禁直接读取。
 
 完整模式的流程是：GPT/Codex 负责编排和代码实现，Stitch MCP 负责视觉原型探索，Gemini 负责按 `DESIGN.md` 做外部设计审查，最后 GPT/Codex 把通过的方向落到代码、测试和本地校验里。默认使用托管 Stitch MCP 端点，不需要本地安装 `stitch-mcp`、`npm` 或 `gcloud`；只有项目明确改成本地 MCP server 时才需要安装本地依赖。基础模式会跳过 Stitch 和 Gemini，但仍然要求读取 `DESIGN.md`、使用本地 lint、按 token 实现并做漂移检查。
 
@@ -441,7 +443,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.5
+python3 tools/install_or_update_user_plugin.py --ref v6.0.6
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

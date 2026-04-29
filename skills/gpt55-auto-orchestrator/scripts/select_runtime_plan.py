@@ -89,14 +89,14 @@ def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]
 
 def choose_context_budget(route: str, gate: str, confidence: float) -> dict[str, Any]:
     if route == "micro_patch":
-        return {"max_files": 3, "max_docs": 1, "max_total_chars": 20_000, "read_all_initialization_docs": False}
+        return {"max_files": 3, "max_docs": 1, "max_sections": 3, "max_total_chars": 20_000, "read_all_initialization_docs": False}
     if route in {"research", "upgrade_or_migration"}:
-        return {"max_files": 36, "max_docs": 12, "max_total_chars": 220_000, "read_all_initialization_docs": False}
+        return {"max_files": 36, "max_docs": 12, "max_sections": 18, "max_total_chars": 220_000, "read_all_initialization_docs": False}
     if gate == "strict":
-        return {"max_files": 30, "max_docs": 8, "max_total_chars": 180_000, "read_all_initialization_docs": False}
+        return {"max_files": 30, "max_docs": 8, "max_sections": 16, "max_total_chars": 180_000, "read_all_initialization_docs": False}
     if confidence < 0.70:
-        return {"max_files": 20, "max_docs": 6, "max_total_chars": 110_000, "read_all_initialization_docs": False}
-    return {"max_files": 14, "max_docs": 4, "max_total_chars": 80_000, "read_all_initialization_docs": False}
+        return {"max_files": 20, "max_docs": 6, "max_sections": 12, "max_total_chars": 110_000, "read_all_initialization_docs": False}
+    return {"max_files": 14, "max_docs": 4, "max_sections": 10, "max_total_chars": 80_000, "read_all_initialization_docs": False}
 
 
 def subagents_for(route: str, mode: str) -> list[str]:
@@ -141,6 +141,13 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
     confidence = float(classification.get("confidence", 0.55))
     model_plan = choose_models(route, gate, prefer_speed, available)
     context_budget = choose_context_budget(route, gate, confidence)
+    route_doc_pack = classification.get("route_doc_pack", {})
+    budget_gate = route_doc_pack.get("context_budget_gate", {}) if isinstance(route_doc_pack, dict) else {}
+    if budget_gate:
+        context_budget["max_docs"] = min(context_budget["max_docs"], int(budget_gate.get("max_initial_docs", context_budget["max_docs"])))
+        context_budget["max_sections"] = min(context_budget.get("max_sections", 12), int(budget_gate.get("max_sections", context_budget.get("max_sections", 12))))
+        context_budget["max_total_chars_first"] = int(budget_gate.get("max_total_chars_first", context_budget["max_total_chars"]))
+        context_budget["full_doc_requires_reason"] = bool(budget_gate.get("full_doc_requires_reason", True))
     subagent_mode = str(classification.get("subagent_mode", "optional"))
     if route in {"standard_feature", "risky_feature", "upgrade_or_migration", "research", "refactor"} and subagent_mode == "optional":
         subagent_mode = "required"
@@ -163,12 +170,25 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
         "classification": classification,
         "model_plan": model_plan,
         "context_budget": context_budget,
+        "route_doc_pack": route_doc_pack,
         "context_retrieval": {
-            "first_step": "query_context_index_v2",
+            "first_step": "read_docs_manifest_then_query_context_index_v2",
             "memory_search_first_step": "query_context_index_v2_memory_search",
             "fallback": "build_context_index_v2",
+            "docs_manifest": ".project-governor/context/DOCS_MANIFEST.json",
             "session_brief": ".project-governor/context/SESSION_BRIEF.md",
             "context_index": ".project-governor/context/CONTEXT_INDEX.json",
+            "query_granularity": "section",
+            "read_order": route_doc_pack.get("read_order", []) if isinstance(route_doc_pack, dict) else [],
+            "stale_doc_filter": {
+                "exclude_statuses_by_default": ["stale", "superseded"],
+                "include_only_when_requested": True,
+            },
+            "compression": route_doc_pack.get("compression", {
+                "strategy": "query_aware_section_excerpts",
+                "prefer_section_summary": True,
+                "defer_full_documents": True,
+            }) if isinstance(route_doc_pack, dict) else {},
             "startup_memory_search": route not in {"micro_patch", "docs_only"},
             "read_all_initialization_docs": False,
         },
@@ -210,6 +230,8 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
             "classify_stale_memory_before_final": True,
             "require_evidence_manifest": evidence_required,
             "standard_feature_requires_test_first": True,
+            "enforce_context_budget_gate": True,
+            "prefer_section_ranges_before_full_docs": True,
         },
     }
 
