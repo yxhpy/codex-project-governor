@@ -1,0 +1,76 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion": "README skill entrypoints follow catalog visibility instead of drifting by hand.",
+      "proof": "tools/analyze_skill_catalog.py now validates README.md and README.zh-CN.md skill grouping sections against skills/CATALOG.json visibility."
+    },
+    {
+      "criterion": "Specialized design UI gate is no longer presented as a main recommended entrypoint.",
+      "proof": "design-md-aesthetic-governor visibility is advanced in skills/CATALOG.json and appears in the advanced/diagnostic README group."
+    },
+    {
+      "criterion": "Release version research is represented consistently as a specialist direct-use diagnostic.",
+      "proof": "version-researcher visibility is advanced in skills/CATALOG.json and remains in the advanced/diagnostic README group."
+    },
+    {
+      "criterion": "README drift detection is covered by focused tests.",
+      "proof": "tests/test_skill_catalog_analyzer.py includes a fixture that reports readme_skill_group_missing and readme_skill_group_extra."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_skill_catalog_analyzer.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-skill-entrypoint-drift-check/ROUTE_GUARD_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-skill-entrypoint-drift-check/QUALITY_GATE_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/merge-readiness/scripts/check_merge_readiness.py tasks/2026-04-29-skill-entrypoint-drift-check/MERGE_READINESS_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "make test",
+      "status": "passed"
+    }
+  ],
+  "reviews": {
+    "spec_compliance": "passed",
+    "code_quality": "passed"
+  },
+  "docs_refresh": {
+    "needed": true,
+    "reason": "Catalog visibility now drives README grouping and analyzer drift behavior.",
+    "files_updated": [
+      "README.md",
+      "README.zh-CN.md",
+      "docs/architecture/API_CONTRACTS.md",
+      "docs/conventions/CONVENTION_MANIFEST.md"
+    ]
+  }
+}

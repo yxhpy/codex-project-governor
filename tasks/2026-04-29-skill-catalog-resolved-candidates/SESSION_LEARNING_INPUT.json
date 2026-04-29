@@ -1,0 +1,24 @@
+{
+  "task_id": "2026-04-29-skill-catalog-resolved-candidates",
+  "source": "current_session",
+  "items": [
+    {
+      "type": "command_failure",
+      "command": "python3 skills/context-indexer/scripts/query_context_index.py --project . --query \"skill catalog analyzer README grouping API contracts tests\" --limit 8",
+      "error": "query_context_index.py requires --request; --query is not a supported option.",
+      "lesson": "Use --request for context-indexer query_context_index.py requests."
+    },
+    {
+      "type": "command_failure",
+      "command": "python3 skills/session-lifecycle/scripts/session_lifecycle.py start --project . --task-id 2026-04-29-skill-catalog-resolved-candidates --route standard_feature --summary ...",
+      "error": "session_lifecycle.py start rejects --summary; only end supports --summary.",
+      "lesson": "For session_lifecycle.py start, pass --project, --task-id, --route, and multiple --target-file values only; put summary on the end command."
+    },
+    {
+      "type": "command_failure",
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "error": "Initial run failed because consolidation_group_issues exceeded the function complexity blocking threshold.",
+      "lesson": "Split analyzer validation and rendering helpers before final quality gate when adding catalog metadata checks."
+    }
+  ]
+}

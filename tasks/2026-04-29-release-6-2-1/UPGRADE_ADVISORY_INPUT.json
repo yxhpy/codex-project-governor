@@ -1,0 +1,29 @@
+{
+  "project_requirements": [
+    "Prepare a patch release for the completed skill surface optimization, default prompt consolidation, routing improvements, and analyzer cleanup."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance_plugin",
+      "current": "6.2.0",
+      "latest": "6.2.1",
+      "safe_target": "6.2.1",
+      "available_versions": ["6.2.0", "6.2.1"],
+      "wanted_by": [
+        "Publish completed skill catalog, README/defaultPrompt, docs-only routing, and analyzer cleanup work as an installable patch release."
+      ],
+      "required_by": [
+        "Release preparation requested by the user."
+      ],
+      "requirement_matches": [
+        "patch release packaging"
+      ],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release only; no dependency, runtime, framework, template path, schema, or project migration change is required."
+    }
+  ]
+}

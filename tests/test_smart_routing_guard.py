@@ -34,6 +34,27 @@ class SmartRoutingGuardTest(unittest.TestCase):
         self.assertEqual(data["lane"], "standard_lane")
         self.assertLess(data["confidence"], 0.85)
 
+    def test_readme_typo_routes_to_docs_only(self) -> None:
+        data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "fix a typo in README"])
+        self.assertEqual(data["route"], "docs_only")
+        self.assertEqual(data["quality_level"], "light")
+        self.assertEqual(data["subagent_mode"], "none")
+        self.assertFalse(data["evidence_required"])
+        self.assertIn("quality-gate", data["required_workflow"])
+        self.assertNotIn("context-pack-builder", data["required_workflow"])
+
+    def test_ui_copy_does_not_route_as_docs_only(self) -> None:
+        data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "fix a typo on the dashboard button copy"])
+        self.assertEqual(data["route"], "ui_change")
+        self.assertEqual(data["quality_level"], "standard")
+        self.assertTrue(data["evidence_required"])
+
+    def test_feature_with_tests_does_not_route_as_test_only(self) -> None:
+        data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "Add an export helper that reuses the existing parser utilities and updates tests."])
+        self.assertEqual(data["route"], "standard_feature")
+        self.assertIn("test_signal", data["risk_signals"])
+        self.assertIn("parallel-feature-builder", data["required_workflow"])
+
     def test_route_guard_passes_micro_patch(self) -> None:
         data = self.run_json([PY, "skills/route-guard/scripts/check_route_guard.py", "examples/route-guard-micro-pass.json"])
         self.assertEqual(data["status"], "pass")

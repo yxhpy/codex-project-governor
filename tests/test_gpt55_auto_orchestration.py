@@ -24,6 +24,17 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertFalse(data['context_budget']['read_all_initialization_docs'])
         self.assertIn('route-guard', data['skill_sequence'])
 
+    def test_docs_typo_uses_light_path_without_subagents(self):
+        data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'fix a typo in README'])
+        self.assertEqual(data['route'], 'docs_only')
+        self.assertEqual(data['quality_gate'], 'light')
+        self.assertEqual(data['subagent_mode'], 'none')
+        self.assertEqual(data['subagents'], [])
+        self.assertEqual(data['model_plan']['main_model'], 'gpt-5.4-mini')
+        self.assertEqual(data['skill_sequence'], ['direct-edit', 'quality-gate', 'merge-readiness'])
+        self.assertFalse(data['evidence_required'])
+        self.assertFalse(data['state_policy']['session_start'])
+
     def test_standard_feature_uses_context_index_and_subagents(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), str(ROOT / 'examples/gpt55-runtime-standard-feature.json')])
         self.assertEqual(data['route'], 'standard_feature')

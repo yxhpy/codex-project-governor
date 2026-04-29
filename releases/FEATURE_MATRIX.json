@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.0",
+  "current_latest": "6.2.1",
   "versions": [
     {
       "version": "0.4.1",
@@ -426,6 +426,40 @@
           "user_value": "Initialized projects can share one governance rule source across Codex and Claude Code.",
           "requires_project_migration": true,
           "migration_id": "migration_6_2_0_claude_code_compat"
+        }
+      ]
+    },
+    {
+      "version": "6.2.1",
+      "title": "Skill Entrypoint Consolidation",
+      "features": [
+        {
+          "id": "skill_catalog_entrypoints",
+          "name": "Skill catalog entrypoints",
+          "summary": "Adds a machine-readable skill catalog that distinguishes recommended entry points, internal workflow stages, diagnostic tools, and resolved consolidation groups.",
+          "user_value": "Users see fewer top-level skill choices while maintainers can still audit every bundled skill for drift.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "docs_only_routing",
+          "name": "Docs-only routing cleanup",
+          "summary": "Routes documentation-only typo and copy edits through a lighter path without misclassifying feature requests that mention tests.",
+          "user_value": "Small documentation fixes stay fast while feature work still receives the right planning and test gates.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "compact_default_prompts",
+          "name": "Compact default prompts",
+          "summary": "Replaces a long skill-by-skill Codex default prompt list with compact scenario-level prompts aligned with the recommended entry points.",
+          "user_value": "The plugin UI presents actionable scenarios instead of exposing internal workflow stages as first-choice prompts.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "analyzer_split_quality",
+          "name": "Analyzer split quality",
+          "summary": "Splits the skill catalog analyzer into focused modules with tests and line-budget coverage.",
+          "user_value": "Catalog audits remain maintainable and pass engineering standards without source-size warnings.",
+          "requires_project_migration": false
         }
       ]
     }

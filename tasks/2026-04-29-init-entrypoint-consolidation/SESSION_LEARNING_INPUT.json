@@ -1,0 +1,13 @@
+{
+  "task_id": "2026-04-29-init-entrypoint-consolidation",
+  "source": "init entrypoint consolidation verification",
+  "items": [
+    {
+      "type": "command_failure",
+      "command": "python3 skills/merge-readiness/scripts/check_merge_readiness.py tasks/2026-04-29-init-entrypoint-consolidation/MERGE_READINESS_INPUT.json",
+      "error": "First run reported evidence manifest is missing because it was executed in parallel with evidence-manifest writing.",
+      "lesson": "Run evidence-manifest writing before merge-readiness; do not parallelize readiness checks that read freshly generated evidence.",
+      "evidence": "The same merge-readiness command passed when rerun after .project-governor/evidence/2026-04-29-init-entrypoint-consolidation/EVIDENCE.json existed."
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "quality_level": "standard",
+  "route": "standard_feature",
+  "require_evidence": true,
+  "evidence_manifest": ".project-governor/evidence/2026-04-29-maintenance-entrypoint-consolidation/EVIDENCE.json",
+  "change_budget": {
+    "max_files_changed": 25,
+    "max_new_files": 15,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 20,
+    "new_files": 9,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 0
+  },
+  "route_guard": {
+    "route": "standard_feature",
+    "repo": ".",
+    "collect_diff": true,
+    "route_guard_requirements": {
+      "route": "standard_feature",
+      "max_modified_files": 25,
+      "max_added_files": 15,
+      "allow_dependencies": false,
+      "allow_api_changes": true,
+      "allow_schema_changes": false,
+      "allow_new_components": false,
+      "allow_global_style_changes": false,
+      "allow_shared_component_changes": false,
+      "allow_rewrite": true
+    }
+  },
+  "engineering_standards": {
+    "status": "pass",
+    "summary": {
+      "blocker_count": 0,
+      "warning_count": 0,
+      "mock_inventory_count": 0
+    }
+  },
+  "checks": [
+    {
+      "name": "skill_catalog_analyzer",
+      "status": "pass"
+    },
+    {
+      "name": "selftest",
+      "status": "pass"
+    },
+    {
+      "name": "compileall",
+      "status": "pass"
+    },
+    {
+      "name": "diff_check",
+      "status": "pass"
+    },
+    {
+      "name": "engineering_standards",
+      "status": "pass"
+    },
+    {
+      "name": "make_test",
+      "status": "pass"
+    }
+  ],
+  "commands": [
+    "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+    "python3 tests/test_skill_catalog_analyzer.py",
+    "python3 tests/selftest.py",
+    "python3 -m compileall tools skills tests",
+    "git diff --check",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+    "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-maintenance-entrypoint-consolidation/ROUTE_GUARD_INPUT.json",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-maintenance-entrypoint-consolidation/QUALITY_GATE_INPUT.json",
+    "python3 skills/merge-readiness/scripts/check_merge_readiness.py tasks/2026-04-29-maintenance-entrypoint-consolidation/MERGE_READINESS_INPUT.json",
+    "make test"
+  ]
+}

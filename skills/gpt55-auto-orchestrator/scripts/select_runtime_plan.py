@@ -55,7 +55,7 @@ def normalized_route(route: str) -> str:
 def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]) -> dict[str, Any]:
     primary = "gpt-5.5" if "gpt-5.5" in available else "gpt-5.4"
     scout = "gpt-5.4-mini" if "gpt-5.4-mini" in available else primary
-    if route == "micro_patch":
+    if route in {"micro_patch", "docs_only"}:
         main = scout if prefer_speed else primary
         return {
             "main_model": main,

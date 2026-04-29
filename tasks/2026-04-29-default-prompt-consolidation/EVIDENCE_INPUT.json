@@ -1,0 +1,79 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion": "Codex plugin default prompts are reduced from skill-by-skill choices to compact scenario choices.",
+      "proof": ".codex-plugin/plugin.json now has seven defaultPrompt entries instead of the previous eighteen."
+    },
+    {
+      "criterion": "Internal workflow stages are not exposed as default UI prompt choices.",
+      "proof": "tests/selftest.py asserts the defaultPrompt list does not include internal skill names such as task-router, context-indexer, session-lifecycle, evidence-manifest, route-guard, engineering-standards-governor, gpt55-auto-orchestrator, or design-md-aesthetic-governor."
+    },
+    {
+      "criterion": "The public metadata policy is documented.",
+      "proof": "README.md, README.zh-CN.md, and docs/architecture/API_CONTRACTS.md describe compact scenario-level default prompts."
+    },
+    {
+      "criterion": "No skills were deleted, renamed, or deprecated.",
+      "proof": "Skill catalog analyzer still reports 35 skills, 35 catalog entries, zero issues, and zero open consolidation candidates."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python3 -m json.tool .codex-plugin/plugin.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_skill_catalog_analyzer.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "status": "passed"
+    },
+    {
+      "command": "make test",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-default-prompt-consolidation/ROUTE_GUARD_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-default-prompt-consolidation/QUALITY_GATE_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/merge-readiness/scripts/check_merge_readiness.py tasks/2026-04-29-default-prompt-consolidation/MERGE_READINESS_INPUT.json",
+      "status": "passed"
+    }
+  ],
+  "reviews": {
+    "spec_compliance": "passed",
+    "code_quality": "passed_with_warning"
+  },
+  "docs_refresh": {
+    "needed": true,
+    "reason": "Codex plugin defaultPrompt is public metadata and now has a compact scenario-level policy.",
+    "files_updated": [
+      "README.md",
+      "README.zh-CN.md",
+      "docs/architecture/API_CONTRACTS.md"
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion": "Initialization is presented as one user-facing choice instead of two separate recommended rows.",
+      "proof": "README.md and README.zh-CN.md use one initialization row containing both init-empty-project and init-existing-project."
+    },
+    {
+      "criterion": "Backward-compatible skill references are preserved.",
+      "proof": "Both init-empty-project and init-existing-project remain in the recommended section and the analyzer reports no README/catalog drift."
+    },
+    {
+      "criterion": "The consolidation is covered by regression tests.",
+      "proof": "tests/test_skill_catalog_analyzer.py asserts the consolidated initialization row exists and old separate rows do not return."
+    },
+    {
+      "criterion": "Initialization behavior is unchanged.",
+      "proof": "No initialization script, template path, or plugin manifest was modified in this iteration."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_skill_catalog_analyzer.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-init-entrypoint-consolidation/ROUTE_GUARD_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-init-entrypoint-consolidation/QUALITY_GATE_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/merge-readiness/scripts/check_merge_readiness.py tasks/2026-04-29-init-entrypoint-consolidation/MERGE_READINESS_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/memory-compact/scripts/record_session_learning.py --project . --input tasks/2026-04-29-init-entrypoint-consolidation/SESSION_LEARNING_INPUT.json --apply",
+      "status": "passed"
+    },
+    {
+      "command": "make test",
+      "status": "passed"
+    }
+  ],
+  "reviews": {
+    "spec_compliance": "passed",
+    "code_quality": "passed"
+  },
+  "docs_refresh": {
+    "needed": true,
+    "reason": "Recommended README entrypoints were consolidated for initialization.",
+    "files_updated": [
+      "README.md",
+      "README.zh-CN.md"
+    ]
+  }
+}

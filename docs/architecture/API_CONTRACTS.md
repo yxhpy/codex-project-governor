@@ -19,6 +19,8 @@ This repository has no HTTP API routes.
 
 Changes to these fields affect plugin discovery and user-facing positioning.
 
+`interface.defaultPrompt` must remain a compact list of scenario-level prompts. It should align with README recommended entry points and avoid listing internal workflow stages or diagnostic skills as default UI choices.
+
 ## Claude Code Plugin Manifest Contract
 
 `.claude-plugin/plugin.json` declares:
@@ -38,7 +40,85 @@ Changes to these fields affect plugin discovery and user-facing positioning.
 
 Changes to these fields affect Claude Code plugin discovery, component registration, hook behavior, marketplace updates, and user-facing positioning.
 
+## Skill Catalog Contract
+
+`skills/CATALOG.json` declares documentation and audience metadata for bundled Codex skills.
+
+Required top-level fields:
+
+- `schema`
+- `description`
+- `visibility_values`
+- `skills`
+
+Optional top-level fields:
+
+- `consolidation_groups`
+
+Each `skills[]` entry includes:
+
+- `name`
+- `visibility`
+- `category`
+- `summary`
+
+Each `consolidation_groups[]` entry marks an advisory duplication signal that has already been handled in documentation or workflow routing. Entries include:
+
+- `name`
+- `status`
+- `skills`
+- optional `candidate_types`
+- optional `entrypoint`
+- optional `resolution`
+
+`status` currently supports `resolved`.
+
+`visibility` must be one of:
+
+- `primary`
+- `workflow`
+- `internal`
+- `advanced`
+- `deprecated`
+
+The catalog must include exactly the current directories under `skills/*/` and must not rename or replace `skills/<skill>/SKILL.md`. It is used to group user-facing documentation and to make future skill consolidation explicit before deletion or deprecation.
+
 ## CLI Contracts
+
+### `tools/analyze_skill_catalog.py`
+
+Inputs:
+
+- `--project <path>`
+- `--format {json,text}`
+- `--min-overlap <float>`
+- `--fail-on-issues`
+
+Behavior:
+
+- Reads `skills/CATALOG.json` and existing `skills/<skill>/SKILL.md` frontmatter.
+- Keeps `tools/analyze_skill_catalog.py` as the stable CLI entrypoint while delegating implementation to `tools/skill_catalog_analysis.py`, `tools/skill_catalog_render.py`, and `tools/skill_catalog_validation.py`.
+- Reports catalog health, visibility counts, category counts, and advisory consolidation candidates.
+- Separates explicit catalog `consolidation_groups` from open advisory consolidation candidates.
+- Verifies that `README.md` and `README.zh-CN.md` skill grouping sections match catalog visibility.
+- Does not edit, delete, deprecate, or rename skills.
+- Returns structured JSON even when the catalog file is missing.
+- Exits nonzero only when `--fail-on-issues` is supplied and blocking catalog issues exist.
+
+JSON output fields:
+
+- `schema`
+- `status`
+- `project`
+- `catalog_path`
+- `skill_count`
+- `catalog_entry_count`
+- `visibility_counts`
+- `category_counts`
+- `issues`
+- `consolidation_candidates`
+- `resolved_consolidations`
+- `summary`
 
 ### `tools/init_project.py`
 

@@ -18,16 +18,34 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.2.0")
-        self.assertIn("Harness v6.2.0", manifest["description"])
+        self.assertEqual(manifest["version"], "6.2.1")
+        self.assertIn("Harness v6.2.1", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
+        default_prompts = manifest["interface"]["defaultPrompt"]
+        self.assertIsInstance(default_prompts, list)
+        self.assertLessEqual(len(default_prompts), 8)
+        self.assertGreaterEqual(len(default_prompts), 5)
+        joined_prompts = "\n".join(default_prompts)
+        for expected in ["initialize", "upgrade", "memory", "DESIGN.md", "PR-ready"]:
+            self.assertIn(expected, joined_prompts)
+        for internal_skill in {
+            "task-router",
+            "context-indexer",
+            "session-lifecycle",
+            "evidence-manifest",
+            "route-guard",
+            "engineering-standards-governor",
+            "gpt55-auto-orchestrator",
+            "design-md-aesthetic-governor",
+        }:
+            self.assertNotIn(internal_skill, joined_prompts)
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.2.0")
+        self.assertEqual(feature_matrix["current_latest"], "6.2.1")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.2.0", versions)
-        self.assertTrue((ROOT / "releases" / "6.2.0.md").exists())
+        self.assertIn("6.2.1", versions)
+        self.assertTrue((ROOT / "releases" / "6.2.1.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -67,6 +85,39 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             self.assertTrue(text.startswith("---\n"), skill_md)
             self.assertIn("name:", text)
             self.assertIn("description:", text)
+
+    def test_skill_catalog_matches_skill_dirs(self) -> None:
+        catalog = json.loads((ROOT / "skills" / "CATALOG.json").read_text(encoding="utf-8"))
+        self.assertEqual(catalog["schema"], "project-governor-skill-catalog-v1")
+        actual_names = {p.name for p in (ROOT / "skills").iterdir() if p.is_dir()}
+        entries = catalog.get("skills", [])
+        catalog_names = [entry.get("name") for entry in entries]
+        self.assertEqual(len(catalog_names), len(set(catalog_names)))
+        self.assertEqual(set(catalog_names), actual_names)
+
+        allowed_visibility = {"primary", "workflow", "internal", "advanced", "deprecated"}
+        allowed_categories = {
+            "context",
+            "design",
+            "implementation",
+            "initialization",
+            "maintenance",
+            "memory",
+            "metrics",
+            "orchestration",
+            "quality",
+            "research",
+            "review",
+            "state",
+            "upgrade",
+        }
+        primary = [entry for entry in entries if entry.get("visibility") == "primary"]
+        self.assertGreaterEqual(len(primary), 1)
+        for entry in entries:
+            self.assertIn(entry.get("visibility"), allowed_visibility, entry)
+            self.assertIn(entry.get("category"), allowed_categories, entry)
+            self.assertIsInstance(entry.get("summary"), str, entry)
+            self.assertGreater(len(entry.get("summary", "")), 20, entry)
 
     def test_required_templates_exist(self) -> None:
         required = [
@@ -177,7 +228,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.2.0", readme)
+        self.assertIn("6.2.1", readme)
         self.assertIn("Claude Code", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)

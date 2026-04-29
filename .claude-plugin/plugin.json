@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "6.2.0",
-  "description": "Project Governor Harness v6.2.0 for Claude Code and Codex: governance skills, commands, subagents, hooks, MCP config, context indexing, memory search, route guards, evidence gates, engineering standards, and DESIGN.md UI workflows.",
+  "version": "6.2.1",
+  "description": "Project Governor Harness v6.2.1 for Claude Code and Codex: governance skills, commands, subagents, hooks, MCP config, context indexing, memory search, route guards, evidence gates, engineering standards, skill catalog consolidation, compact prompts, and DESIGN.md UI workflows.",
   "author": { "name": "yxhpy" },
   "homepage": "https://github.com/yxhpy/codex-project-governor",
   "repository": "https://github.com/yxhpy/codex-project-governor",

@@ -1,0 +1,282 @@
+{
+  "schema": "project-governor-skill-catalog-v1",
+  "description": "Audience and workflow metadata for bundled Project Governor skills. This catalog does not replace skills/<skill>/SKILL.md; it controls documentation grouping and drift checks.",
+  "visibility_values": {
+    "primary": "Recommended user-facing entry point.",
+    "workflow": "Specific user-facing workflow for a known job.",
+    "internal": "Normally invoked by orchestrators, routers, or quality gates.",
+    "advanced": "Specialist diagnostic, review, or retrospective entry point.",
+    "deprecated": "Kept for compatibility; do not recommend for new workflows."
+  },
+  "consolidation_groups": [
+    {
+      "name": "initialization-entrypoint",
+      "status": "resolved",
+      "skills": ["init-empty-project", "init-existing-project"],
+      "candidate_types": ["category_umbrella"],
+      "entrypoint": "Initialization: `init-empty-project` / `init-existing-project`",
+      "resolution": "README exposes one initialization row while preserving separate empty and existing project workflows."
+    },
+    {
+      "name": "maintenance-entrypoint",
+      "status": "resolved",
+      "skills": ["clean-reinstall-manager", "plugin-upgrade-migrator", "project-hygiene-doctor", "harness-doctor"],
+      "candidate_types": ["category_umbrella"],
+      "entrypoint": "Maintenance: `clean-reinstall-manager` / `plugin-upgrade-migrator`",
+      "resolution": "README exposes one maintenance row for routine install, refresh, and migration work; diagnostics remain advanced tools."
+    },
+    {
+      "name": "evidence-upgrade-entrypoint",
+      "status": "resolved",
+      "skills": ["research-radar", "upgrade-advisor", "version-researcher"],
+      "candidate_types": ["category_umbrella"],
+      "entrypoint": "Evidence and upgrades: `research-radar` / `upgrade-advisor`",
+      "resolution": "README exposes one evidence and upgrade row; version-researcher remains a specialized advanced release research tool."
+    },
+    {
+      "name": "design-entrypoint",
+      "status": "resolved",
+      "skills": ["design-md-governor", "design-md-aesthetic-governor"],
+      "candidate_types": ["category_umbrella"],
+      "entrypoint": "`design-md-governor`",
+      "resolution": "README keeps DESIGN.md governance as the main design entrypoint and lists the aesthetic UI gate as an advanced tool."
+    },
+    {
+      "name": "memory-entrypoint",
+      "status": "resolved",
+      "skills": ["memory-compact", "release-retro"],
+      "candidate_types": ["category_umbrella"],
+      "entrypoint": "`memory-compact`",
+      "resolution": "README keeps memory compaction as the routine entrypoint and lists release retrospectives as advanced."
+    },
+    {
+      "name": "quality-entrypoint",
+      "status": "resolved",
+      "skills": [
+        "architecture-drift-check",
+        "engineering-standards-governor",
+        "implementation-guard",
+        "merge-readiness",
+        "quality-gate",
+        "repair-loop",
+        "route-guard",
+        "style-drift-check"
+      ],
+      "candidate_types": ["category_umbrella", "quality_gate_facets", "term_overlap"],
+      "entrypoint": "`quality-gate`",
+      "resolution": "README keeps quality-gate as the routine completion gate while drift checks, route guard, repair, and merge readiness remain facets."
+    }
+  ],
+  "skills": [
+    {
+      "name": "gpt55-auto-orchestrator",
+      "visibility": "primary",
+      "category": "orchestration",
+      "summary": "Recommended default entry point that selects route, model plan, context budget, subagents, and gates."
+    },
+    {
+      "name": "init-empty-project",
+      "visibility": "workflow",
+      "category": "initialization",
+      "summary": "Initialize governance files before application code exists."
+    },
+    {
+      "name": "init-existing-project",
+      "visibility": "workflow",
+      "category": "initialization",
+      "summary": "Initialize governance for an existing repository without changing application code."
+    },
+    {
+      "name": "clean-reinstall-manager",
+      "visibility": "workflow",
+      "category": "maintenance",
+      "summary": "Install, update, reinstall, discover, or refresh Project Governor governance safely."
+    },
+    {
+      "name": "plugin-upgrade-migrator",
+      "visibility": "workflow",
+      "category": "maintenance",
+      "summary": "Plan safe Project Governor version migrations while preserving project customizations."
+    },
+    {
+      "name": "project-hygiene-doctor",
+      "visibility": "advanced",
+      "category": "maintenance",
+      "summary": "Detect plugin-global assets that were copied into target projects."
+    },
+    {
+      "name": "harness-doctor",
+      "visibility": "advanced",
+      "category": "maintenance",
+      "summary": "Diagnose Harness install shape, context freshness, state files, evidence gates, and script readiness."
+    },
+    {
+      "name": "research-radar",
+      "visibility": "workflow",
+      "category": "research",
+      "summary": "Research candidate capabilities or ecosystem changes before adoption."
+    },
+    {
+      "name": "version-researcher",
+      "visibility": "advanced",
+      "category": "research",
+      "summary": "Research release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice."
+    },
+    {
+      "name": "upgrade-advisor",
+      "visibility": "workflow",
+      "category": "upgrade",
+      "summary": "Provide upgrade choices before dependency, tool, SDK, or governance asset changes."
+    },
+    {
+      "name": "design-md-governor",
+      "visibility": "workflow",
+      "category": "design",
+      "summary": "Adopt, lint, summarize, or diff DESIGN.md as an opt-in design-system source."
+    },
+    {
+      "name": "design-md-aesthetic-governor",
+      "visibility": "advanced",
+      "category": "design",
+      "summary": "Specialized UI/frontend gate with DESIGN.md read proof, token discipline, aesthetic review, and drift checks."
+    },
+    {
+      "name": "task-router",
+      "visibility": "internal",
+      "category": "orchestration",
+      "summary": "Classify requests into route, lane, quality level, change budget, and downstream skills."
+    },
+    {
+      "name": "subagent-activation",
+      "visibility": "internal",
+      "category": "orchestration",
+      "summary": "Select project-scoped subagents and model strategy for downstream workflows."
+    },
+    {
+      "name": "context-indexer",
+      "visibility": "internal",
+      "category": "context",
+      "summary": "Build and query compact project context, docs manifest, section retrieval, and governed memory search."
+    },
+    {
+      "name": "context-pack-builder",
+      "visibility": "internal",
+      "category": "context",
+      "summary": "Build task-specific context packs with must-read files, sections, tests, docs, and budgets."
+    },
+    {
+      "name": "convention-miner",
+      "visibility": "advanced",
+      "category": "context",
+      "summary": "Read-only convention mining for stack, structure, style, APIs, tests, and components."
+    },
+    {
+      "name": "iteration-planner",
+      "visibility": "internal",
+      "category": "implementation",
+      "summary": "Plan non-trivial work as an iteration on existing patterns before implementation."
+    },
+    {
+      "name": "pattern-reuse-engine",
+      "visibility": "internal",
+      "category": "implementation",
+      "summary": "Find reusable components, services, hooks, schemas, tests, and styles before creating new patterns."
+    },
+    {
+      "name": "test-first-synthesizer",
+      "visibility": "internal",
+      "category": "implementation",
+      "summary": "Create targeted test plans or skeletons before behavior changes."
+    },
+    {
+      "name": "parallel-feature-builder",
+      "visibility": "internal",
+      "category": "implementation",
+      "summary": "Coordinate the quality-gated implementation pipeline with read-only analysis, writing, tests, review, and repair."
+    },
+    {
+      "name": "implementation-guard",
+      "visibility": "internal",
+      "category": "quality",
+      "summary": "Check minimality, rewrite risk, new file justification, dependencies, duplicate patterns, and public contract drift."
+    },
+    {
+      "name": "route-guard",
+      "visibility": "internal",
+      "category": "quality",
+      "summary": "Verify the actual diff still fits the route selected by task-router."
+    },
+    {
+      "name": "engineering-standards-governor",
+      "visibility": "internal",
+      "category": "quality",
+      "summary": "Scan source size, function complexity, mock leakage, test assertions, and reuse-first compliance before quality-gate completion."
+    },
+    {
+      "name": "quality-gate",
+      "visibility": "workflow",
+      "category": "quality",
+      "summary": "Run tiered task completion checks across budget, route guard, evidence, commands, tests, drift, docs, and memory."
+    },
+    {
+      "name": "repair-loop",
+      "visibility": "internal",
+      "category": "quality",
+      "summary": "Repair failed quality checks within the approved scope."
+    },
+    {
+      "name": "merge-readiness",
+      "visibility": "internal",
+      "category": "quality",
+      "summary": "Decide whether quality gate, evidence, docs, memory, approvals, and repairs are ready for merge."
+    },
+    {
+      "name": "style-drift-check",
+      "visibility": "advanced",
+      "category": "quality",
+      "summary": "Detect UI, component, naming, formatting, token, layout, and visual style drift."
+    },
+    {
+      "name": "architecture-drift-check",
+      "visibility": "advanced",
+      "category": "quality",
+      "summary": "Detect module boundary, import direction, API contract, and data-model drift."
+    },
+    {
+      "name": "pr-governance-review",
+      "visibility": "workflow",
+      "category": "review",
+      "summary": "Run multi-dimension branch governance review before or during PR review."
+    },
+    {
+      "name": "session-lifecycle",
+      "visibility": "internal",
+      "category": "state",
+      "summary": "Maintain task session state, progress logs, collision metadata, and evidence handoff."
+    },
+    {
+      "name": "evidence-manifest",
+      "visibility": "internal",
+      "category": "state",
+      "summary": "Create and validate evidence manifests that map criteria, tests, reviews, and docs refresh decisions."
+    },
+    {
+      "name": "memory-compact",
+      "visibility": "workflow",
+      "category": "memory",
+      "summary": "Compact recent activity into durable project memory, repeated mistakes, risks, and command learnings."
+    },
+    {
+      "name": "release-retro",
+      "visibility": "advanced",
+      "category": "memory",
+      "summary": "Summarize release learning into retrospectives, memory, decisions, questions, and risks."
+    },
+    {
+      "name": "coding-velocity-report",
+      "visibility": "advanced",
+      "category": "metrics",
+      "summary": "Measure task velocity without rewarding large patches, skipped gates, or poor repairs."
+    }
+  ]
+}

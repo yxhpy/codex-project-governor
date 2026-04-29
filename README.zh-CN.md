@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 和 Claude Code 插件，用来把仓库变成可自我治理的 Agent 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 或 Claude Code 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.2.0`
+当前版本：`6.2.1`
 
 ## 它解决什么问题
 
@@ -39,49 +39,42 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.2.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md/CLAUDE.md 规则模板漂移检测、Claude Code commands/agents/hooks、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.2.1、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md/CLAUDE.md 规则模板漂移检测、Claude Code commands/agents/hooks、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
-## 技能列表
+## 技能入口
 
-| Skill | 用途 |
+多数情况下先用 `gpt55-auto-orchestrator`。其他技能仍然保留，但很多是 orchestrator、router 或 quality gate 自动调用的内部阶段，不需要用户逐个选择。机器可读的分组元数据在 `skills/CATALOG.json`。
+
+Codex 插件默认提示词会刻意保持为少量场景级入口，而不是完整技能清单。它们应和下面的推荐入口保持一致，并避免把内部工作流阶段暴露成默认 UI 选项。
+
+如果要审计技能目录健康度、已解决的入口融合，以及仍需判断的融合候选，运行：
+
+```bash
+python3 tools/analyze_skill_catalog.py --project . --format text
+```
+
+### 推荐入口
+
+| Skill | 适用场景 |
 |---|---|
-| `init-empty-project` | 为新仓库创建治理骨架，不写应用代码。 |
-| `init-existing-project` | 为已有仓库创建治理层，并从现有代码中归纳约定。 |
-| `convention-miner` | 只读扫描仓库，识别栈、目录、测试、API 和组件线索。 |
-| `iteration-planner` | 把需求拆成一次迭代，先计划再实现。 |
-| `implementation-guard` | 检测重写风险、未批准依赖、新文件缺少说明和公共契约漂移。 |
-| `style-drift-check` | 检测组件、设计 token、命名和视觉风格漂移。 |
-| `architecture-drift-check` | 检测模块边界、导入方向和契约漂移。 |
-| `pr-governance-review` | 用多维度审查方式做 PR 治理 review。 |
-| `memory-compact` | 把近期活动压缩成项目记忆、风险和待确认问题。 |
-| `release-retro` | 把发布经验转成复盘、记忆和决策记录。 |
-| `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
-| `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
-| `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
-| `clean-reinstall-manager` | 生成用户级插件安装/重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
-| `design-md-governor` | 把 Google Labs Code DESIGN.md 作为可选设计系统真源，支持 lint、摘要、diff 和迁移建议，但不自动创建项目设计文件。 |
-| `design-md-aesthetic-governor` | 在 UI/frontend 编码前强制检查 Gemini/Stitch 配置、读取 DESIGN.md、生成 read proof、选择审美参考、按 token 实现并校验漂移。 |
-| `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
-| `research-radar` | 在实现新能力前研究候选方案、证据质量、项目匹配度和风险。 |
-| `task-router` | 把需求分流到最快且安全的 Project Governor 工作流、通道、质量等级和变更预算。 |
-| `route-guard` | 验证实际 diff 是否仍符合 task-router 选定的路由，尤其是 `micro_patch` 和 fast-lane 改动。 |
-| `subagent-activation` | 按 route、workflow、风险、质量等级和置信度选择项目级 subagent 与模型策略，避免用户手动列 subagent。 |
-| `gpt55-auto-orchestrator` | 面向 GPT-5.5 自动选择工作流、模型计划、上下文预算、subagent 和质量门。 |
-| `context-indexer` | 构建 `CONTEXT_INDEX.json`、`DOCS_MANIFEST.json`、章节级检索和治理记忆/历史搜索，避免每个会话都读取所有初始化文档。 |
-| `context-pack-builder` | 构建带章节行号、token 预算和压缩策略的最小任务上下文包，减少 Codex 和子代理重复探索仓库。 |
-| `session-lifecycle` | 启动和结束 Harness v6 任务会话，并维护 `.project-governor/state` 项目状态。 |
-| `evidence-manifest` | 创建或校验任务证据清单，把验收标准、测试、审查和文档刷新决策关联起来。 |
-| `harness-doctor` | 诊断 Harness v6 安装结构、上下文新鲜度、状态文件、必需技能和执行就绪度。 |
-| `pattern-reuse-engine` | 找出现有组件、服务、hook、schema、测试和样式模式，避免重复造新模式。 |
-| `parallel-feature-builder` | 用质量门约束的子代理流水线实现功能：先只读分析，再单一实现者，再测试、审查和修复。 |
-| `test-first-synthesizer` | 按现有测试风格先产出目标测试计划或测试骨架。 |
-| `engineering-standards-governor` | 在质量门前检查文件规模、函数复杂度、生产 mock 泄漏、测试断言、边界测试计划和复用优先合规性。 |
-| `quality-gate` | 运行分层质量检查，覆盖迭代合规、漂移、变更预算、测试、文档和记忆更新。 |
-| `repair-loop` | 在质量门失败时执行有边界的修复循环，不删除测试、不削弱断言、不扩大范围。 |
-| `merge-readiness` | 检查任务或分支是否 PR-ready，覆盖 blocker、质量门、文档、记忆、测试、预算和审批。 |
-| `coding-velocity-report` | 记录上下文时间、首次补丁时间、修复轮次、质量门通过率、补丁规模和复用比例。 |
+| `gpt55-auto-orchestrator` | 让 Project Governor 自动选择 route、上下文预算、subagent、模型计划和质量门。 |
+| 初始化：`init-empty-project` / `init-existing-project` | 给空仓库或已有仓库创建治理文件，不改应用代码。 |
+| 维护：`clean-reinstall-manager` / `plugin-upgrade-migrator` | 需要用户级安装、更新、重装、项目干净刷新，或插件更新后的安全迁移。 |
+| 证据和升级：`research-radar` / `upgrade-advisor` | 在采纳新能力或修改依赖、工具、SDK、运行时、治理资产前，需要证据、风险或升级选项。 |
+| `design-md-governor` | 需要采纳、lint、摘要或 diff 项目自有 `DESIGN.md`。 |
+| `quality-gate` | 需要运行或检查最终任务完成质量门。 |
+| `memory-compact` | 需要把近期活动压缩成持久记忆、风险、问题或命令教训。 |
+| `pr-governance-review` | 需要在 PR 前或 PR 中做多维度治理审查。 |
+
+### 内部工作流阶段
+
+这些技能通常由选定工作流自动调用，而不是让用户手动选择：`task-router`、`subagent-activation`、`context-indexer`、`context-pack-builder`、`iteration-planner`、`pattern-reuse-engine`、`test-first-synthesizer`、`parallel-feature-builder`、`implementation-guard`、`route-guard`、`engineering-standards-governor`、`repair-loop`、`merge-readiness`、`session-lifecycle` 和 `evidence-manifest`。
+
+### 高级和诊断工具
+
+只有在需要特定审计、诊断、UI 门禁、版本研究或复盘产物时才直接使用：`convention-miner`、`design-md-aesthetic-governor`、`style-drift-check`、`architecture-drift-check`、`project-hygiene-doctor`、`harness-doctor`、`version-researcher`、`release-retro` 和 `coding-velocity-report`。
 
 ## 安装到个人 Codex
 
@@ -90,7 +83,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -127,13 +120,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
-安装到 v6.2.0 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.2.1 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -141,7 +134,7 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.2.0
+git -C "$PLUGIN_DIR" checkout --detach v6.2.1
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -246,28 +239,29 @@ Do not implement until the plan is complete.
 ### 用质量门加速开发
 
 ```text
-Use @project-governor task-router.
+Use @project-governor gpt55-auto-orchestrator.
 
 Request:
 <你的功能、修复或重构需求>
 
-Choose the fastest safe workflow. Do not implement yet.
-Return the route, lane, quality level, change budget, and required downstream skills.
+Choose the fastest safe workflow, context budget, model plan, subagents, and quality gates.
 ```
 
-推荐流水线：
+自动编排会以 `task-router` 作为 route 真源，然后按需选择内部阶段。标准任务可能会用到：
 
-- `task-router` 选择 route、lane、quality level 和 change budget。
-- `route-guard` 验证 fast-lane 或 `micro_patch` 的实际 diff 是否越界。
-- `subagent-activation` 为非平凡任务选择项目级 subagent 和模型策略。
 - `context-pack-builder` 建上下文包。
 - `pattern-reuse-engine` 固定必须复用的模式和禁止重复项。
 - `test-first-synthesizer` 先规划行为、边界、错误、回归和集成/契约覆盖。
 - `parallel-feature-builder` 先并行只读分析，再用一个有边界的实现者落地。
 - `engineering-standards-governor` 检查文件规模、函数复杂度、mock 泄漏和测试断言质量。
+- `route-guard` 验证 fast-lane 或 `micro_patch` 的实际 diff 是否越界。
 - `quality-gate` 作为最终响应或 PR 前的硬检查。
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
+
+明确的本地样式、文案、间距或 typo 修改可以走 `micro_patch` 或 `docs_only`，跳过重型 workflow 和 subagent，直接走轻量质量路径。
+
+只有在需要单独查看 route、lane、quality level、change budget 或 route guard 要求时，才直接运行 `task-router`。
 
 ### 检查工程规范
 
@@ -284,12 +278,12 @@ python3 skills/engineering-standards-governor/scripts/check_engineering_standard
 python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
 ```
 
-### 使用 Harness v6.2.0
+### 使用 Harness v6.2.1
 
-Harness v6.2.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.2.1 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.2.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.1 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -387,13 +381,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.1
 ```
 
 从项目外发现已治理仓库：
@@ -493,7 +487,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.0
+python3 tools/install_or_update_user_plugin.py --ref v6.2.1
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

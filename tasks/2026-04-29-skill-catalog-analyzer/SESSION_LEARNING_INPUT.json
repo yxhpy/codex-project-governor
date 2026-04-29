@@ -1,0 +1,13 @@
+{
+  "task_id": "2026-04-29-skill-catalog-analyzer",
+  "source": "skill catalog analyzer implementation",
+  "items": [
+    {
+      "type": "command_failure",
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "error": "Function complexity blockers in tools/analyze_skill_catalog.py: find_issues complexity 18 and analyze complexity 20 exceeded threshold 15.",
+      "lesson": "When adding deterministic maintenance helpers, split catalog loading, issue checks, candidate generation, and summary assembly before running engineering standards.",
+      "evidence": "tasks/2026-04-29-skill-catalog-analyzer/ENGINEERING_STANDARDS_REPORT.md"
+    }
+  ]
+}

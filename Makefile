@@ -10,6 +10,7 @@ test:
 	python3 tests/test_claude_code_compat.py
 	python3 tests/test_design_md_governor.py
 	python3 tests/test_design_md_aesthetic_governor.py
+	python3 tests/test_skill_catalog_analyzer.py
 	python3 tests/test_gpt55_auto_orchestration.py
 	python3 tests/test_harness_v6.py
 	python3 tests/test_session_learning.py

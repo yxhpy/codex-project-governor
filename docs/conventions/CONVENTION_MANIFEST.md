@@ -6,6 +6,7 @@
 - Architecture: `docs/architecture/ARCHITECTURE.md`
 - API contracts: `docs/architecture/API_CONTRACTS.md`
 - Claude Code compatibility: `docs/compat/CLAUDE_CODE.md`
+- Skill audience catalog: `skills/CATALOG.json`
 - Code style: `docs/conventions/CODE_STYLE.md`
 - UI style: `docs/conventions/UI_STYLE.md`
 - Component registry: `docs/conventions/COMPONENT_REGISTRY.md`
@@ -30,6 +31,7 @@
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - User plugin install/update helper: `tools/install_or_update_user_plugin.py`
+- Skill catalog analyzer: `tools/analyze_skill_catalog.py`
 - Session learning recorder: `skills/memory-compact/scripts/record_session_learning.py`
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
@@ -51,6 +53,9 @@ If implementation conflicts with these files, create or update a decision record
 - Public plugin metadata starts in `.codex-plugin/plugin.json`.
 - Claude Code plugin metadata starts in `.claude-plugin/plugin.json`; Claude-specific commands, agents, skills, and hooks live under `claude/`.
 - Skill workflows are documented in `skills/<skill>/SKILL.md`.
+- Skill audience and documentation grouping metadata is documented in `skills/CATALOG.json`.
+- README skill grouping must follow `skills/CATALOG.json` visibility and is validated by `tools/analyze_skill_catalog.py`.
+- Skill catalog health, resolved consolidation groups, and remaining consolidation candidates are inspected by `tools/analyze_skill_catalog.py`.
 - Deterministic script helpers are CLI modules under `tools/` and `skills/*/scripts/`.
 - Governance files copied into downstream repositories come from `templates/`.
 - Optional plugin-owned design-system support files live under `managed-assets/` and are not copied into downstream repositories by default.

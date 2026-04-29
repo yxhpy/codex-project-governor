@@ -33,6 +33,13 @@ DOCS_TERMS = {"docs", "documentation", "readme", "guide", "manual", "文档", "�
 BUG_TERMS = {"bug", "fix", "broken", "error", "crash", "regression", "修复", "错误", "失败", "崩溃"}
 MICRO_TERMS = {"style", "css", "class", "margin", "padding", "spacing", "color", "font", "label", "copy", "typo", "text", "文案", "错别字", "颜色", "标题", "间距"}
 GLOBAL_SHARED_TERMS = {"shared", "global", "common", "design token", "theme", "tokens", "components/ui", "design-system", "全局", "共享", "通用", "设计 token"}
+DOC_TARGET_RE = re.compile(r"\b(readme|changelog|license|contributing|agents\.md|claude\.md)\b", re.IGNORECASE)
+DOCS_ONLY_BLOCKING_SIGNALS = {"risk_domain", "refactor_signal", "upgrade_signal", "research_signal", "clean_signal", "ui_signal", "test_signal"}
+PRODUCTION_CHANGE_RE = re.compile(
+    r"\b(add|create|implement|build|change|update)\s+(?:an?\s+|the\s+)?"
+    r"(?!tests?\b)(helper|utility|service|component|endpoint|feature|parser|export|api|hook|schema|workflow|command|script)\b",
+    re.IGNORECASE,
+)
 DOC_PACKS = {
     "micro_patch": {
         "primary_roles": ["agent_instructions"],
@@ -183,6 +190,8 @@ def has_explicit_target(text: str, hints: dict[str, Any]) -> bool:
         return True
     if re.search(r"[\w./-]+\.(tsx|ts|jsx|js|py|css|scss|md|vue|svelte|html|go|rs|json|yaml|yml|toml)", text, flags=re.IGNORECASE):
         return True
+    if DOC_TARGET_RE.search(text):
+        return True
     return bool(re.search(r"(只改|only change|only modify|specified page|指定页面|目标文件|这个文件|this file)", text, flags=re.IGNORECASE))
 
 
@@ -209,6 +218,18 @@ def risk_signals(text: str) -> list[str]:
         if has_any(active, terms):
             signals.append(label)
     return signals
+
+
+def is_docs_only_request(signals: list[str], risk_score: float) -> bool:
+    return "docs_signal" in signals and risk_score < 0.35 and not (set(signals) & DOCS_ONLY_BLOCKING_SIGNALS)
+
+
+def is_test_only_request(signals: list[str], text: str, risk_score: float) -> bool:
+    if "test_signal" not in signals or risk_score >= 0.35:
+        return False
+    if any(signal in signals for signal in ["upgrade_signal", "refactor_signal", "ui_signal", "research_signal", "clean_signal", "risk_domain"]):
+        return False
+    return not bool(PRODUCTION_CHANGE_RE.search(text))
 
 
 def compute_risk_score(text: str, hints: dict[str, Any], negative_constraints: list[str]) -> float:
@@ -434,9 +455,9 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         route, lane, quality, intent = "research", "research_lane", "standard", "research"
     elif "upgrade_signal" in signals:
         route, lane, quality, intent = "dependency_upgrade", "risk_lane" if risk_score >= 0.45 else "standard_lane", "strict" if risk_score >= 0.45 else "standard", "upgrade"
-    elif "docs_signal" in signals and risk_score < 0.35 and not set(signals) - {"docs_signal"}:
+    elif is_docs_only_request(signals, risk_score):
         route, lane, quality, intent = "docs_only", "fast_lane", "light", "docs"
-    elif "test_signal" in signals and risk_score < 0.35 and not any(s in signals for s in ["upgrade_signal", "refactor_signal", "ui_signal"]):
+    elif is_test_only_request(signals, text, risk_score):
         route, lane, quality, intent = "test_only", "fast_lane", "light", "test"
     elif explicit_target and micro_intent and risk_score < 0.35 and not shared_or_global and expected_modified <= 1 and expected_added == 0 and confidence >= 0.82:
         route, lane, quality, intent = "micro_patch", "fast_lane", "light", "micro_patch"
@@ -444,7 +465,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         route, lane, quality, intent = "refactor", "refactor_lane", "strict", "refactor"
     elif risk_score >= 0.45:
         route, lane, quality, intent = "risky_feature", "risk_lane", "strict", "feature_or_fix"
-    elif micro_intent or shared_or_global:
+    elif "ui_signal" in signals or shared_or_global:
         route, lane, quality, intent = "ui_change", "standard_lane", "standard", "ui_change"
     else:
         route, lane, quality, intent = "standard_feature", "standard_lane", "standard", "feature_or_fix"

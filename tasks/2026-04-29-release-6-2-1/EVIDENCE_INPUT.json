@@ -1,0 +1,101 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion": "Project Governor current plugin version is prepared as 6.2.1 across Codex, Claude, marketplace, README, and tests.",
+      "proof": ".codex-plugin/plugin.json, .claude-plugin/plugin.json, examples/claude-marketplace/.claude-plugin/marketplace.json, README.md, README.zh-CN.md, tests/selftest.py, tests/test_harness_v6.py, and tests/test_claude_code_compat.py now assert or document 6.2.1."
+    },
+    {
+      "criterion": "The release documents the skill-entrypoint consolidation and does not require initialized-project migration.",
+      "proof": "releases/6.2.1.md and releases/FEATURE_MATRIX.json list skill catalog entrypoints, docs-only routing, compact default prompts, and analyzer split quality with requires_project_migration=false."
+    },
+    {
+      "criterion": "Upgrade policy was followed before changing plugin version metadata.",
+      "proof": "tasks/2026-04-29-release-6-2-1/UPGRADE_ADVISORY_INPUT.json was analyzed by upgrade-advisor and docs/upgrades/UPGRADE_REGISTER.md records the applied 6.2.0 to 6.2.1 decision."
+    },
+    {
+      "criterion": "No skills were deleted, renamed, or deprecated during release prep.",
+      "proof": "The skill catalog analyzer reports 35 skills, 35 catalog entries, zero issues, zero open consolidation candidates, and eight resolved consolidations."
+    },
+    {
+      "criterion": "Claude Code plugin metadata remains valid after the version bump.",
+      "proof": "claude plugin validate passed for both the plugin root and examples/claude-marketplace."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python3 -m json.tool .codex-plugin/plugin.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool .claude-plugin/plugin.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool examples/claude-marketplace/.claude-plugin/marketplace.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m json.tool releases/FEATURE_MATRIX.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_harness_v6.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_claude_code_compat.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_plugin_upgrade_migrator.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_skill_catalog_analyzer.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests claude",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "claude plugin validate . && claude plugin validate examples/claude-marketplace",
+      "status": "passed"
+    },
+    {
+      "command": "make test",
+      "status": "passed"
+    }
+  ],
+  "reviews": {
+    "spec_compliance": "passed",
+    "code_quality": "passed"
+  },
+  "docs_refresh": {
+    "needed": true,
+    "reason": "Release prep changes public plugin metadata, install refs, release feature matrix, and upgrade register.",
+    "files_updated": [
+      "README.md",
+      "README.zh-CN.md",
+      "releases/6.2.1.md",
+      "releases/FEATURE_MATRIX.json",
+      "docs/upgrades/UPGRADE_REGISTER.md"
+    ]
+  }
+}

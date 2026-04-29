@@ -1,0 +1,13 @@
+{
+  "task_id": "2026-04-29-release-6-2-1",
+  "source": "release 6.2.1 session",
+  "items": [
+    {
+      "type": "command_failure",
+      "command": "apply_patch docs/upgrades/UPGRADE_REGISTER.md",
+      "error": "Patch failed because the table separator line had fewer cells than assumed.",
+      "lesson": "Inspect the exact Markdown table header and separator before patching long table rows in UPGRADE_REGISTER.md.",
+      "evidence": "The first upgrade-register patch failed, then succeeded after checking sed -n '1,12p' docs/upgrades/UPGRADE_REGISTER.md."
+    }
+  ]
+}

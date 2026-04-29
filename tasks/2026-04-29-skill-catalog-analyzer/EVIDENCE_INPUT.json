@@ -1,0 +1,80 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion": "Skill catalog optimization has a deterministic analyzer rather than relying on one-off manual review.",
+      "proof": "tools/analyze_skill_catalog.py reports catalog health, visibility counts, category counts, issues, and advisory consolidation candidates."
+    },
+    {
+      "criterion": "Analyzer behavior is covered for healthy, text-output, missing-entry, and missing-catalog cases.",
+      "proof": "tests/test_skill_catalog_analyzer.py passed and is included in Makefile test target."
+    },
+    {
+      "criterion": "The analyzer contract and operator entrypoint are documented.",
+      "proof": "README.md, README.zh-CN.md, docs/architecture/API_CONTRACTS.md, and docs/conventions/CONVENTION_MANIFEST.md were updated."
+    },
+    {
+      "criterion": "New helper follows project engineering standards and remains advisory-only.",
+      "proof": "tasks/2026-04-29-skill-catalog-analyzer/ENGINEERING_STANDARDS_REPORT.md records a passing engineering standards check."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tools/analyze_skill_catalog.py --project . --format text",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_skill_catalog_analyzer.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-skill-catalog-analyzer/ROUTE_GUARD_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-skill-catalog-analyzer/QUALITY_GATE_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/memory-compact/scripts/record_session_learning.py --project . --input tasks/2026-04-29-skill-catalog-analyzer/SESSION_LEARNING_INPUT.json --apply",
+      "status": "passed"
+    },
+    {
+      "command": "make test",
+      "status": "passed"
+    }
+  ],
+  "reviews": {
+    "spec_compliance": "passed",
+    "code_quality": "passed"
+  },
+  "docs_refresh": {
+    "needed": true,
+    "reason": "Added a new repository maintenance CLI contract and README usage entry.",
+    "files_updated": [
+      "README.md",
+      "README.zh-CN.md",
+      "docs/architecture/API_CONTRACTS.md",
+      "docs/conventions/CONVENTION_MANIFEST.md"
+    ]
+  }
+}

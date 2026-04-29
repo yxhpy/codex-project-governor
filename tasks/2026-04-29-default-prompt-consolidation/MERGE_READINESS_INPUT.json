@@ -1,0 +1,24 @@
+{
+  "quality_gate": {
+    "status": "pass",
+    "quality_level": "standard",
+    "evidence_required": true
+  },
+  "require_evidence": true,
+  "evidence_manifest": ".project-governor/evidence/2026-04-29-default-prompt-consolidation/EVIDENCE.json",
+  "required_docs_missing": false,
+  "approval_required": false,
+  "open_repair_items": false,
+  "commands_verified": [
+    "python3 -m json.tool .codex-plugin/plugin.json",
+    "python3 tests/selftest.py",
+    "python3 tools/analyze_skill_catalog.py --project . --format json --fail-on-issues",
+    "python3 tests/test_skill_catalog_analyzer.py",
+    "python3 -m compileall tools skills tests",
+    "git diff --check",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main",
+    "make test",
+    "python3 skills/route-guard/scripts/check_route_guard.py tasks/2026-04-29-default-prompt-consolidation/ROUTE_GUARD_INPUT.json",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-29-default-prompt-consolidation/QUALITY_GATE_INPUT.json"
+  ]
+}

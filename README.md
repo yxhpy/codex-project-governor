@@ -2,7 +2,7 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex and Claude Code plugin for making projects self-governing across agent sessions. Harness v6.2.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md/CLAUDE.md rule-template drift detection, clean user-level Git install/update for local marketplaces, Claude Code commands/agents/hooks, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex and Claude Code plugin for making projects self-governing across agent sessions. Harness v6.2.1 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md/CLAUDE.md rule-template drift detection, clean user-level Git install/update for local marketplaces, Claude Code commands/agents/hooks, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex or Claude Code acts as an executor, reviewer, and compactor.
 
@@ -22,43 +22,36 @@ The core idea is simple: the project should carry durable memory and rules in ve
 
 ## Skills
 
-| Skill | Purpose |
+Most users should start with `gpt55-auto-orchestrator`. The other skills are still available, but many are workflow stages that the orchestrator, router, or quality gate invokes automatically. The machine-readable grouping lives in `skills/CATALOG.json`.
+
+The Codex plugin default prompts are intentionally compact scenario prompts, not a full list of skills. They should stay aligned with the recommended entry points below and avoid exposing internal workflow stages as default UI choices.
+
+To audit catalog health, resolved entrypoint consolidations, and remaining advisory consolidation candidates, run:
+
+```bash
+python3 tools/analyze_skill_catalog.py --project . --format text
+```
+
+### Recommended entry points
+
+| Skill | Use when |
 |---|---|
-| `init-empty-project` | Initialize a new repository with governance docs before application code exists. |
-| `init-existing-project` | Initialize an existing repository by mining current conventions without modifying application code. |
-| `convention-miner` | Read-only convention mining for stack, structure, style, APIs, tests, and components. |
-| `iteration-planner` | Plan a feature/fix/refactor as an iteration rather than a rewrite. |
-| `implementation-guard` | Detect rewrite risk, unapproved dependencies, unexplained new files, and public contract drift. |
-| `style-drift-check` | Detect component, design-token, naming, and visual style drift. |
-| `architecture-drift-check` | Detect module boundary, import direction, and contract drift. |
-| `pr-governance-review` | Run subagent-based PR governance review. |
-| `memory-compact` | Compact recent activity into durable project memory. |
-| `release-retro` | Convert release learning into retrospectives, memory, and decision records. |
-| `upgrade-advisor` | Show version distance, requirement relevance, risk, and user-selectable upgrade choices before changing versions. |
-| `plugin-upgrade-migrator` | Show what changed between Project Governor versions, plan safe project-file migrations, and avoid overwriting initialized project customizations. |
-| `project-hygiene-doctor` | Detect plugin-global assets copied into target projects and quarantine safe generated `.codex` runtime files. |
-| `clean-reinstall-manager` | Generate user-level install/reinstall instructions, discover governed projects, and refresh project-owned governance without copying plugin-global assets. |
-| `design-md-governor` | Adopt Google Labs Code DESIGN.md as an opt-in design-system source of truth; lint, summarize, diff, and plan migrations without auto-creating project design files. |
-| `design-md-aesthetic-governor` | Gate UI/frontend coding through Gemini/Stitch configuration, DESIGN.md read proof, aesthetic reference selection, token discipline, and drift verification. |
-| `version-researcher` | Research candidate release versions, skipped versions, evidence quality, relevance, and risk before upgrade advice. |
-| `research-radar` | Research candidate capabilities, evidence quality, risk, and project fit before implementation. |
-| `task-router` | Classify a user request into the fastest safe Project Governor workflow, lane, quality level, change budget, and required downstream skills. |
-| `route-guard` | Verify that the actual diff still fits the route selected by task-router, especially micro-patch and fast-lane changes. |
-| `subagent-activation` | Select project-scoped subagents and model strategy from route, workflow, risk, quality level, and confidence so users do not manually list subagents. |
-| `gpt55-auto-orchestrator` | Infer the workflow, model plan, context budget, subagents, and quality gate automatically for GPT-5.5-era Codex work. |
-| `context-indexer` | Build `CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, section-level retrieval, and governed memory/history search so Codex can avoid reading all initialization docs in every session. |
-| `context-pack-builder` | Build a minimal task-specific context pack with section line ranges, token budgets, and compression policy so Codex and subagents can implement faster without repeatedly rediscovering the repository. |
-| `session-lifecycle` | Start and end Harness v6 task sessions while maintaining project-local state under `.project-governor/state`. |
-| `evidence-manifest` | Create or validate task evidence manifests that map acceptance criteria, tests, reviews, and docs refresh decisions. |
-| `harness-doctor` | Diagnose Harness v6 install shape, context freshness, state files, required skills, and execution readiness. |
-| `pattern-reuse-engine` | Find existing components, services, hooks, schemas, tests, and style patterns that must be reused before creating new implementation patterns. |
-| `parallel-feature-builder` | Implement a feature through a quality-gated subagent pipeline that uses parallel read-only analysis, one bounded implementation writer, test writing, review, and repair. |
-| `test-first-synthesizer` | Produce a targeted test plan or test skeletons before implementation, using existing project test style and covering behavior, regression risk, boundaries, and errors. |
-| `engineering-standards-governor` | Check source size, function complexity, production mock leakage, test assertions, boundary-test planning, and reuse-first compliance before quality-gate completion. |
-| `quality-gate` | Run tiered quality checks for speed-safe development, including iteration compliance, style drift, architecture drift, change budget, tests, docs, and memory update requirements. |
-| `repair-loop` | Repair failed quality checks through a bounded loop without deleting tests, weakening assertions, skipping gates, or expanding implementation scope. |
-| `merge-readiness` | Decide whether a task or branch is PR-ready by checking blockers, quality gate status, docs, memory, tests, change budget, and unresolved approvals. |
-| `coding-velocity-report` | Produce a velocity report for a task, measuring context time, first patch time, repair rounds, quality gate pass rate, patch size, reuse ratio, drift findings, and manual approvals. |
+| `gpt55-auto-orchestrator` | You want Project Governor to choose the route, context budget, subagents, model plan, and quality gates automatically. |
+| Initialization: `init-empty-project` / `init-existing-project` | You need governance files for an empty or existing repository without touching application code. |
+| Maintenance: `clean-reinstall-manager` / `plugin-upgrade-migrator` | You need user-level install/update/reinstall, clean project refresh, or safe migration after a plugin update. |
+| Evidence and upgrades: `research-radar` / `upgrade-advisor` | You need evidence, risk, or upgrade choices before adopting capabilities or changing dependencies, tools, SDKs, runtimes, or governance assets. |
+| `design-md-governor` | You need to adopt, lint, summarize, or diff a project-owned `DESIGN.md`. |
+| `quality-gate` | You need to run or inspect the final task completion gate. |
+| `memory-compact` | You need to compact recent activity into durable memory, risks, questions, or command learnings. |
+| `pr-governance-review` | You need a multi-dimension governance review before or during PR review. |
+
+### Internal workflow stages
+
+These skills normally run as part of a selected workflow rather than as user-facing commands: `task-router`, `subagent-activation`, `context-indexer`, `context-pack-builder`, `iteration-planner`, `pattern-reuse-engine`, `test-first-synthesizer`, `parallel-feature-builder`, `implementation-guard`, `route-guard`, `engineering-standards-governor`, `repair-loop`, `merge-readiness`, `session-lifecycle`, and `evidence-manifest`.
+
+### Advanced and diagnostic tools
+
+Use these directly only when you need a specific audit, diagnostic, UI gate, release research, or retrospective artifact: `convention-miner`, `design-md-aesthetic-governor`, `style-drift-check`, `architecture-drift-check`, `project-hygiene-doctor`, `harness-doctor`, `version-researcher`, `release-retro`, and `coding-velocity-report`.
 
 ## Install locally for yourself
 
@@ -67,7 +60,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -104,13 +97,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
-After v6.2.0 is installed, the same helper is available from the plugin checkout:
+After v6.2.1 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -118,7 +111,7 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.2.0
+git -C "$PLUGIN_DIR" checkout --detach v6.2.1
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -171,12 +164,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.2.0
+### Use Harness v6.2.1
 
-Harness v6.2.0 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.2.1 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.2.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.1 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -241,20 +234,19 @@ Do not implement until the plan is complete.
 ### Accelerate a feature with quality gates
 
 ```text
-Use @project-governor task-router.
+Use @project-governor gpt55-auto-orchestrator.
 
 Request:
 <your feature, bug fix, or refactor>
 
-Choose the fastest safe workflow. Do not implement yet.
-Return the route, lane, quality level, change budget, and required downstream skills.
+Choose the fastest safe workflow, context budget, model plan, subagents, and quality gates.
 ```
 
-Then build context and reuse constraints with `context-pack-builder` and `pattern-reuse-engine`, implement with `parallel-feature-builder`, run `engineering-standards-governor` and `quality-gate`, use `repair-loop` only if the gate fails, and finish with `merge-readiness`.
+The orchestrator uses `task-router` as the route source of truth, then selects the needed internal stages. Standard work may use `context-pack-builder`, `pattern-reuse-engine`, `test-first-synthesizer`, `parallel-feature-builder`, `engineering-standards-governor`, `quality-gate`, `repair-loop`, and `merge-readiness`.
 
-For explicit local style, copy, spacing, or typo edits, `task-router` can choose `micro_patch`. That skips heavy workflows but still emits route guard requirements; run `route-guard` and a light quality gate before finalizing.
+For explicit local style, copy, spacing, or typo edits, the router can choose `micro_patch` or `docs_only`. These routes skip heavy workflows and subagents, then run the light quality path.
 
-For standard, risky, refactor, migration, upgrade, PR review, initialization, and broad research workflows, run `subagent-activation` so Project Governor selects project-scoped agents and model routing automatically.
+Use `task-router` directly only when you need to inspect route classification, lane, quality level, change budget, or route guard requirements without starting the full orchestrated workflow.
 
 ### Check engineering standards
 
@@ -374,13 +366,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.1 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.1
 ```
 
 Discover governed projects from outside a project:
@@ -483,7 +475,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.0
+python3 tools/install_or_update_user_plugin.py --ref v6.2.1
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

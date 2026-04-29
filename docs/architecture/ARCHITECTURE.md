@@ -22,6 +22,7 @@ This repository is a Codex and Claude Code plugin plus governance-template bundl
    - `.codex/rules/project.rules`
    - `.codex/hooks/**`
 4. Skill workflows
+   - `skills/CATALOG.json`
    - `skills/<skill>/SKILL.md`
    - Optional deterministic scripts under `skills/<skill>/scripts/`
 5. Template payload

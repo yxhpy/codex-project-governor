@@ -1,0 +1,17 @@
+{
+  "route": "standard_feature",
+  "repo": ".",
+  "collect_diff": true,
+  "route_guard_requirements": {
+    "route": "standard_feature",
+    "max_modified_files": 25,
+    "max_added_files": 15,
+    "allow_dependencies": false,
+    "allow_api_changes": true,
+    "allow_schema_changes": false,
+    "allow_new_components": false,
+    "allow_global_style_changes": false,
+    "allow_shared_component_changes": false,
+    "allow_rewrite": true
+  }
+}
