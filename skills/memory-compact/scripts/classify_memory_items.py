@@ -34,6 +34,8 @@ def classify(text: str) -> str:
     lower = text.lower()
     if SECRET.search(text):
         return "secret_or_sensitive"
+    if any(term in lower for term in ["command failed", "exit code", "returncode", "approval required", "permission denied", "命令失败", "执行错误"]):
+        return "command_learning"
     if lower.startswith("decision:") or " adr" in lower or "pdr" in lower or "we decided" in lower:
         return "decision"
     if "repeated mistake" in lower or "agent keeps" in lower or "codex keeps" in lower:

@@ -11,6 +11,7 @@ test:
 	python3 tests/test_design_md_aesthetic_governor.py
 	python3 tests/test_gpt55_auto_orchestration.py
 	python3 tests/test_harness_v6.py
+	python3 tests/test_session_learning.py
 
 init-example:
 	python3 tools/init_project.py --mode existing --target ./tmp-example

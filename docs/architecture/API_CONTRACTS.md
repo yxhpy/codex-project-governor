@@ -786,6 +786,40 @@ Output:
 
 Default behavior remains general context retrieval. With `--memory-search`, the script searches governed project memory/history surfaces such as `docs/memory/**`, `docs/decisions/**`, `tasks/**`, `.project-governor/state/**`, release notes, upgrade docs, research docs, quality docs, conventions, design docs, and agent instructions. It does not scan raw chat transcripts. With `--auto-build`, a missing context index is built before querying. With `--format text`, the same result is rendered as a concise human-readable list instead of JSON.
 
+### `skills/memory-compact/scripts/record_session_learning.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--input <json-path>`; otherwise reads JSON from stdin
+- optional `--task-id <id>`
+- optional `--source <text>`
+- optional `--apply`
+
+Input JSON may include `items`, `events`, or `learnings`. Each item can include `type`, `command`, `error`, `lesson`, `correct_behavior`, `repeat_count`, `memory`, `path`, `reason`, and `evidence`.
+
+Behavior:
+
+- Defaults to dry-run classification and writes nothing unless `--apply` is supplied.
+- Classifies one-off failed commands into `.project-governor/state/COMMAND_LEARNINGS.json`.
+- Promotes repeated command/session mistakes to `docs/memory/REPEATED_AGENT_MISTAKES.md` and records them in the command-learning ledger.
+- Queues stale, superseded, or bloated memory candidates in `.project-governor/state/MEMORY_HYGIENE.json`.
+- Appends unresolved questions to `docs/memory/OPEN_QUESTIONS.md` and risks to `docs/memory/RISK_REGISTER.md`.
+- Redacts or skips secret-like candidates and does not store raw secret content.
+
+Output:
+
+- `status`
+- `schema`
+- `project`
+- `task_id`
+- `results[]`
+- `applied[]`
+- `skipped[]`
+- `memory_search_followup`
+
+The state ledgers are included in context-index memory search because `.project-governor/state/**` has `memory` and `task_history` roles.
+
 ### `skills/context-pack-builder/scripts/build_context_pack.py`
 
 Input:
@@ -905,7 +939,7 @@ Output:
 
 Side effects:
 
-- Ensures `.project-governor/state/FEATURES.json`, `AGENTS.json`, `ISSUES.json`, `QUALITY_SCORE.json`, and `PROGRESS.md`.
+- Ensures `.project-governor/state/FEATURES.json`, `AGENTS.json`, `ISSUES.json`, `COMMAND_LEARNINGS.json`, `MEMORY_HYGIENE.json`, `QUALITY_SCORE.json`, and `PROGRESS.md`.
 - Writes `.project-governor/state/SESSION.json`.
 - Appends session start/end events to `.project-governor/state/PROGRESS.md`.
 

@@ -29,6 +29,7 @@ Classify every candidate as:
 
 - `durable_fact`
 - `decision`
+- `command_learning`
 - `open_question`
 - `repeated_mistake`
 - `risk`
@@ -46,6 +47,9 @@ Classify every candidate as:
 - Every new memory item must include evidence.
 - Prefer small patches.
 - If confidence is low, write to `OPEN_QUESTIONS.md`, not `PROJECT_MEMORY.md`.
+- Put one-off failed commands and error signatures in `.project-governor/state/COMMAND_LEARNINGS.json` so the next session can retrieve them with memory search.
+- Promote repeated command/session mistakes to `docs/memory/REPEATED_AGENT_MISTAKES.md`; only then consider an `AGENTS.md` rule.
+- Put stale or superseded memory candidates in `.project-governor/state/MEMORY_HYGIENE.json` until a maintainer marks the source memory as `superseded` or prunes it.
 - If a repeated mistake should become a rule, update `AGENTS.md` only with concise behavior guidance.
 - Do not modify application code.
 
@@ -55,6 +59,7 @@ Use:
 
 ```bash
 python3 skills/memory-compact/scripts/classify_memory_items.py <json-or-text-input>
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input <json-input> --apply
 ```
 
 ## Output

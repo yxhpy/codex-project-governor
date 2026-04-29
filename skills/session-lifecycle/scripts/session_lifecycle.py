@@ -53,6 +53,8 @@ def ensure_state(project: Path) -> None:
         "FEATURES.json": {"schema": "project-governor-features-v1", "features": []},
         "AGENTS.json": {"schema": "project-governor-agents-v1", "agents": []},
         "ISSUES.json": {"schema": "project-governor-issues-v1", "issues": []},
+        "COMMAND_LEARNINGS.json": {"schema": "project-governor-command-learnings-v1", "learnings": []},
+        "MEMORY_HYGIENE.json": {"schema": "project-governor-memory-hygiene-v1", "items": []},
         "QUALITY_SCORE.json": {"schema": "project-governor-quality-score-v1", "score": None, "last_updated": None},
     }
     for name, data in defaults.items():

@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.4",
+  "current_latest": "6.0.5",
   "versions": [
     {
       "version": "0.4.1",
@@ -308,6 +308,28 @@
           "summary": "Adds a dependency-free helper that installs or updates the user-level Project Governor Git checkout and writes the local marketplace entry.",
           "user_value": "Users with source: local marketplace installs can update the plugin checkout with one command instead of manually editing marketplace files or recloning.",
           "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.0.5",
+      "title": "Session Learning Memory Loop",
+      "features": [
+        {
+          "id": "session_learning_ledgers",
+          "name": "Session learning ledgers",
+          "summary": "Adds command-learning and memory-hygiene state files plus a deterministic recorder for failed commands, repeated mistakes, and stale memory candidates.",
+          "user_value": "New sessions can retrieve prior command failures and memory cleanup notes without the user having to ask Codex to remember them.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_0_5_session_learning_state"
+        },
+        {
+          "id": "proactive_memory_search_policy",
+          "name": "Proactive memory-search policy",
+          "summary": "Adds runtime-plan and AGENTS.md rules requiring memory search at non-trivial session startup and learning capture before final response.",
+          "user_value": "Project Governor actively uses governed memory instead of letting repeated mistakes depend on user reminders.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
         }
       ]
     }

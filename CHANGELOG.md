@@ -1,5 +1,24 @@
 # Changelog
 
+## 6.0.5 - Session Learning Memory Loop
+
+### Added
+
+- Added `.project-governor/state/COMMAND_LEARNINGS.json` for one-off failed commands, error signatures, and corrective lessons that should be retrievable in future sessions.
+- Added `.project-governor/state/MEMORY_HYGIENE.json` for stale, superseded, or bloated memory candidates that need review before pruning or marking superseded.
+- Added `skills/memory-compact/scripts/record_session_learning.py` to classify and write session learnings across command-learning, repeated-mistake, stale-memory, open-question, and risk layers.
+- Added runtime-plan policy requiring non-trivial sessions to run memory search at startup and record session learnings before final response when commands fail or memory goes stale.
+
+### Changed
+
+- Updated `AGENTS.md`, `templates/AGENTS.md`, session lifecycle, context-index session briefs, and user docs so memory search and learning capture are proactive workflow steps instead of optional reminders.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Existing memory-search behavior remains read-only unless `record_session_learning.py --apply` is used.
+- Existing initialized projects can receive the new state files through `plugin-upgrade-migrator`; user-modified `AGENTS.md` files remain manual review or three-way merge items.
+
 ## 6.0.4 - Local Marketplace Git Update Path
 
 ### Added

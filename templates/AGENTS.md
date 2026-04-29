@@ -104,12 +104,15 @@ Update docs when changing:
 - Unresolved questions go to `docs/memory/OPEN_QUESTIONS.md`.
 - Repeated agent mistakes go to `docs/memory/REPEATED_AGENT_MISTAKES.md`.
 - Risks go to `docs/memory/RISK_REGISTER.md`.
+- One-off failed commands, error signatures, and corrective lessons go to `.project-governor/state/COMMAND_LEARNINGS.json` so the next session can retrieve them with `context-indexer --memory-search`.
+- Stale, superseded, or bloated memory candidates go to `.project-governor/state/MEMORY_HYGIENE.json` until a maintainer marks the source memory as superseded or prunes it.
 - Architectural decisions go to `docs/decisions/ADR-*.md`.
 - Product decisions go to `docs/decisions/PDR-*.md`.
 
 Every durable memory update must include date, status, source, and evidence.
 Do not write speculation as fact.
 If confidence is low, record an open question instead.
+For non-trivial sessions, run memory search at startup for related prior failures and run `record_session_learning.py` before final response when a command failed, an assumption was corrected, or memory looked stale.
 
 ## Subagent usage
 

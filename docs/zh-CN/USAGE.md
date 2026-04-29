@@ -140,11 +140,12 @@ python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
-## 5. 使用 Harness v6.0.4、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0.5、GPT-5.5 自动编排和上下文索引
 
-v6.0.4 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆，插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+v6.0.5 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -163,6 +164,20 @@ python3 skills/context-indexer/scripts/query_context_index.py --project . --requ
 ```
 
 `--memory-search` 会把检索范围收窄到受治理的历史资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`。需要给人读的结果时可加 `--format text`。
+
+非平凡 session 开始时，应先查相关失败命令、重复错误和过期记忆；session 结束前，如果出现命令失败、假设被纠正或发现记忆过期，应记录 session learning：
+
+```bash
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "<任务请求> command failures repeated mistakes stale memory" --memory-search --auto-build --format text
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json --apply
+```
+
+记录规则：
+
+- 一次性失败命令进入 `.project-governor/state/COMMAND_LEARNINGS.json`。
+- 重复错误进入 `docs/memory/REPEATED_AGENT_MISTAKES.md`，同时保留命令学习 ledger。
+- 失效、被取代或导致膨胀的记忆进入 `.project-governor/state/MEMORY_HYGIENE.json`，等待标记 superseded 或清理。
+- 这些 state 文件会被 `--memory-search` 检索到，所以新 session 不需要用户再次提醒“记一下”。
 
 Harness v6 的项目状态和证据入口：
 
@@ -305,7 +320,7 @@ python3 tools/init_project.py --mode existing --profile legacy-full --target /pa
 
 ## 11. 干净重装或刷新治理项目
 
-v6.0.4 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+v6.0.5 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
 ```text
 Use @project-governor clean-reinstall-manager.
@@ -316,8 +331,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
+python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor

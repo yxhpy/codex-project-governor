@@ -63,6 +63,8 @@ Core files:
 - `FEATURES.json`: feature registry placeholder.
 - `AGENTS.json`: agent registry placeholder.
 - `ISSUES.json`: issue registry placeholder.
+- `COMMAND_LEARNINGS.json`: command failure/error-signature ledger for next-session memory search.
+- `MEMORY_HYGIENE.json`: stale, superseded, or bloated memory review queue.
 - `QUALITY_SCORE.json`: quality score placeholder.
 - `PROGRESS.md`: append-only session progress log.
 
@@ -85,14 +87,22 @@ Primary fields include:
 
 Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, tokens, summary, sensitivity flag, and stale reason.
 
-### Memory Classification
+### Memory Classification And Session Learning
 
 `skills/memory-compact/scripts/classify_memory_items.py` returns an array of:
 
 - `text`
 - `classification`
 
-Known classifications include durable facts, decisions, open questions, repeated mistakes, risks, stale items, temporary notes, and sensitive items.
+Known classifications include durable facts, decisions, command learnings, open questions, repeated mistakes, risks, stale items, temporary notes, and sensitive items.
+
+`skills/memory-compact/scripts/record_session_learning.py` writes session learnings by layer:
+
+- one-off failed commands: `.project-governor/state/COMMAND_LEARNINGS.json`
+- repeated mistakes: `docs/memory/REPEATED_AGENT_MISTAKES.md` plus the command-learning ledger
+- stale memory candidates: `.project-governor/state/MEMORY_HYGIENE.json`
+- unresolved questions: `docs/memory/OPEN_QUESTIONS.md`
+- risks: `docs/memory/RISK_REGISTER.md`
 
 ## Template Memory Tables
 

@@ -186,6 +186,28 @@
           "reason": "Document full-service and basic-mode UI governance."
         }
       ]
+    },
+    {
+      "id": "migration_6_0_5_session_learning_state",
+      "from": "6.0.4",
+      "to": "6.0.5",
+      "title": "Session learning memory state",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/COMMAND_LEARNINGS.json",
+          "source": "templates/.project-governor/state/COMMAND_LEARNINGS.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add project-owned failed-command and corrective-lesson ledger for next-session memory search."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".project-governor/state/MEMORY_HYGIENE.json",
+          "source": "templates/.project-governor/state/MEMORY_HYGIENE.json",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add project-owned stale/superseded memory hygiene queue."
+        }
+      ]
     }
   ]
 }

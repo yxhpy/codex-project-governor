@@ -18,16 +18,16 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.0.4")
-        self.assertIn("Harness v6.0.4", manifest["description"])
+        self.assertEqual(manifest["version"], "6.0.5")
+        self.assertIn("Harness v6.0.5", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.0.4")
+        self.assertEqual(feature_matrix["current_latest"], "6.0.5")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.0.4", versions)
-        self.assertTrue((ROOT / "releases" / "6.0.4.md").exists())
+        self.assertIn("6.0.5", versions)
+        self.assertTrue((ROOT / "releases" / "6.0.5.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -100,6 +100,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".project-governor/state/FEATURES.json",
             ".project-governor/state/AGENTS.json",
             ".project-governor/state/ISSUES.json",
+            ".project-governor/state/COMMAND_LEARNINGS.json",
+            ".project-governor/state/MEMORY_HYGIENE.json",
             ".project-governor/state/PROGRESS.md",
             ".project-governor/state/SESSION.json",
             ".project-governor/state/QUALITY_SCORE.json",
@@ -170,7 +172,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.0.4", readme)
+        self.assertIn("6.0.5", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -191,6 +193,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("gpt55-auto-orchestrator", usage)
         self.assertIn("context-indexer", usage)
         self.assertIn("memory-compact", usage)
+        self.assertIn("record_session_learning", usage)
 
     def test_project_rules_use_valid_decisions(self) -> None:
         rules = (ROOT / "templates" / ".codex" / "rules" / "project.rules").read_text(encoding="utf-8")

@@ -2,7 +2,7 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.4 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.5 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
@@ -12,7 +12,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 - 34+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -63,7 +63,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -100,13 +100,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
-After v6.0.4 is installed, the same helper is available from the plugin checkout:
+After v6.0.5 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -114,7 +114,7 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.4
+git -C "$PLUGIN_DIR" checkout --detach v6.0.5
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -136,12 +136,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.0.4
+### Use Harness v6.0.5
 
-Harness v6.0.4 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.0.5 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.0.4 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.5 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -240,6 +240,17 @@ python3 skills/context-indexer/scripts/query_context_index.py --project . --requ
 
 Memory search mode reads governed project artifacts such as `docs/memory/`, `docs/decisions/`, `tasks/`, release notes, and `.project-governor/state/`. It does not scan raw chat transcripts.
 
+### Record session learnings
+
+For non-trivial sessions, query memory before repeating known command paths, and record failures before final response:
+
+```bash
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "<task request> command failures repeated mistakes stale memory" --memory-search --auto-build --format text
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json --apply
+```
+
+The learning recorder classifies one-off command failures into `.project-governor/state/COMMAND_LEARNINGS.json`, promotes repeated mistakes to `docs/memory/REPEATED_AGENT_MISTAKES.md`, and queues stale memory in `.project-governor/state/MEMORY_HYGIENE.json`. These state files are indexed by memory search, so new sessions can find the lesson without the user asking to remember it.
+
 ### Review a PR with subagents
 
 ```text
@@ -311,13 +322,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
 ```
 
 Discover governed projects from outside a project:
@@ -420,7 +431,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.4
+python3 tools/install_or_update_user_plugin.py --ref v6.0.5
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
@@ -442,6 +453,7 @@ python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-in
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-candidates.json
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
 ## Test
@@ -471,6 +483,7 @@ The tests validate:
 - route guard blocks scope creep from fast routes
 - subagent activation selects project-scoped agents and model routing
 - memory classifier separates durable facts, decisions, open questions, repeated mistakes, and sensitive items
+- session learning records command failures, repeated mistakes, and stale-memory candidates into retrievable memory layers
 
 ## Governance model
 

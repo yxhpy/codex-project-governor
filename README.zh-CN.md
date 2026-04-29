@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.4`
+当前版本：`6.0.5`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0.4、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0.5、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -87,7 +87,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -124,13 +124,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
-安装到 v6.0.4 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.0.5 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -138,7 +138,7 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.4
+git -C "$PLUGIN_DIR" checkout --detach v6.0.5
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -234,12 +234,12 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0.4
+### 使用 Harness v6.0.5
 
-Harness v6.0.4 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.0.5 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.0.4 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.5 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -268,6 +268,17 @@ python3 skills/context-indexer/scripts/query_context_index.py --project . --requ
 ```
 
 记忆搜索模式只查受治理的项目资产，例如 `docs/memory/`、`docs/decisions/`、`tasks/`、发布记录和 `.project-governor/state/`，不默认扫描原始聊天记录。
+
+### 记录 session learning
+
+非平凡 session 开始时先查相关失败命令、重复错误和过期记忆；结束前如果出现命令失败、假设被纠正或发现记忆过期，应记录 session learning：
+
+```bash
+python3 skills/context-indexer/scripts/query_context_index.py --project . --request "<任务请求> command failures repeated mistakes stale memory" --memory-search --auto-build --format text
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json --apply
+```
+
+一次性失败命令进入 `.project-governor/state/COMMAND_LEARNINGS.json`；重复错误进入 `docs/memory/REPEATED_AGENT_MISTAKES.md`；失效或膨胀记忆进入 `.project-governor/state/MEMORY_HYGIENE.json`。这些文件会被 `--memory-search` 检索到，新 session 不需要用户再次提醒“记一下”。
 
 ### 升级前做版本研究
 
@@ -324,13 +335,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.0.5 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.5
 ```
 
 从项目外发现已治理仓库：
@@ -430,7 +441,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.4
+python3 tools/install_or_update_user_plugin.py --ref v6.0.5
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
@@ -451,6 +462,7 @@ python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-in
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 python3 skills/memory-compact/scripts/classify_memory_items.py examples/memory-candidates.json
+python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
 ## 测试
@@ -474,6 +486,7 @@ make test
 - `.codex/rules/project.rules` 的合法决策值。
 - 初始化脚本不会覆盖已有应用代码。
 - implementation guard、style drift、upgrade advisor、version researcher、research radar、memory classifier 的核心输出。
+- session learning 会把失败命令、重复错误和过期记忆候选写入可检索的记忆层。
 - 中文文档入口和关键技能说明。
 
 ## 使用边界

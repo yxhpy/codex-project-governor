@@ -9,6 +9,7 @@ task-router = single route source of truth
 gpt55-auto-orchestrator = runtime planner
 context-indexer v2 = project-local context memory
 session-lifecycle = state and handoff layer
+memory-compact session learning = failed-command and stale-memory capture
 route-guard = git-diff-derived guardrail facts
 quality-gate = evidence-aware verification gate
 merge-readiness = evidence-based final readiness
@@ -22,6 +23,8 @@ harness-doctor = install and execution diagnosis
   FEATURES.json
   AGENTS.json
   ISSUES.json
+  COMMAND_LEARNINGS.json
+  MEMORY_HYGIENE.json
   PROGRESS.md
   SESSION.json
   QUALITY_SCORE.json
@@ -38,4 +41,6 @@ harness-doctor = install and execution diagnosis
 
 ## Reading policy
 
-Do not read all initialization documents at session start. Read `AGENTS.md`, read the session brief when present, query the context index, and only then read task-specific files.
+Do not read all initialization documents at session start. Read `AGENTS.md`, read the session brief when present, query the context index, run memory search for prior failures and stale-memory notes related to the request, and only then read task-specific files.
+
+Before ending a non-trivial session, record failed commands, repeated mistakes, corrected assumptions, and stale-memory candidates with `record_session_learning.py` so the next session can retrieve them.

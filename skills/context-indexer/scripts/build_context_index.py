@@ -268,8 +268,9 @@ def session_brief(index: dict) -> str:
         "## Policy",
         "",
         "- Do not read all initialization documents unless the context query is insufficient.",
+        "- At session start, run memory-search for prior command failures, repeated mistakes, stale-memory notes, decisions, and task history related to the request.",
         "- Prefer task-specific retrieval from `.project-governor/context/CONTEXT_INDEX.json`.",
-        "- Start non-trivial work with `.project-governor/state/SESSION.json` and finish with evidence.",
+        "- Start non-trivial work with `.project-governor/state/SESSION.json`; finish with evidence and `record_session_learning.py` for failed commands or stale memories.",
         "- Use fast read-only scouting for retrieval and high-reasoning models for implementation/review when available.",
     ])
     return "\n".join(lines) + "\n"

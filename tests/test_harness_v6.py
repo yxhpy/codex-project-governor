@@ -19,8 +19,8 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.0.4')
-        self.assertIn('Harness v6.0.4', manifest['description'])
+        self.assertEqual(manifest['version'], '6.0.5')
+        self.assertIn('Harness v6.0.5', manifest['description'])
 
     def test_orchestrator_uses_router_and_evidence(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'Add dashboard export feature with tests'])
@@ -74,6 +74,8 @@ class HarnessV6Test(unittest.TestCase):
             self.assertEqual(result['status'], 'started')
             self.assertTrue((project / '.project-governor/state/SESSION.json').exists())
             self.assertTrue((project / '.project-governor/state/FEATURES.json').exists())
+            self.assertTrue((project / '.project-governor/state/COMMAND_LEARNINGS.json').exists())
+            self.assertTrue((project / '.project-governor/state/MEMORY_HYGIENE.json').exists())
 
 
 if __name__ == '__main__':
