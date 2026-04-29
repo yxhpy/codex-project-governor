@@ -24,9 +24,10 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.0.3.md`
+- Versioned release notes: `releases/6.0.4.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
+- User plugin install/update helper: `tools/install_or_update_user_plugin.py`
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`

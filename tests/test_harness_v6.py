@@ -19,8 +19,8 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.0.3')
-        self.assertIn('Harness v6.0.3', manifest['description'])
+        self.assertEqual(manifest['version'], '6.0.4')
+        self.assertIn('Harness v6.0.4', manifest['description'])
 
     def test_orchestrator_uses_router_and_evidence(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'Add dashboard export feature with tests'])

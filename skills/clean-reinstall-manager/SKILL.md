@@ -1,6 +1,6 @@
 ---
 name: clean-reinstall-manager
-description: Generate full user-level plugin reinstall instructions, stop outside project roots to list governed projects, and cleanly refresh initialized project governance files without copying plugin-global assets.
+description: Generate user-level plugin install/update/reinstall instructions, stop outside project roots to list governed projects, and cleanly refresh initialized project governance files without copying plugin-global assets.
 ---
 
 # Clean Reinstall Manager
@@ -11,6 +11,7 @@ Repair a Project Governor installation or initialized project without polluting 
 
 Use this skill when the user asks to:
 
+- install or update the user-level Project Governor Git checkout used by a local marketplace entry
 - completely uninstall and reinstall the plugin at the user level
 - find all projects that were initialized with Project Governor
 - run a clean re-initialization for selected projects
@@ -51,14 +52,22 @@ Plugin-level runtime assets should remain in the plugin installation unless expl
 
 ## Workflow
 
-### 1. User-level full reinstall plan
+### 1. User-level install/update or full reinstall plan
 
-Always provide a safe reinstall plan. Do not execute destructive removal unless the user explicitly asks and the environment is appropriate.
+Always provide a safe install/update or reinstall plan. Do not execute destructive removal unless the user explicitly asks and the environment is appropriate.
 
-Use:
+For the common local marketplace case, update the Git checkout and ensure the marketplace entry exists:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py
+python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+```
+
+This keeps the marketplace source as `local`; it updates the Git checkout that the local entry points at. Built-in Git marketplace upgrade commands do not fetch this local checkout.
+
+For full replacement instructions, use:
+
+```bash
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
 ```
 
 ### 2. If not in a Project Governor project
@@ -126,6 +135,7 @@ Add `--apply` only when the user has selected the runtime-mode update path.
 Return:
 
 - full reinstall commands
+- user-level install/update commands when the issue is a local marketplace checkout
 - current directory classification
 - discovered projects if outside a project
 - refresh plan if inside a project

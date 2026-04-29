@@ -63,6 +63,43 @@ Compatibility wrapper accepting:
 
 It forwards to `copy_templates(...)` and prints a one-line summary.
 
+### `tools/install_or_update_user_plugin.py`
+
+Input:
+
+- optional `--plugin-dir <path>`
+- optional `--marketplace-path <path>`
+- optional `--repo-url <url>`
+- optional `--ref <git-ref>`
+- optional `--apply`
+- optional `--skip-selftest`
+
+Behavior:
+
+- Defaults to dry-run planning and writes nothing unless `--apply` is supplied.
+- Installs or updates the user-level Project Governor Git checkout used by a local marketplace entry.
+- Creates or updates a local marketplace entry with `source: local` pointing at the plugin checkout.
+- Stops without modifying files when the plugin directory exists but is not a Git checkout.
+- Stops without updating when the existing Git checkout has uncommitted changes.
+- With `--apply`, runs `git clone` when missing, otherwise `git fetch --tags origin` and checks out the requested ref.
+- Runs `tests/selftest.py` after update unless `--skip-selftest` is supplied.
+
+Output:
+
+- `status`
+- `plugin_dir`
+- `marketplace_path`
+- `repo_url`
+- `ref`
+- `current_version`
+- `target_source` in dry-run mode
+- `previous_version` in apply mode
+- `marketplace_entry` in apply mode
+- `operations`
+- `notes` or `next_steps`
+
+The script exits non-zero when blocked or when self-test fails after applying.
+
 ### `skills/convention-miner/scripts/detect_repo_conventions.py`
 
 Input:

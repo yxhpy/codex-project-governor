@@ -14,7 +14,7 @@
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
 - 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
-- 需要重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
+- 需要安装/更新/重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
 - 项目采用 `DESIGN.md` 时，先用 `design-md-governor` lint、摘要和 diff，缺失时只给采纳计划，不自动创建。
 - 任何 UI/frontend 编码、视觉润色、组件、页面、CSS 或响应式布局改动，先用 `design-md-aesthetic-governor` 检查 Gemini/Stitch 配置，读取 DESIGN.md、生成 read proof，再按 token 实现并做漂移校验。
 - Gemini/Stitch 配置可以来自 shell 环境变量，也可以来自项目根目录 `.env-design`；必需键为 `GEMINI_BASE_URL`、`GEMINI_API_KEY`、`GEMINI_MODEL`、`STITCH_MCP_API_KEY`，`GEMINI_PROTOCOL` 可选 `auto`、`openai` 或 `gemini`。通过第三方网关走原生 Gemini 时，`GEMINI_BASE_URL` 必须填该网关的 Gemini 协议根，例如提供 `/gemini/v1beta` 时填 `https://host/gemini`。`STITCH_MCP_URL` 默认是 `https://stitch.googleapis.com/mcp`，`.env-design` 不得提交。
@@ -142,9 +142,9 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 使用 Harness v6.0.3、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0.4、GPT-5.5 自动编排和上下文索引
 
-v6.0.3 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆，插件升级会暴露 `AGENTS.md` 规则模板漂移。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+v6.0.4 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆，插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -305,7 +305,7 @@ python3 tools/init_project.py --mode existing --profile legacy-full --target /pa
 
 ## 11. 干净重装或刷新治理项目
 
-v0.4.6 起，`clean-reinstall-manager` 可以生成用户级插件重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+v6.0.4 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
 ```text
 Use @project-governor clean-reinstall-manager.
@@ -316,7 +316,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.7
+python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor

@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.3`
+当前版本：`6.0.4`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0.3、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0.4、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -58,7 +58,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `upgrade-advisor` | 升级前给出版本距离、需求相关性、风险和用户可选路径。 |
 | `plugin-upgrade-migrator` | 比较 Project Governor 版本差异，规划安全迁移，并避免覆盖已初始化项目的本地定制。 |
 | `project-hygiene-doctor` | 检测被复制到目标项目里的插件全局资产，并隔离安全的生成型 `.codex` 运行时文件。 |
-| `clean-reinstall-manager` | 生成用户级插件重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
+| `clean-reinstall-manager` | 生成用户级插件安装/重装指令，发现已治理项目，并在不复制插件全局资产的前提下刷新项目治理文件。 |
 | `design-md-governor` | 把 Google Labs Code DESIGN.md 作为可选设计系统真源，支持 lint、摘要、diff 和迁移建议，但不自动创建项目设计文件。 |
 | `design-md-aesthetic-governor` | 在 UI/frontend 编码前强制检查 Gemini/Stitch 配置、读取 DESIGN.md、生成 read proof、选择审美参考、按 token 实现并校验漂移。 |
 | `version-researcher` | 在 upgrade-advisor 前研究候选版本、跳过版本、证据质量和迁移风险。 |
@@ -82,14 +82,15 @@ Project Governor 的做法是把治理资产放在仓库内：
 
 ## 安装到个人 Codex
 
-把插件克隆到个人插件目录：
+用安装/更新脚本克隆插件，并写入本地 marketplace entry：
 
 ```bash
-mkdir -p ~/.codex/plugins
-git clone https://github.com/yxhpy/codex-project-governor.git ~/.codex/plugins/codex-project-governor
+curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
+  -o /tmp/install_or_update_user_plugin.py
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
 ```
 
-创建或更新 `~/.agents/plugins/marketplace.json`：
+生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
 
 ```json
 {
@@ -116,6 +117,33 @@ git clone https://github.com/yxhpy/codex-project-governor.git ~/.codex/plugins/c
 
 重启 Codex，打开 `/plugins`，选择个人 marketplace，然后安装 **Project Governor**。
 
+### 升级本地 marketplace 安装
+
+上面的 entry 在 Codex 看来是 `source: local`，所以内置 Git marketplace upgrade 不会拉取这个插件 checkout。需要直接更新 Git checkout，然后重启 Codex：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
+  -o /tmp/install_or_update_user_plugin.py
+python3 /tmp/install_or_update_user_plugin.py --ref v6.0.4 --apply
+```
+
+安装到 v6.0.4 后，同一个 helper 也可以直接从插件 checkout 运行：
+
+```bash
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+```
+
+当旧版本还没有这个 helper 时，也可以用等价的手工命令：
+
+```bash
+PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
+git -C "$PLUGIN_DIR" fetch --tags origin
+git -C "$PLUGIN_DIR" checkout --detach v6.0.4
+python3 "$PLUGIN_DIR/tests/selftest.py"
+```
+
+更新插件本体后，再在已初始化项目里使用 `plugin-upgrade-migrator` 迁移项目治理文件。
+
 ## 安装到团队仓库
 
 在目标仓库内执行：
@@ -127,6 +155,8 @@ cp plugins/codex-project-governor/examples/repo-marketplace/marketplace.json .ag
 ```
 
 重启 Codex，打开 `/plugins`，选择仓库 marketplace，然后安装 **Project Governor**。
+
+团队仓库 entry 也是 `source: local`。团队应通过 Git 或项目自己的 submodule/worktree 策略更新 `plugins/codex-project-governor`，然后重启 Codex，并用 `plugin-upgrade-migrator` 做项目治理迁移。
 
 ## 常用工作流
 
@@ -204,12 +234,12 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0.3
+### 使用 Harness v6.0.4
 
-Harness v6.0.3 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.0.4 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.0.3 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.4 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -291,10 +321,16 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 
 当需要重装用户级插件，或刷新已初始化项目的治理文件但不复制插件全局资产时，使用 `clean-reinstall-manager`。
 
+安装或更新用户级插件 checkout 和本地 marketplace entry：
+
+```bash
+python3 tools/install_or_update_user_plugin.py --ref v6.0.4 --apply
+```
+
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v0.4.7
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.4
 ```
 
 从项目外发现已治理仓库：
@@ -394,6 +430,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
+python3 tools/install_or_update_user_plugin.py --ref v6.0.4
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
@@ -431,6 +468,7 @@ make test
 测试覆盖：
 
 - 插件 manifest 结构和版本。
+- 用户级插件安装/更新脚本会规划本地 marketplace 更新，并保护有本地改动的 Git checkout。
 - 每个 skill 的 `SKILL.md` 元数据。
 - 必需模板文件。
 - `.codex/rules/project.rules` 的合法决策值。

@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "6.0.3",
-  "description": "Codex Project Governor Harness v6.0.3: session-state, context-index v2, governed memory search, AGENTS.md rule-template drift migration, evidence gates, route guards, lifecycle hooks, GPT orchestration, and DESIGN.md UI workflows.",
+  "version": "6.0.4",
+  "description": "Codex Project Governor Harness v6.0.4: user-level Git install/update helper for local marketplaces, session-state, context-index v2, governed memory search, AGENTS.md rule-template drift migration, evidence gates, route guards, lifecycle hooks, GPT orchestration, and DESIGN.md UI workflows.",
   "author": { "name": "yxhpy" },
   "homepage": "https://github.com/yxhpy/codex-project-governor",
   "repository": "https://github.com/yxhpy/codex-project-governor",
@@ -22,14 +22,14 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Project Governor Harness",
-    "shortDescription": "Harness v6.0.3 for Codex project governance",
-    "longDescription": "Adds Harness v6.0.3: one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, governed memory search, AGENTS.md rule-template drift migration, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, doctor checks, and DESIGN.md-gated UI workflows with full-service or basic mode. The project carries durable state and auditable evidence while Codex executes, reviews, searches memory, and compacts work.",
+    "shortDescription": "Harness v6.0.4 for Codex project governance",
+    "longDescription": "Adds Harness v6.0.4: one-command user-level Git install/update support for local marketplaces, one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, governed memory search, AGENTS.md rule-template drift migration, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, doctor checks, and DESIGN.md-gated UI workflows with full-service or basic mode. The project carries durable state and auditable evidence while Codex executes, reviews, searches memory, and compacts work.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use Project Governor Harness v6.0.3 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.",
+      "Use Project Governor Harness v6.0.4 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.",
       "Use Project Governor to initialize this existing repository without changing application code.",
       "Use Project Governor to create a memory and iteration governance system for this project.",
       "Use Project Governor to plan this change as an iteration, not a rewrite.",

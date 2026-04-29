@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.3",
+  "current_latest": "6.0.4",
   "versions": [
     {
       "version": "0.4.1",
@@ -295,6 +295,19 @@
           "user_value": "Already initialized projects can see new mandatory Project Governor rules without overwriting local AGENTS.md customizations.",
           "requires_project_migration": true,
           "migration_id": "rule_template_drift"
+        }
+      ]
+    },
+    {
+      "version": "6.0.4",
+      "title": "Local Marketplace Git Update Path",
+      "features": [
+        {
+          "id": "local_marketplace_git_update",
+          "name": "Local marketplace Git update helper",
+          "summary": "Adds a dependency-free helper that installs or updates the user-level Project Governor Git checkout and writes the local marketplace entry.",
+          "user_value": "Users with source: local marketplace installs can update the plugin checkout with one command instead of manually editing marketplace files or recloning.",
+          "requires_project_migration": false
         }
       ]
     }

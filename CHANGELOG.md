@@ -1,5 +1,22 @@
 # Changelog
 
+## 6.0.4 - Local Marketplace Git Update Path
+
+### Added
+
+- Added `tools/install_or_update_user_plugin.py` to install or update the user-level Project Governor Git checkout and ensure the local marketplace entry exists.
+- Added tests for dry-run planning, local Git clone/update behavior, marketplace entry writing, and dirty checkout protection.
+
+### Changed
+
+- Updated install and upgrade docs to clarify that `source: local` marketplace entries are local pointers and are not fetched by built-in Git marketplace upgrade commands.
+
+### Compatibility
+
+- No new third-party dependencies.
+- Marketplace entry shape remains `source: local`.
+- Existing initialized project migration flows remain unchanged; use `plugin-upgrade-migrator` after the plugin checkout itself is updated.
+
 ## 6.0.3 - AGENTS Rule Template Drift Migration
 
 ### Added
