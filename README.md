@@ -2,17 +2,17 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.6 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.1.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
-- 34+ bundled Codex skills under `skills/`.
+- 35+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
-- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, docs manifest generation, section-level context queries, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
+- Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, docs manifest generation, section-level context queries, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, engineering standards checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
 - Local marketplace examples for repo-scoped and personal plugin installation.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
@@ -51,6 +51,7 @@ The core idea is simple: the project should carry durable memory and rules in ve
 | `pattern-reuse-engine` | Find existing components, services, hooks, schemas, tests, and style patterns that must be reused before creating new implementation patterns. |
 | `parallel-feature-builder` | Implement a feature through a quality-gated subagent pipeline that uses parallel read-only analysis, one bounded implementation writer, test writing, review, and repair. |
 | `test-first-synthesizer` | Produce a targeted test plan or test skeletons before implementation, using existing project test style and covering behavior, regression risk, boundaries, and errors. |
+| `engineering-standards-governor` | Check source size, function complexity, production mock leakage, test assertions, boundary-test planning, and reuse-first compliance before quality-gate completion. |
 | `quality-gate` | Run tiered quality checks for speed-safe development, including iteration compliance, style drift, architecture drift, change budget, tests, docs, and memory update requirements. |
 | `repair-loop` | Repair failed quality checks through a bounded loop without deleting tests, weakening assertions, skipping gates, or expanding implementation scope. |
 | `merge-readiness` | Decide whether a task or branch is PR-ready by checking blockers, quality gate status, docs, memory, tests, change budget, and unresolved approvals. |
@@ -63,7 +64,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -100,13 +101,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
-After v6.0.6 is installed, the same helper is available from the plugin checkout:
+After v6.1.0 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -114,7 +115,7 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.6
+git -C "$PLUGIN_DIR" checkout --detach v6.1.0
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -136,12 +137,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.0.6
+### Use Harness v6.1.0
 
-Harness v6.0.6 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.1.0 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.0.6 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.1.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -215,11 +216,26 @@ Choose the fastest safe workflow. Do not implement yet.
 Return the route, lane, quality level, change budget, and required downstream skills.
 ```
 
-Then build context and reuse constraints with `context-pack-builder` and `pattern-reuse-engine`, implement with `parallel-feature-builder`, run `quality-gate`, use `repair-loop` only if the gate fails, and finish with `merge-readiness`.
+Then build context and reuse constraints with `context-pack-builder` and `pattern-reuse-engine`, implement with `parallel-feature-builder`, run `engineering-standards-governor` and `quality-gate`, use `repair-loop` only if the gate fails, and finish with `merge-readiness`.
 
 For explicit local style, copy, spacing, or typo edits, `task-router` can choose `micro_patch`. That skips heavy workflows but still emits route guard requirements; run `route-guard` and a light quality gate before finalizing.
 
 For standard, risky, refactor, migration, upgrade, PR review, initialization, and broad research workflows, run `subagent-activation` so Project Governor selects project-scoped agents and model routing automatically.
+
+### Check engineering standards
+
+```text
+Use @project-governor engineering-standards-governor.
+
+Check source size, function complexity, production mock leakage, test assertions, boundary-test planning, and reuse-first compliance before quality-gate completion.
+```
+
+Run the deterministic checker on a whole project or the current branch diff:
+
+```bash
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
+```
 
 ### Use GPT-5.5 auto orchestration
 
@@ -324,13 +340,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
 ```
 
 Discover governed projects from outside a project:
@@ -433,7 +449,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.6
+python3 tools/install_or_update_user_plugin.py --ref v6.1.0
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
@@ -451,6 +467,7 @@ python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-mic
 python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
@@ -484,6 +501,7 @@ The tests validate:
 - task router classifies micro-patches and emits route guard requirements
 - route guard blocks scope creep from fast routes
 - subagent activation selects project-scoped agents and model routing
+- engineering standards detects source-size, function-complexity, mock-leakage, and test-assertion risks
 - memory classifier separates durable facts, decisions, open questions, repeated mistakes, and sensitive items
 - session learning records command failures, repeated mistakes, and stale-memory candidates into retrievable memory layers
 

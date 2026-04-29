@@ -378,16 +378,16 @@ def workflow(route: str) -> tuple[list[str], list[str]]:
     if route == "research":
         return ["session-lifecycle", "research-radar", "context-indexer", "version-researcher", "evidence-manifest"], []
     if route in {"dependency_upgrade", "upgrade_or_migration"}:
-        return ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "quality-gate", "evidence-manifest", "merge-readiness"], []
+        return ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
     if route == "docs_only":
         return ["direct-edit", "quality-gate", "merge-readiness"], ["parallel-feature-builder", "subagent-audit", "test-first-synthesizer"]
     if route == "test_only":
-        return ["context-indexer", "context-pack-builder", "direct-edit", "quality-gate", "evidence-manifest", "merge-readiness"], ["parallel-feature-builder"]
+        return ["context-indexer", "context-pack-builder", "direct-edit", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], ["parallel-feature-builder"]
     if route == "risky_feature":
-        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "quality-gate", "evidence-manifest", "merge-readiness"], []
+        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
     if route == "refactor":
-        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "architecture-drift-check", "quality-gate", "evidence-manifest", "merge-readiness"], []
-    return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "quality-gate", "evidence-manifest", "merge-readiness"], []
+        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "architecture-drift-check", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
+    return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
 
 
 def workflow_skills(items: list[str]) -> list[str]:

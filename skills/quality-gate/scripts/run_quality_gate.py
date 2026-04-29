@@ -84,6 +84,47 @@ def validate_evidence(evidence: dict[str, Any] | None, required: bool, level: st
     return findings
 
 
+def validate_engineering_standards(result: object, level: str) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    if not isinstance(result, dict):
+        return findings
+
+    status = result.get("status")
+    summary = result.get("summary", {})
+    blocker_count = summary.get("blocker_count") if isinstance(summary, dict) else None
+    warning_count = summary.get("warning_count") if isinstance(summary, dict) else None
+    if status == "fail":
+        findings.append(
+            {
+                "severity": "blocking",
+                "type": "engineering_standards_failed",
+                "message": "Engineering standards check reported blockers.",
+                "blocker_count": blocker_count,
+                "warning_count": warning_count,
+            }
+        )
+    elif status == "warn":
+        severity = "blocking" if level == "strict" else "warning"
+        findings.append(
+            {
+                "severity": severity,
+                "type": "engineering_standards_warnings",
+                "message": "Engineering standards check reported warnings.",
+                "warning_count": warning_count,
+            }
+        )
+    elif status not in {None, "pass"}:
+        findings.append(
+            {
+                "severity": "warning",
+                "type": "engineering_standards_unknown",
+                "message": "Engineering standards check returned an unknown status.",
+                "status": status,
+            }
+        )
+    return findings
+
+
 def evaluate(data: dict[str, Any]) -> dict[str, Any]:
     level = normalize_level(data.get("level", data.get("quality_level", "standard")))
     findings: list[dict[str, Any]] = []
@@ -127,6 +168,7 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
 
     evidence = load_evidence(data)
     findings.extend(validate_evidence(evidence, require_evidence, level))
+    findings.extend(validate_engineering_standards(data.get("engineering_standards"), level))
 
     blockers = [item for item in findings if item["severity"] == "blocking"]
     warnings = [item for item in findings if item["severity"] != "blocking"]

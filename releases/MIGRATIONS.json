@@ -244,6 +244,84 @@
           "reason": "Document that DESIGN_BASIC_MODE=1 may come from either shell environment variables or project-root .env-design."
         }
       ]
+    },
+    {
+      "id": "migration_6_1_0_engineering_standards",
+      "from": "6.0.6",
+      "to": "6.1.0",
+      "title": "Engineering standards governance",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": "docs/quality/ENGINEERING_STANDARDS_POLICY.md",
+          "source": "templates/docs/quality/ENGINEERING_STANDARDS_POLICY.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Document source-size, complexity, mock-governance, test-planning, and reuse-first engineering standards."
+        },
+        {
+          "op": "add_if_missing",
+          "path": "tasks/_template/ENGINEERING_STANDARDS_REPORT.md",
+          "source": "templates/tasks/_template/ENGINEERING_STANDARDS_REPORT.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add a stable report template for scanner findings, mock inventory, and accepted warnings."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "AGENTS.md",
+          "source": "templates/AGENTS.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Surface mandatory engineering standards rules without overwriting user-modified project rules."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/QUALITY_GATE_POLICY.md",
+          "source": "templates/docs/quality/QUALITY_GATE_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Require engineering standards checks before final quality gate for coding work."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/ACCELERATION_POLICY.md",
+          "source": "templates/docs/quality/ACCELERATION_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Insert engineering standards into the quality-gated acceleration pipeline."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/TESTING_ACCELERATION_POLICY.md",
+          "source": "templates/docs/quality/TESTING_ACCELERATION_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Add boundary, error, integration/contract, frontend, and mock-governance expectations to test planning."
+        },
+        {
+          "op": "merge_template_file",
+          "path": "tasks/_template/TEST_PLAN.md",
+          "source": "templates/tasks/_template/TEST_PLAN.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Expand task test-plan template with a required test matrix and mock-governance table."
+        },
+        {
+          "op": "merge_template_file",
+          "path": "tasks/_template/QUALITY_REPORT.md",
+          "source": "templates/tasks/_template/QUALITY_REPORT.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Add engineering standards as an explicit quality-report check."
+        },
+        {
+          "op": "add_if_missing",
+          "path": ".codex/prompts/engineering-standards-governor.md",
+          "source": "templates/.codex/prompts/engineering-standards-governor.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Expose a project-local prompt shortcut for engineering standards checks."
+        },
+        {
+          "op": "merge_template_file",
+          "path": ".project-governor/runtime/GPT55_RUNTIME_MODE.json",
+          "source": "templates/.project-governor/runtime/GPT55_RUNTIME_MODE.json",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Surface that coding routes should run engineering standards before quality gate in project-owned runtime mode."
+        }
+      ]
     }
   ]
 }

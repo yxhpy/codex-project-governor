@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.6",
+  "current_latest": "6.1.0",
   "versions": [
     {
       "version": "0.4.1",
@@ -368,6 +368,36 @@
           "user_value": "Windows and long-lived Codex hook processes can enter basic mode without fragile per-shell environment inheritance.",
           "requires_project_migration": true,
           "migration_id": "migration_6_0_6_context_navigation"
+        }
+      ]
+    },
+    {
+      "version": "6.1.0",
+      "title": "Engineering Standards Governance",
+      "features": [
+        {
+          "id": "engineering_standards_governor",
+          "name": "Engineering Standards Governor",
+          "summary": "Adds a dependency-free skill and scanner for source size, function complexity, production mock leakage, mock inventory, and test assertion hygiene.",
+          "user_value": "Coding sessions catch maintainability debt and leftover mocks before quality-gate completion.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_1_0_engineering_standards"
+        },
+        {
+          "id": "test_plan_matrix",
+          "name": "Test plan matrix",
+          "summary": "Expands test planning templates to cover normal behavior, boundaries, error paths, regression, integration/contract, frontend interaction, and explicit not-tested rationale.",
+          "user_value": "Agents must plan the cases users expect instead of relying on narrow happy-path tests.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_1_0_engineering_standards"
+        },
+        {
+          "id": "mock_governance",
+          "name": "Mock governance",
+          "summary": "Adds project rules and report templates for detecting production mock imports and documenting the real dependency behind test doubles.",
+          "user_value": "Mocks stay in tests and fixtures instead of leaking into production code as projects grow.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_1_0_engineering_standards"
         }
       ]
     }

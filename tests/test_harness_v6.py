@@ -19,13 +19,14 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.0.6')
-        self.assertIn('Harness v6.0.6', manifest['description'])
+        self.assertEqual(manifest['version'], '6.1.0')
+        self.assertIn('Harness v6.1.0', manifest['description'])
 
     def test_orchestrator_uses_router_and_evidence(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'Add dashboard export feature with tests'])
         self.assertEqual(data['runtime_version'], 'project-governor-harness-v6')
         self.assertIn('test-first-synthesizer', data['skill_sequence'])
+        self.assertIn('engineering-standards-governor', data['skill_sequence'])
         self.assertIn('evidence-manifest', data['skill_sequence'])
         self.assertIn('classification', data)
         self.assertIn('risk_score', data)

@@ -1,5 +1,25 @@
 # Changelog
 
+## 6.1.0 - Engineering Standards Governance
+
+### Added
+
+- Added `engineering-standards-governor` with a dependency-free scanner for source file size, function length, approximate function complexity, production mock imports, mock-like production identifiers, mock inventory, and test files without assertion markers.
+- Added engineering standards policy templates for backend/frontend maintainability, reuse-first coding, mock governance, and test matrix expectations.
+- Added `ENGINEERING_STANDARDS_REPORT.md` and expanded `TEST_PLAN.md` / `QUALITY_REPORT.md` templates.
+
+### Changed
+
+- `task-router` now includes `engineering-standards-governor` in coding workflows before `quality-gate`.
+- `quality-gate` can consume an `engineering_standards` result and fail on blockers; strict gates treat unresolved engineering warnings as blockers.
+- `pattern-reuse-engine` now classifies fixture/mock/testdata candidates as `test_double` reuse candidates.
+
+### Compatibility
+
+- No new third-party dependencies.
+- The new scanner output schema is additive and documented in `docs/architecture/API_CONTRACTS.md`.
+- Existing initialized projects can receive the new policy, prompt, and task templates through `plugin-upgrade-migrator`; user-modified files remain manual review or three-way merge items.
+
 ## 6.0.6 - Token-Efficient Docs Navigation
 
 ### Added

@@ -24,6 +24,7 @@ v0.4.1 adds optional route guard integration: if `task-router` chose `micro_patc
 - route guard
 - change budget
 - implementation guard
+- engineering standards: file size, function complexity, mock leakage, and test hygiene
 - style drift
 - architecture drift
 - dependency changes
@@ -36,3 +37,5 @@ v0.4.1 adds optional route guard integration: if `task-router` chose `micro_patc
 ## Output
 
 Create `QUALITY_REPORT.md` and return pass/fail status, blockers, warnings, findings, commands run, optional route guard result, and repair-loop input.
+
+When coding work changes source or tests, attach the `engineering-standards-governor` result as `engineering_standards` in the quality-gate input. Engineering standards blockers fail the gate; warnings fail strict gates unless accepted with evidence.

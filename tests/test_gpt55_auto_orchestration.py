@@ -28,6 +28,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), str(ROOT / 'examples/gpt55-runtime-standard-feature.json')])
         self.assertEqual(data['route'], 'standard_feature')
         self.assertIn('context-indexer', data['skill_sequence'])
+        self.assertIn('engineering-standards-governor', data['skill_sequence'])
         self.assertIn('context-scout', data['subagents'])
         self.assertEqual(data['model_plan']['main_model'], 'gpt-5.5')
         self.assertEqual(data['model_plan']['scout_model'], 'gpt-5.4-mini')

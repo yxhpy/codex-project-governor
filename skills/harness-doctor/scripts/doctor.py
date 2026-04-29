@@ -13,6 +13,7 @@ REQUIRED_SKILLS = {
     "context-indexer",
     "context-pack-builder",
     "route-guard",
+    "engineering-standards-governor",
     "quality-gate",
     "merge-readiness",
     "session-lifecycle",
@@ -45,8 +46,8 @@ def diagnose(project: Path, execution_readiness: bool = False) -> dict[str, Any]
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if manifest.get("version") != "6.0.6":
-                warnings.append(f"manifest version is {manifest.get('version')}, expected 6.0.6")
+            if manifest.get("version") != "6.1.0":
+                warnings.append(f"manifest version is {manifest.get('version')}, expected 6.1.0")
         except Exception as exc:
             blockers.append(f"plugin manifest is invalid JSON: {exc}")
     skills_dir = project / "skills"

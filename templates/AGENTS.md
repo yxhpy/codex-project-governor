@@ -66,6 +66,18 @@ For coding work where speed matters, use the acceleration pipeline instead of ad
 
 Use `micro_patch` only for explicit local style/copy changes. If actual diff exceeds route guard, stop and reroute. Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
 
+## Engineering standards
+
+For coding work that changes production or test code:
+
+- run `engineering-standards-governor` before final `quality-gate`
+- keep source files and functions within documented project thresholds unless an ADR/PDR approves a temporary exception
+- scan for mock leakage so production code does not import mocks, fixtures, test data, or test-only libraries
+- require `TEST_PLAN.md` to cover normal, boundary, error, regression, integration/contract, frontend interaction, and explicit not-tested rationale rows when relevant
+- require a `PATTERN_REUSE_PLAN.md` before creating new components, services, hooks, schemas, fixtures, or helpers
+
+Do not leave partial mock implementations in production paths. If a mock is used for an external dependency, record the real contract and the integration, contract, or smoke test that protects it.
+
 ## Automatic skill and subagent activation
 
 The user should not need to manually list subagents or pick models after Project Governor initialization.

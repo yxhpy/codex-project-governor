@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Project Governor Harness v6.0.6 with initialized self-governance, token-efficient docs navigation through `DOCS_MANIFEST.json`, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
+Project Governor Harness v6.1.0 with initialized self-governance, engineering standards governance, token-efficient docs navigation through `DOCS_MANIFEST.json`, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
@@ -18,6 +18,7 @@ Project Governor Harness v6.0.6 with initialized self-governance, token-efficien
 ## Near-Term Priorities
 
 - Keep self-tests aligned with every new skill, template, and helper script.
+- Keep engineering standards thresholds conservative and evidence-backed.
 - Keep managed assets clearly separated from target-project templates unless a user explicitly opts in.
 - Keep research and release-research policies aligned with the advisory-only upgrade model.
 - Fill root governance docs only with facts confirmed from repository evidence.
@@ -33,6 +34,6 @@ Project Governor Harness v6.0.6 with initialized self-governance, token-efficien
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `6.0.6`.
-- `README.md` lists 34+ skills and deterministic script entrypoints.
+- `.codex-plugin/plugin.json` declares version `6.1.0`.
+- `README.md` lists 35+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.

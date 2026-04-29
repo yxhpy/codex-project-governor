@@ -19,6 +19,7 @@
   "automation_policy": {
     "auto_select_skills": true,
     "auto_select_subagents": true,
+    "coding_routes_run_engineering_standards": true,
     "micro_patch_skips_subagents": true,
     "strict_routes_require_subagents": true
   },

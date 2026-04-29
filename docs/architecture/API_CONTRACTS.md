@@ -404,6 +404,8 @@ Output includes:
 
 `route_doc_pack` includes primary context roles, read order, context budget gate, stale/superseded doc filtering, compression policy, and full-document escalation conditions. Existing consumers may ignore it.
 
+Coding workflows may include `engineering-standards-governor` in `required_skills` and `required_workflow` before `quality-gate`.
+
 ### `skills/route-guard/scripts/check_route_guard.py`
 
 Input JSON fields include:
@@ -735,7 +737,7 @@ Output:
 - `skipped_skills`
 - `quality_rules`
 
-`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available.
+`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available. `quality_rules.run_engineering_standards` indicates whether the runtime plan expects the engineering standards scanner before quality gate.
 
 ### `skills/context-indexer/scripts/build_context_index.py`
 
@@ -877,6 +879,43 @@ Output includes:
 - `reuse_candidates`
 - `forbidden_duplicates`
 
+`reuse_candidates[].category` may include `test_double` for existing mocks, fixtures, and test data that should be reused or explicitly justified before adding a new parallel test double.
+
+### `skills/engineering-standards-governor/scripts/check_engineering_standards.py`
+
+Input:
+
+- optional `--project <path>`
+- optional `--scope {all,diff}`
+- optional `--diff-base <git-ref>`
+- optional `--format {json,text}`
+- optional threshold overrides: `--file-warn-lines`, `--file-fail-lines`, `--function-warn-lines`, `--function-fail-lines`, `--complexity-warn`, `--complexity-fail`
+
+Behavior:
+
+- Scans source files with dependency-free heuristics.
+- Skips generated, vendor, cache, and dependency directories.
+- Reports oversized source files, long functions, approximate function complexity, production mock imports, mock-like production identifiers, and test files that define cases without assertion markers.
+- Builds a mock inventory for production and test-support mock signals.
+- In `--scope diff`, reports findings introduced by added files, untracked source files, or changed lines and records suppressed baseline findings in `summary.suppressed_baseline_count`.
+
+JSON output fields:
+
+- `schema`
+- `status`
+- `project`
+- `scope`
+- `diff_base`
+- `thresholds`
+- `summary`
+- `files`
+- `mock_inventory`
+- `findings`
+- `blockers`
+- `warnings`
+
+The script exits non-zero only when `status=fail`.
+
 ### `skills/quality-gate/scripts/check_change_budget.py`
 
 Input JSON fields include:
@@ -902,6 +941,7 @@ Input JSON fields include:
 - `checks`
 - `commands`
 - `route_guard`
+- optional `engineering_standards`
 
 Output:
 
@@ -920,6 +960,7 @@ Output:
 - `summary`
 
 The script exits non-zero when blocking findings are present.
+If `engineering_standards.status` is `fail`, the quality gate emits `engineering_standards_failed` as a blocking finding. If it is `warn`, standard gates emit a warning and strict gates emit a blocker.
 
 ### `skills/merge-readiness/scripts/check_merge_readiness.py`
 

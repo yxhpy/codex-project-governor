@@ -25,7 +25,7 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.0.6.md`
+- Versioned release notes: `releases/6.1.0.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - User plugin install/update helper: `tools/install_or_update_user_plugin.py`
@@ -33,6 +33,7 @@
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`
+- Engineering standards policy: `docs/quality/ENGINEERING_STANDARDS_POLICY.md`
 - Change budget policy: `docs/quality/CHANGE_BUDGET_POLICY.md`
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
 - Project hygiene policy template: `templates/docs/quality/PROJECT_HYGIENE_POLICY.md`
@@ -55,6 +56,7 @@ If implementation conflicts with these files, create or update a decision record
 - Harness v6 project state and evidence templates live under `templates/.project-governor/state/` and `templates/.project-governor/evidence/`.
 - Example JSON inputs are stored under `examples/`.
 - Tests use Python standard-library `unittest` in `tests/selftest.py`.
+- Engineering standards checks are dependency-free Python scripts and should remain conservative, additive, and documented in API contracts.
 
 ## Evidence
 

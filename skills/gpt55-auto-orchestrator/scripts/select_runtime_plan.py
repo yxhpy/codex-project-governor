@@ -113,7 +113,7 @@ def subagents_for(route: str, mode: str) -> list[str]:
 def skill_sequence_from(classification: dict[str, Any], route: str) -> list[str]:
     seq = list(classification.get("required_workflow") or [])
     if route == "upgrade_or_migration":
-        seq = ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "quality-gate", "evidence-manifest", "merge-readiness"]
+        seq = ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"]
     if route == "standard_feature" and "test-first-synthesizer" not in seq:
         idx = seq.index("parallel-feature-builder") if "parallel-feature-builder" in seq else len(seq)
         seq.insert(idx, "test-first-synthesizer")
@@ -224,6 +224,7 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
             "do_not_read_all_initialization_docs": True,
             "do_not_copy_plugin_global_assets": True,
             "run_route_guard": True,
+            "run_engineering_standards": route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"},
             "route_guard_uses_git_diff_facts": True,
             "run_quality_gate": True,
             "record_failed_commands_before_final": True,
@@ -237,7 +238,7 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Select a Project Governor Harness v6.0 runtime plan.")
+    parser = argparse.ArgumentParser(description="Select a Project Governor Harness v6.1 runtime plan.")
     parser.add_argument("input", nargs="?")
     parser.add_argument("--request", default="")
     args = parser.parse_args()

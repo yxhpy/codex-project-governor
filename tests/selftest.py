@@ -18,20 +18,20 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.0.6")
-        self.assertIn("Harness v6.0.6", manifest["description"])
+        self.assertEqual(manifest["version"], "6.1.0")
+        self.assertIn("Harness v6.1.0", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.0.6")
+        self.assertEqual(feature_matrix["current_latest"], "6.1.0")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.0.6", versions)
-        self.assertTrue((ROOT / "releases" / "6.0.6.md").exists())
+        self.assertIn("6.1.0", versions)
+        self.assertTrue((ROOT / "releases" / "6.1.0.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
-        self.assertGreaterEqual(len(skill_dirs), 34)
+        self.assertGreaterEqual(len(skill_dirs), 35)
         names = {p.name for p in skill_dirs}
         for required in {
             "version-researcher",
@@ -50,6 +50,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "pattern-reuse-engine",
             "parallel-feature-builder",
             "test-first-synthesizer",
+            "engineering-standards-governor",
             "quality-gate",
             "repair-loop",
             "merge-readiness",
@@ -114,6 +115,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "docs/upgrades/RELEASE_RESEARCH_POLICY.md",
             "docs/upgrades/RELEASE_RESEARCH_REPORT.md",
             "docs/quality/QUALITY_GATE_POLICY.md",
+            "docs/quality/ENGINEERING_STANDARDS_POLICY.md",
             "docs/quality/CHANGE_BUDGET_POLICY.md",
             "docs/quality/TESTING_ACCELERATION_POLICY.md",
             "docs/quality/ACCELERATION_POLICY.md",
@@ -125,6 +127,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             "tasks/_template/CONTEXT_PACK.md",
             "tasks/_template/PATTERN_REUSE_PLAN.md",
             "tasks/_template/TEST_PLAN.md",
+            "tasks/_template/ENGINEERING_STANDARDS_REPORT.md",
             "tasks/_template/CHANGE_BUDGET.md",
             "tasks/_template/QUALITY_REPORT.md",
             "tasks/_template/REPAIR_LOG.md",
@@ -140,6 +143,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             ".codex/prompts/pattern-reuse-engine.md",
             ".codex/prompts/parallel-feature-builder.md",
             ".codex/prompts/test-first-synthesizer.md",
+            ".codex/prompts/engineering-standards-governor.md",
             ".codex/prompts/quality-gate.md",
             ".codex/prompts/repair-loop.md",
             ".codex/prompts/merge-readiness.md",
@@ -172,7 +176,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.0.6", readme)
+        self.assertIn("6.1.0", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -186,6 +190,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("session-lifecycle", readme)
         self.assertIn("evidence-manifest", readme)
         self.assertIn("harness-doctor", readme)
+        self.assertIn("engineering-standards-governor", readme)
         self.assertIn("init-existing-project", usage)
         self.assertIn("quality-gate", usage)
         self.assertIn("design-md-governor", usage)
@@ -194,6 +199,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("context-indexer", usage)
         self.assertIn("memory-compact", usage)
         self.assertIn("record_session_learning", usage)
+        self.assertIn("engineering-standards-governor", usage)
 
     def test_project_rules_use_valid_decisions(self) -> None:
         rules = (ROOT / "templates" / ".codex" / "rules" / "project.rules").read_text(encoding="utf-8")
@@ -377,6 +383,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn(route["route"], {"ui_change", "standard_feature"})
         self.assertEqual(route["quality_level"], "standard")
         self.assertIn("quality-gate", route["required_skills"])
+        self.assertIn("engineering-standards-governor", route["required_skills"])
 
         risk_proc = subprocess.run(
             [PY, str(ROOT / "skills" / "task-router" / "scripts" / "classify_task.py"), str(ROOT / "examples" / "task-router-risk-input.json")],

@@ -168,6 +168,30 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertEqual(operations["docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md"]["action"], "replace_from_template")
             self.assertEqual(operations["docs/quality/DESIGN_MD_AESTHETIC_GATE_POLICY.md"]["status"], "safe_update_unchanged_from_install")
 
+    def test_plan_migration_adds_engineering_standards_templates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.0.6",
+                    "--target-version",
+                    "6.1.0",
+                ]
+            )
+            operations = {operation["path"]: operation for operation in data["operations"]}
+            self.assertEqual(operations["docs/quality/ENGINEERING_STANDARDS_POLICY.md"]["action"], "add_if_missing")
+            self.assertEqual(operations["tasks/_template/ENGINEERING_STANDARDS_REPORT.md"]["action"], "add_if_missing")
+            self.assertEqual(operations[".codex/prompts/engineering-standards-governor.md"]["action"], "add_if_missing")
+            self.assertIn("AGENTS.md", operations)
+            self.assertGreaterEqual(data["summary"]["safe_operation_count"], 3)
+
     def test_plan_migration_surfaces_agents_template_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)

@@ -15,6 +15,8 @@ EXPORT_RE = re.compile(r"(?:export\s+)?(?:function|class|const|interface|type)\s
 
 def category(path: Path, symbol: str) -> str:
     lower_path = path.as_posix().lower()
+    if "fixture" in lower_path or "mock" in lower_path or "testdata" in lower_path:
+        return "test_double"
     if "hook" in lower_path or symbol.startswith("use"):
         return "hook"
     if "service" in lower_path or "client" in lower_path:
@@ -53,7 +55,7 @@ def find(repo: Path, request: str = "") -> dict[str, Any]:
             haystack = f"{path.as_posix()} {symbol}".lower()
             score = sum(1 for term in terms if term in haystack)
             item_category = category(path, symbol)
-            if score or item_category in {"component", "hook", "service", "schema", "test_pattern"}:
+            if score or item_category in {"component", "hook", "service", "schema", "test_pattern", "test_double"}:
                 candidates.append(
                     {
                         "name": symbol,

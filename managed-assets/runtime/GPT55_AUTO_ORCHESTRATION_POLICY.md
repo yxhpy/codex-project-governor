@@ -25,6 +25,8 @@ At session start, do not read all initialization docs. Prefer:
 
 The orchestrator should infer and invoke Project Governor skills automatically. The user should not need to manually list `task-router`, `subagent-activation`, `context-pack-builder`, or `quality-gate`.
 
+For coding work, the inferred workflow should include `engineering-standards-governor` before `quality-gate` so source size, complexity, mock leakage, and test hygiene are checked before final readiness.
+
 ## Subagent routing
 
 - `micro_patch`: no subagents.

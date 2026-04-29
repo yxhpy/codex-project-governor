@@ -18,6 +18,7 @@
 - Release research report: `docs/upgrades/RELEASE_RESEARCH_REPORT.md`
 - Acceleration policy: `docs/quality/ACCELERATION_POLICY.md`
 - Testing acceleration policy: `docs/quality/TESTING_ACCELERATION_POLICY.md`
+- Engineering standards policy: `docs/quality/ENGINEERING_STANDARDS_POLICY.md`
 - Change budget policy: `docs/quality/CHANGE_BUDGET_POLICY.md`
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
 - Route guard policy: `docs/quality/ROUTE_GUARD_POLICY.md`

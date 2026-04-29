@@ -12,6 +12,7 @@
 - 需要查“为什么当时这样做”或历史决策时，用 `context-indexer --memory-search` 查治理记忆、决策、任务和状态文件，不要拼复杂 shell，也不要默认翻原始聊天记录。
 - 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
+- 对会改生产或测试代码的任务，在质量门前运行 `engineering-standards-governor`，检查文件规模、函数复杂度、mock 泄漏、测试断言、边界测试计划和复用优先合规性。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
 - 升级迁移前，如果项目里有插件全局 `.codex` 运行时资产或插件源码目录，先用 `project-hygiene-doctor` 做诊断和安全隔离。
 - 需要安装/更新/重装用户级插件或刷新已治理项目时，使用 `clean-reinstall-manager`，先生成计划，再按选择执行。
@@ -109,8 +110,9 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `subagent-activation`：为 standard、risk、refactor、migration、upgrade、PR review、init 和 broad research 工作流选择 subagent。
 - `context-pack-builder`：生成最小上下文包。
 - `pattern-reuse-engine`：明确必须复用的现有模式和禁止重复项。
-- `test-first-synthesizer`：先规划行为、回归、边界和错误路径覆盖。
+- `test-first-synthesizer`：先规划行为、边界、错误、回归和集成/契约覆盖。
 - `parallel-feature-builder`：先并行只读分析，再由一个有边界的实现者修改代码。
+- `engineering-standards-governor`：扫描文件规模、函数复杂度、mock 泄漏和测试断言质量。
 - `route-guard`：对 `micro_patch`、`tiny_patch` 或 fast-lane 改动验证实际 diff 是否仍符合原路由。
 - `quality-gate`：按 `light`、`standard` 或 `strict` 运行质量门。
 - `repair-loop`：只在质量门失败时修复，并保持范围有界。
@@ -137,15 +139,16 @@ python3 skills/evidence-manifest/scripts/write_evidence_manifest.py --project . 
 python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readiness
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
-## 5. 使用 Harness v6.0.6、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.1.0、GPT-5.5 自动编排和上下文索引
 
-v6.0.6 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
+v6.1.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -198,7 +201,34 @@ python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py \
   --apply
 ```
 
-## 6. 治理 DESIGN.md 设计系统
+## 6. 检查工程规范、mock 和测试质量
+
+当任务会修改生产或测试代码时，使用：
+
+```text
+Use @project-governor engineering-standards-governor.
+
+Check source size, function complexity, production mock leakage, test assertions, boundary-test planning, and reuse-first compliance before quality-gate completion.
+```
+
+常用脚本：
+
+```bash
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
+```
+
+默认阈值：
+
+- 文件超过 400 行警告，超过 800 行阻断。
+- 函数超过 60 行警告，超过 100 行阻断。
+- 近似复杂度超过 10 警告，超过 15 阻断。
+- 生产代码导入 mocks、fixtures、testdata、test-only 库会阻断。
+- 定义了测试但没有断言会警告。
+
+检查结果应写入 `ENGINEERING_STANDARDS_REPORT.md`，并作为 `engineering_standards` 输入交给 `quality-gate`。
+
+## 7. 治理 DESIGN.md 设计系统
 
 v0.4.7 起，`design-md-governor` 可以把项目自己的 `DESIGN.md` 作为 UI/视觉实现前的设计系统真源。它不会自动创建或覆盖 `DESIGN.md`；缺失时只给采纳计划，除非用户明确选择创建。
 
@@ -219,7 +249,7 @@ python3 skills/design-md-governor/scripts/summarize_design_md.py DESIGN.md
 python3 skills/design-md-governor/scripts/diff_design_md.py DESIGN.before.md DESIGN.md
 ```
 
-## 7. 实现前研究候选能力
+## 8. 实现前研究候选能力
 
 当你想引入新的治理规则、agent 模式、hook、skill、库或自动化方式时，先使用 `research-radar`。
 
@@ -252,7 +282,7 @@ python3 skills/research-radar/scripts/score_research_candidates.py \
   --need research
 ```
 
-## 8. 升级前研究版本
+## 9. 升级前研究版本
 
 当涉及依赖、工具、SDK、运行时或 Project Governor 自身版本变化时，先用 `version-researcher`。
 
@@ -272,7 +302,7 @@ python3 skills/version-researcher/scripts/research_versions.py \
   --request "Need better memory and subagent governance"
 ```
 
-## 9. 升级前给出用户可选路径
+## 10. 升级前给出用户可选路径
 
 `upgrade-advisor` 不直接升级，而是输出菜单和理由。
 
@@ -295,7 +325,7 @@ Show which dependencies or tools are behind, relevant, risky, optional, deferred
 
 只有用户明确选择后，才进入实际升级迭代。
 
-## 10. 检查项目卫生
+## 11. 检查项目卫生
 
 v0.4.4 起，初始化默认使用 clean profile：复制 `AGENTS.md`、`docs/`、`tasks/_template/`、`.project-governor/`、`.codex/rules/`、`.codex/hooks/` 和 `.codex/hooks.json` 等项目治理文件。插件全局 `.codex/agents`、`.codex/prompts` 和 `.codex/config.toml` 默认留在插件安装目录。
 
@@ -320,9 +350,9 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py \
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 ```
 
-## 11. 干净重装或刷新治理项目
+## 12. 干净重装或刷新治理项目
 
-v6.0.6 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+v6.1.0 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
 ```text
 Use @project-governor clean-reinstall-manager.
@@ -333,8 +363,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
+python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor
@@ -342,7 +372,7 @@ python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py -
 
 如果当前目录不是 Project Governor 项目，orchestrator 会停止并列出发现的项目，不会修改当前目录。
 
-## 11. 压缩项目记忆
+## 13. 压缩项目记忆
 
 适合阶段性维护、长会话后整理、发布后复盘。
 
@@ -363,7 +393,7 @@ Do not modify application code.
 - 风险写入 `docs/memory/RISK_REGISTER.md`。
 - 架构或产品决策写入 `docs/decisions/ADR-*.md` 或 `PDR-*.md`。
 
-## 12. PR 或分支治理审查
+## 14. PR 或分支治理审查
 
 ```text
 Use @project-governor pr-governance-review.
@@ -381,7 +411,7 @@ Return blockers, warnings, and required patches.
 - 是否遗漏测试和文档更新。
 - 是否需要把重复问题沉淀进 memory 或 AGENTS.md。
 
-## 12. 发布前检查
+## 15. 发布前检查
 
 发布插件变更前建议执行：
 
@@ -400,7 +430,7 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 - 相关 `templates/` 文件
 - 相关 `docs/` 或任务计划
 
-## 13. 常见误区
+## 16. 常见误区
 
 - 不要把 Project Governor 当应用框架；它是治理插件和模板包。
 - 不要在初始化已有项目时顺手修改应用代码。

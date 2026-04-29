@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.6`
+当前版本：`6.1.0`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0.6、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.1.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -75,6 +75,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 | `pattern-reuse-engine` | 找出现有组件、服务、hook、schema、测试和样式模式，避免重复造新模式。 |
 | `parallel-feature-builder` | 用质量门约束的子代理流水线实现功能：先只读分析，再单一实现者，再测试、审查和修复。 |
 | `test-first-synthesizer` | 按现有测试风格先产出目标测试计划或测试骨架。 |
+| `engineering-standards-governor` | 在质量门前检查文件规模、函数复杂度、生产 mock 泄漏、测试断言、边界测试计划和复用优先合规性。 |
 | `quality-gate` | 运行分层质量检查，覆盖迭代合规、漂移、变更预算、测试、文档和记忆更新。 |
 | `repair-loop` | 在质量门失败时执行有边界的修复循环，不删除测试、不削弱断言、不扩大范围。 |
 | `merge-readiness` | 检查任务或分支是否 PR-ready，覆盖 blocker、质量门、文档、记忆、测试、预算和审批。 |
@@ -87,7 +88,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -124,13 +125,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
-安装到 v6.0.6 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.1.0 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -138,7 +139,7 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.0.6
+git -C "$PLUGIN_DIR" checkout --detach v6.1.0
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -228,18 +229,34 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `subagent-activation` 为非平凡任务选择项目级 subagent 和模型策略。
 - `context-pack-builder` 建上下文包。
 - `pattern-reuse-engine` 固定必须复用的模式和禁止重复项。
-- `test-first-synthesizer` 先规划行为和回归覆盖。
+- `test-first-synthesizer` 先规划行为、边界、错误、回归和集成/契约覆盖。
 - `parallel-feature-builder` 先并行只读分析，再用一个有边界的实现者落地。
+- `engineering-standards-governor` 检查文件规模、函数复杂度、mock 泄漏和测试断言质量。
 - `quality-gate` 作为最终响应或 PR 前的硬检查。
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0.6
-
-Harness v6.0.6 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+### 检查工程规范
 
 ```text
-Use Project Governor Harness v6.0.6 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use @project-governor engineering-standards-governor.
+
+Check source size, function complexity, production mock leakage, test assertions, boundary-test planning, and reuse-first compliance before quality-gate completion.
+```
+
+确定性脚本：
+
+```bash
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
+```
+
+### 使用 Harness v6.1.0
+
+Harness v6.1.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+
+```text
+Use Project Governor Harness v6.1.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -337,13 +354,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.6 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.0.6
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
 ```
 
 从项目外发现已治理仓库：
@@ -443,7 +460,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.0.6
+python3 tools/install_or_update_user_plugin.py --ref v6.1.0
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor
@@ -460,6 +477,7 @@ python3 skills/route-guard/scripts/check_route_guard.py examples/route-guard-mic
 python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent-activation-standard-feature.json
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
+python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
@@ -487,7 +505,7 @@ make test
 - 必需模板文件。
 - `.codex/rules/project.rules` 的合法决策值。
 - 初始化脚本不会覆盖已有应用代码。
-- implementation guard、style drift、upgrade advisor、version researcher、research radar、memory classifier 的核心输出。
+- implementation guard、style drift、engineering standards、upgrade advisor、version researcher、research radar、memory classifier 的核心输出。
 - session learning 会把失败命令、重复错误和过期记忆候选写入可检索的记忆层。
 - 中文文档入口和关键技能说明。
 

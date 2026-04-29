@@ -36,6 +36,18 @@ When `.project-governor/context/DOCS_MANIFEST.json` and `CONTEXT_INDEX.json` are
 - Preserve template paths because `tools/init_project.py` copies them into target repositories.
 - Do not rewrite a skill, script, or template family when a focused edit is enough.
 
+## Engineering Standards
+
+For coding work that changes production or test code:
+
+- run `engineering-standards-governor` before final `quality-gate`
+- keep source files and functions within documented project thresholds unless an ADR/PDR approves a temporary exception
+- scan for mock leakage so production code does not import mocks, fixtures, test data, or test-only libraries
+- require `TEST_PLAN.md` to cover normal, boundary, error, regression, integration/contract, frontend interaction, and explicit not-tested rationale rows when relevant
+- require a `PATTERN_REUSE_PLAN.md` before creating new components, services, hooks, schemas, fixtures, or helpers
+
+Do not leave partial mock implementations in production paths. If a mock is used for an external dependency, record the real contract and the integration, contract, or smoke test that protects it.
+
 ## Forbidden By Default
 
 Do not:

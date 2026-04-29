@@ -11,6 +11,7 @@ context-indexer v2 = project-local context memory
 session-lifecycle = state and handoff layer
 memory-compact session learning = failed-command and stale-memory capture
 route-guard = git-diff-derived guardrail facts
+engineering-standards-governor = source size, complexity, mock leakage, and test-hygiene scan
 quality-gate = evidence-aware verification gate
 merge-readiness = evidence-based final readiness
 harness-doctor = install and execution diagnosis

@@ -5,7 +5,7 @@ description: Find existing components, services, hooks, schemas, tests, and styl
 
 # Pattern Reuse Engine
 
-Use before implementation when a change could introduce components, services, hooks, schemas, API clients, state, styles, or tests.
+Use before implementation when a change could introduce components, services, hooks, schemas, API clients, state, styles, fixtures, mocks, helpers, or tests.
 
 ## Automatic subagent activation
 
@@ -19,7 +19,8 @@ Use `pattern-reuse-scout` for read-only reuse discovery when selected. Do not as
 2. Run selected read-only scouts when subagent mode is optional or required.
 3. Search adjacent implementation.
 4. Identify reusable patterns and forbidden duplicates.
-5. Create `PATTERN_REUSE_PLAN.md`.
+5. Identify existing fixtures, mocks, integration tests, and contract tests before creating new test doubles.
+6. Create `PATTERN_REUSE_PLAN.md`.
 
 ## Output
 
