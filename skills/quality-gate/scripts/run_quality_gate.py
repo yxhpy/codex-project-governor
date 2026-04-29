@@ -60,27 +60,50 @@ def load_evidence(data: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def validate_evidence(evidence: dict[str, Any] | None, required: bool, level: str) -> list[dict[str, Any]]:
+def missing_evidence_findings(evidence: dict[str, Any] | None, required: bool, level: str) -> list[dict[str, Any]]:
+    if evidence is not None:
+        return []
+    if required or level == "strict":
+        return [{"severity": "blocking", "type": "evidence_manifest_missing", "message": "Harness v6 requires an evidence manifest for this gate."}]
+    return []
+
+
+def acceptance_findings(evidence: dict[str, Any], required: bool) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
-    if evidence is None:
-        if required or level == "strict":
-            findings.append({"severity": "blocking", "type": "evidence_manifest_missing", "message": "Harness v6 requires an evidence manifest for this gate."})
-        return findings
     criteria = evidence.get("acceptance_criteria", [])
-    tests = evidence.get("tests", [])
     if required and not criteria:
         findings.append({"severity": "blocking", "type": "acceptance_mapping_missing", "message": "Evidence manifest has no acceptance criteria mapping."})
     for index, item in enumerate(criteria):
         if not isinstance(item, dict) or not item.get("criterion") or not item.get("proof"):
             findings.append({"severity": "blocking", "type": "acceptance_mapping_incomplete", "index": index})
+    return findings
+
+
+def test_evidence_findings(evidence: dict[str, Any], required: bool, level: str) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    tests = evidence.get("tests", [])
     if level in {"standard", "strict"} and required and not tests:
         findings.append({"severity": "blocking", "type": "evidence_tests_missing", "message": "Evidence manifest has no test or verification command records."})
     for index, item in enumerate(tests):
         if not isinstance(item, dict) or not item.get("command") or item.get("status") not in {"passed", "pass", True}:
             findings.append({"severity": "blocking", "type": "evidence_test_not_passing", "index": index, "command": item.get("command") if isinstance(item, dict) else None})
+    return findings
+
+
+def docs_refresh_findings(evidence: dict[str, Any]) -> list[dict[str, Any]]:
     docs_refresh = evidence.get("docs_refresh", {})
     if isinstance(docs_refresh, dict) and docs_refresh.get("needed") is True and not docs_refresh.get("files_updated"):
-        findings.append({"severity": "blocking", "type": "docs_refresh_missing", "message": "Docs refresh was marked needed but no updated files were recorded."})
+        return [{"severity": "blocking", "type": "docs_refresh_missing", "message": "Docs refresh was marked needed but no updated files were recorded."}]
+    return []
+
+
+def validate_evidence(evidence: dict[str, Any] | None, required: bool, level: str) -> list[dict[str, Any]]:
+    findings = missing_evidence_findings(evidence, required, level)
+    if evidence is None:
+        return findings
+    findings.extend(acceptance_findings(evidence, required))
+    findings.extend(test_evidence_findings(evidence, required, level))
+    findings.extend(docs_refresh_findings(evidence))
     return findings
 
 
@@ -125,18 +148,8 @@ def validate_engineering_standards(result: object, level: str) -> list[dict[str,
     return findings
 
 
-def evaluate(data: dict[str, Any]) -> dict[str, Any]:
-    level = normalize_level(data.get("level", data.get("quality_level", "standard")))
+def budget_findings(budget: dict[str, Any], actual: dict[str, Any]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
-    budget = data.get("change_budget", {})
-    actual = data.get("actual", {})
-    checks = data.get("checks", {})
-    route_guard_result = None
-    route = data.get("route", data.get("task_route", ""))
-    docs_only = bool(data.get("docs_only") or route == "docs_only")
-    require_evidence = bool(data.get("require_evidence") or data.get("evidence_required") or level == "strict")
-    require_commands = bool(data.get("require_commands") or (level in {"standard", "strict"} and not docs_only and not data.get("allow_no_commands")))
-
     if actual.get("files_changed", 0) > budget.get("max_files_changed", 10):
         findings.append({"severity": "blocking", "type": "change_budget_exceeded", "metric": "files_changed"})
     if actual.get("new_files", 0) > budget.get("max_new_files", 3):
@@ -147,13 +160,21 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
         findings.append({"severity": "blocking", "type": "unapproved_public_contract_change"})
     if actual.get("schema_changes", 0) and not budget.get("allow_schema_changes", False):
         findings.append({"severity": "blocking", "type": "unapproved_schema_change"})
+    return findings
 
+
+def route_guard_findings(data: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
     if data.get("route_guard"):
         route_guard_result = run_route_guard(data["route_guard"])
         if route_guard_result.get("status") == "fail":
-            findings.append({"severity": "blocking", "type": "route_guard_failed", "message": "Actual diff exceeded the selected route.", "route_guard": route_guard_result})
+            return [{"severity": "blocking", "type": "route_guard_failed", "message": "Actual diff exceeded the selected route.", "route_guard": route_guard_result}], route_guard_result
+        return [], route_guard_result
+    return [], None
 
-    for name, status, severity, required, message in iter_checks(checks):
+
+def check_findings(check_rows: list[tuple[str, object, str, bool, str]], level: str) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for name, status, severity, required, message in check_rows:
         if status in {"fail", "failed", "blocked", False}:
             findings.append({"severity": severity, "type": "check_failed", "check": name, "message": message})
         elif status in {"not_run", "skipped", None}:
@@ -161,15 +182,33 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
             findings.append({"severity": finding_severity, "type": "check_not_run", "check": name, "message": message})
         elif status in {"warn", "warning"}:
             findings.append({"severity": "warning", "type": "check_warning", "check": name, "message": message})
+    return findings
 
-    commands = data.get("commands", [])
+
+def command_findings(commands: list[Any], require_commands: bool) -> list[dict[str, Any]]:
     if require_commands and not commands:
-        findings.append({"severity": "blocking", "type": "no_commands_recorded", "message": "Harness v6 standard/strict gates require recorded verification commands unless docs-only."})
+        return [{"severity": "blocking", "type": "no_commands_recorded", "message": "Harness v6 standard/strict gates require recorded verification commands unless docs-only."}]
+    return []
 
-    evidence = load_evidence(data)
-    findings.extend(validate_evidence(evidence, require_evidence, level))
-    findings.extend(validate_engineering_standards(data.get("engineering_standards"), level))
 
+def gate_requirements(data: dict[str, Any], level: str) -> tuple[bool, bool]:
+    route = data.get("route", data.get("task_route", ""))
+    docs_only = bool(data.get("docs_only") or route == "docs_only")
+    require_evidence = bool(data.get("require_evidence") or data.get("evidence_required") or level == "strict")
+    require_commands = bool(data.get("require_commands") or (level in {"standard", "strict"} and not docs_only and not data.get("allow_no_commands")))
+    return require_evidence, require_commands
+
+
+def result_payload(
+    *,
+    level: str,
+    findings: list[dict[str, Any]],
+    commands: list[Any],
+    route_guard_result: dict[str, Any] | None,
+    evidence: dict[str, Any] | None,
+    require_evidence: bool,
+    check_count: int,
+) -> dict[str, Any]:
     blockers = [item for item in findings if item["severity"] == "blocking"]
     warnings = [item for item in findings if item["severity"] != "blocking"]
     return {
@@ -185,8 +224,36 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
         "evidence_required": require_evidence,
         "evidence": evidence,
         "repair_loop_required": bool(blockers),
-        "summary": {"blocker_count": len(blockers), "warning_count": len(warnings), "checks_reported": len(iter_checks(checks)), "commands_reported": len(commands)},
+        "summary": {"blocker_count": len(blockers), "warning_count": len(warnings), "checks_reported": check_count, "commands_reported": len(commands)},
     }
+
+
+def evaluate(data: dict[str, Any]) -> dict[str, Any]:
+    level = normalize_level(data.get("level", data.get("quality_level", "standard")))
+    require_evidence, require_commands = gate_requirements(data, level)
+    commands = data.get("commands", [])
+    check_rows = iter_checks(data.get("checks", {}))
+
+    findings: list[dict[str, Any]] = []
+    findings.extend(budget_findings(data.get("change_budget", {}), data.get("actual", {})))
+    route_findings, route_guard_result = route_guard_findings(data)
+    findings.extend(route_findings)
+    findings.extend(check_findings(check_rows, level))
+    findings.extend(command_findings(commands, require_commands))
+
+    evidence = load_evidence(data)
+    findings.extend(validate_evidence(evidence, require_evidence, level))
+    findings.extend(validate_engineering_standards(data.get("engineering_standards"), level))
+
+    return result_payload(
+        level=level,
+        findings=findings,
+        commands=commands,
+        route_guard_result=route_guard_result,
+        evidence=evidence,
+        require_evidence=require_evidence,
+        check_count=len(check_rows),
+    )
 
 
 def main() -> int:

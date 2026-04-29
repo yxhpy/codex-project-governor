@@ -200,28 +200,9 @@ def apply(plugin_dir: Path, marketplace_path: Path, repo_url: str, ref: str, run
             }
         operations.extend(checkout_ref(plugin_dir, ref))
     else:
-        plugin_dir.parent.mkdir(parents=True, exist_ok=True)
-        git_output(["clone", repo_url, str(plugin_dir)], cwd=plugin_dir.parent)
-        operations.append({"op": "git_clone", "status": "applied", "repo_url": repo_url})
-        operations.extend(checkout_ref(plugin_dir, ref))
-
-    marketplace_path.parent.mkdir(parents=True, exist_ok=True)
-    marketplace = load_marketplace(marketplace_path)
-    marketplace, entry = upsert_marketplace_entry(marketplace, plugin_dir, marketplace_path)
-    marketplace_path.write_text(json.dumps(marketplace, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    operations.append({"op": "write_marketplace_entry", "status": "applied", "path": str(marketplace_path)})
-
-    selftest = plugin_dir / "tests" / "selftest.py"
-    selftest_status = "skipped"
-    if run_selftest and selftest.exists():
-        proc = run([sys.executable, str(selftest)], cwd=plugin_dir, check=False)
-        selftest_status = "passed" if proc.returncode == 0 else "failed"
-        operations.append({
-            "op": "run_selftest",
-            "status": selftest_status,
-            "returncode": proc.returncode,
-        })
-
+        operations.extend(clone_checkout(plugin_dir, repo_url, ref))
+    entry = write_marketplace_entry(marketplace_path, plugin_dir, operations)
+    selftest_status = run_selftest_if_requested(plugin_dir, run_selftest, operations)
     status = "applied" if selftest_status != "failed" else "applied_with_selftest_failure"
     return {
         "status": status,
@@ -238,6 +219,33 @@ def apply(plugin_dir: Path, marketplace_path: Path, repo_url: str, ref: str, run
             "Use plugin-upgrade-migrator inside initialized projects when governance files need migration.",
         ],
     }
+
+
+def clone_checkout(plugin_dir: Path, repo_url: str, ref: str) -> list[dict]:
+    plugin_dir.parent.mkdir(parents=True, exist_ok=True)
+    git_output(["clone", repo_url, str(plugin_dir)], cwd=plugin_dir.parent)
+    operations = [{"op": "git_clone", "status": "applied", "repo_url": repo_url}]
+    operations.extend(checkout_ref(plugin_dir, ref))
+    return operations
+
+
+def write_marketplace_entry(marketplace_path: Path, plugin_dir: Path, operations: list[dict]) -> dict:
+    marketplace_path.parent.mkdir(parents=True, exist_ok=True)
+    marketplace = load_marketplace(marketplace_path)
+    marketplace, entry = upsert_marketplace_entry(marketplace, plugin_dir, marketplace_path)
+    marketplace_path.write_text(json.dumps(marketplace, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    operations.append({"op": "write_marketplace_entry", "status": "applied", "path": str(marketplace_path)})
+    return entry
+
+
+def run_selftest_if_requested(plugin_dir: Path, run_selftest: bool, operations: list[dict]) -> str:
+    selftest = plugin_dir / "tests" / "selftest.py"
+    if not (run_selftest and selftest.exists()):
+        return "skipped"
+    proc = run([sys.executable, str(selftest)], cwd=plugin_dir, check=False)
+    status = "passed" if proc.returncode == 0 else "failed"
+    operations.append({"op": "run_selftest", "status": status, "returncode": proc.returncode})
+    return status
 
 
 def main() -> int:

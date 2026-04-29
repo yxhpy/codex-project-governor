@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+VALID_TEST_STATUSES = {"passed", "pass", True, "failed", "fail", "not_run", "skipped"}
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -44,21 +46,44 @@ def merge_manifest(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, 
     return merged
 
 
-def validate(manifest: dict[str, Any]) -> dict[str, Any]:
+def required_field_blockers(manifest: dict[str, Any]) -> list[str]:
     blockers: list[str] = []
     if not manifest.get("task_id"):
         blockers.append("task_id is missing")
     if not manifest.get("route"):
         blockers.append("route is missing")
+    return blockers
+
+
+def acceptance_blockers(manifest: dict[str, Any]) -> list[str]:
+    blockers: list[str] = []
     for index, item in enumerate(manifest.get("acceptance_criteria", [])):
         if not isinstance(item, dict) or not item.get("criterion") or not item.get("proof"):
             blockers.append(f"acceptance_criteria[{index}] must include criterion and proof")
+    return blockers
+
+
+def test_blockers(manifest: dict[str, Any]) -> list[str]:
+    blockers: list[str] = []
     for index, item in enumerate(manifest.get("tests", [])):
-        if not isinstance(item, dict) or not item.get("command") or item.get("status") not in {"passed", "pass", True, "failed", "fail", "not_run", "skipped"}:
+        if not isinstance(item, dict) or not item.get("command") or item.get("status") not in VALID_TEST_STATUSES:
             blockers.append(f"tests[{index}] must include command and valid status")
+    return blockers
+
+
+def docs_refresh_blockers(manifest: dict[str, Any]) -> list[str]:
     docs_refresh = manifest.get("docs_refresh", {})
     if isinstance(docs_refresh, dict) and docs_refresh.get("needed") is True and not docs_refresh.get("files_updated"):
-        blockers.append("docs_refresh.needed=true requires files_updated")
+        return ["docs_refresh.needed=true requires files_updated"]
+    return []
+
+
+def validate(manifest: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    blockers.extend(required_field_blockers(manifest))
+    blockers.extend(acceptance_blockers(manifest))
+    blockers.extend(test_blockers(manifest))
+    blockers.extend(docs_refresh_blockers(manifest))
     return {"status": "pass" if not blockers else "fail", "blockers": blockers}
 
 

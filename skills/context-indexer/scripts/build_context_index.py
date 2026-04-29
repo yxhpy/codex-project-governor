@@ -4,12 +4,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
+
+from build_context_roles import role_for, session_brief
 
 IGNORE_PARTS = {".git", "node_modules", ".venv", "venv", "dist", "build", "coverage", ".next", ".turbo", "__pycache__"}
 IGNORE_PREFIXES = (
@@ -103,49 +104,6 @@ def redact(text: str) -> str:
     for pattern in SECRET_PATTERNS:
         redacted = pattern.sub("[REDACTED_SECRET]", redacted)
     return redacted
-
-
-def role_for(rel: str, text: str) -> list[str]:
-    low = rel.lower()
-    sample = text.lower()
-    roles: list[str] = []
-    if rel == "AGENTS.md" or "agents.md" in low:
-        roles.append("agent_instructions")
-    if "docs/memory" in low or ".project-governor/state" in low:
-        roles.append("memory")
-    if low.startswith("tasks/") or ".project-governor/state" in low:
-        roles.append("task_history")
-    if low.startswith(("docs/upgrades/", "docs/research/", "releases/")):
-        roles.append("governance_history")
-    if "docs/decisions" in low or "adr" in low or "pdr" in low:
-        roles.append("decision")
-    if "docs/conventions" in low or "pattern" in low or "component_registry" in low:
-        roles.append("conventions")
-    if "docs/quality" in low or "quality" in low or "gate" in low:
-        roles.append("quality")
-    if "test" in low or "spec" in low:
-        roles.append("test")
-    if "component" in low or rel.endswith((".tsx", ".jsx", ".vue", ".svelte")):
-        roles.append("ui_or_component")
-    if "api" in low or "route" in low or "controller" in low or "endpoint" in sample:
-        roles.append("api")
-    if "schema" in low or "model" in low or "migration" in low:
-        roles.append("data_model")
-    if rel == "DESIGN.md" or "design" in low or "token" in low:
-        roles.append("design")
-    if any(term in low or term in sample for term in ["auth", "oauth", "session", "permission", "rbac", "login"]):
-        roles.append("auth")
-    if any(term in low or term in sample for term in ["payment", "billing", "invoice", "refund", "checkout"]):
-        roles.append("payment")
-    if contains_secret(text) or any(term in sample for term in ["secret", "token", "password", "private key"]):
-        roles.append("security")
-    if not roles and rel.endswith(".md"):
-        roles.append("doc")
-    if not roles:
-        roles.append("code")
-    return sorted(set(roles))
-
-
 def tokens(text: str) -> list[str]:
     safe = redact(text.lower())
     raw = re.findall(r"[a-zA-Z0-9_\-]{3,}|[\u4e00-\u9fff]{2,}", safe)
@@ -218,26 +176,28 @@ def approx_tokens(text: str) -> int:
 def slugify(text: str, fallback: str = "section") -> str:
     slug = re.sub(r"[^a-zA-Z0-9\u4e00-\u9fff]+", "-", text.strip().lower()).strip("-")
     return slug[:80] or fallback
-
-
+STATUS_ALIASES = {
+    "有效": "active",
+    "草稿": "draft",
+    "过期": "stale",
+    "已取代": "superseded",
+    "deprecated": "stale",
+    "obsolete": "stale",
+    "superseded_by": "superseded",
+}
+def explicit_doc_status(text: str) -> str | None:
+    match = re.search(r"(?im)^\s*(?:status|状态)\s*[:|]\s*([a-z_ -]+|有效|草稿|过期|已取代)", text[:4_000])
+    if not match:
+        return None
+    raw = match.group(1).strip().lower().replace(" ", "_").replace("-", "_")
+    status = STATUS_ALIASES.get(raw, raw)
+    return status if status in DOC_STATUSES else None
 def doc_status_for(rel: str, text: str) -> str:
     low_rel = rel.lower()
     low = text[:4_000].lower()
-    match = re.search(r"(?im)^\s*(?:status|状态)\s*[:|]\s*([a-z_ -]+|有效|草稿|过期|已取代)", text[:4_000])
-    if match:
-        raw = match.group(1).strip().lower().replace(" ", "_").replace("-", "_")
-        aliases = {
-            "有效": "active",
-            "草稿": "draft",
-            "过期": "stale",
-            "已取代": "superseded",
-            "deprecated": "stale",
-            "obsolete": "stale",
-            "superseded_by": "superseded",
-        }
-        status = aliases.get(raw, raw)
-        if status in DOC_STATUSES:
-            return status
+    status = explicit_doc_status(text)
+    if status:
+        return status
     if "superseded_by:" in low or "superseded by:" in low or "已取代" in low:
         return "superseded"
     if "status: draft" in low or "draft:" in low_rel:
@@ -245,54 +205,62 @@ def doc_status_for(rel: str, text: str) -> str:
     if "status: stale" in low or "deprecated:" in low:
         return "stale"
     return "active"
-
-
-def extract_sections(rel: str, text: str, doc_status: str) -> list[dict[str, object]]:
-    if language_for(Path(rel)) != "markdown":
-        return []
-    lines = text.splitlines()
+def markdown_headings(lines: list[str]) -> list[tuple[int, int, str]]:
     headings: list[tuple[int, int, str]] = []
     for idx, line in enumerate(lines, start=1):
         match = re.match(r"^(#{1,4})\s+(.+?)\s*$", line)
         if match:
             headings.append((idx, len(match.group(1)), match.group(2).strip()))
+    return headings
+def root_section(rel: str, lines: list[str], doc_status: str) -> list[dict[str, object]]:
+    body = "\n".join(lines[:80])
+    return [{
+        "id": "root",
+        "heading": Path(rel).name,
+        "level": 0,
+        "line_start": 1,
+        "line_end": min(len(lines), 80),
+        "status": doc_status,
+        "summary": summarize(body),
+        "tokens": tokens(body)[:80],
+        "char_count": len(body),
+        "token_estimate": approx_tokens(body),
+    }]
+def section_id_for(heading: str, seen: dict[str, int]) -> str:
+    section_id_base = slugify(heading)
+    seen[section_id_base] = seen.get(section_id_base, 0) + 1
+    return section_id_base if seen[section_id_base] == 1 else f"{section_id_base}-{seen[section_id_base]}"
+def section_entry(rel: str, lines: list[str], heading_data: tuple[int, int, str], line_end: int, doc_status: str, seen: dict[str, int]) -> dict[str, object]:
+    line_no, level, heading = heading_data
+    body = "\n".join(lines[line_no - 1:line_end])
+    section_status = doc_status_for(rel, body)
+    if section_status == "active":
+        section_status = doc_status
+    return {
+        "id": section_id_for(heading, seen),
+        "heading": heading,
+        "level": level,
+        "line_start": line_no,
+        "line_end": line_end,
+        "status": section_status,
+        "summary": summarize(body),
+        "tokens": tokens(heading + "\n" + body)[:80],
+        "char_count": len(body),
+        "token_estimate": approx_tokens(body),
+    }
+def extract_sections(rel: str, text: str, doc_status: str) -> list[dict[str, object]]:
+    if language_for(Path(rel)) != "markdown":
+        return []
+    lines = text.splitlines()
+    headings = markdown_headings(lines)
     if not headings and lines:
-        body = "\n".join(lines[:80])
-        return [{
-            "id": "root",
-            "heading": Path(rel).name,
-            "level": 0,
-            "line_start": 1,
-            "line_end": min(len(lines), 80),
-            "status": doc_status,
-            "summary": summarize(body),
-            "tokens": tokens(body)[:80],
-            "char_count": len(body),
-            "token_estimate": approx_tokens(body),
-        }]
+        return root_section(rel, lines, doc_status)
     sections: list[dict[str, object]] = []
     seen: dict[str, int] = {}
-    for pos, (line_no, level, heading) in enumerate(headings[:40]):
+    for pos, heading_data in enumerate(headings[:40]):
+        line_no = heading_data[0]
         next_line = headings[pos + 1][0] - 1 if pos + 1 < len(headings) else len(lines)
-        body = "\n".join(lines[line_no - 1:next_line])
-        section_id_base = slugify(heading)
-        seen[section_id_base] = seen.get(section_id_base, 0) + 1
-        section_id = section_id_base if seen[section_id_base] == 1 else f"{section_id_base}-{seen[section_id_base]}"
-        section_status = doc_status_for(rel, body)
-        if section_status == "active":
-            section_status = doc_status
-        sections.append({
-            "id": section_id,
-            "heading": heading,
-            "level": level,
-            "line_start": line_no,
-            "line_end": next_line,
-            "status": section_status,
-            "summary": summarize(body),
-            "tokens": tokens(heading + "\n" + body)[:80],
-            "char_count": len(body),
-            "token_estimate": approx_tokens(body),
-        })
+        sections.append(section_entry(rel, lines, heading_data, next_line, doc_status, seen))
     return sections
 
 
@@ -348,7 +316,7 @@ def build(project: Path) -> dict:
         language = language_for(path)
         stat = path.stat()
         sensitive = contains_secret(text)
-        roles = role_for(rel, text)
+        roles = role_for(rel, text, sensitive)
         doc_status = doc_status_for(rel, text)
         entries.append({
             "path": rel,
@@ -378,41 +346,6 @@ def build(project: Path) -> dict:
         "entry_count": len(entries),
         "entries": entries,
     }
-
-
-def session_brief(index: dict) -> str:
-    entries = index["entries"]
-    core = [e for e in entries if any(r in e["roles"] for r in ["agent_instructions", "conventions", "quality", "memory", "decision", "task_history", "governance_history", "design"])]
-    lines = [
-        "# Project Governor Harness v6 Session Brief",
-        "",
-        "Use this brief before reading large project docs. Query CONTEXT_INDEX.json for task-specific files.",
-        "",
-        f"Schema: `{index['schema']}`",
-        f"Indexed files: {index['entry_count']}",
-        f"Git head: `{index.get('git', {}).get('head') or 'unknown'}`",
-        f"Dirty working tree: `{index.get('git', {}).get('dirty')}`",
-        "",
-        "## Core references",
-        "",
-    ]
-    for entry in core[:25]:
-        suffix = " sensitive" if entry.get("sensitive") else ""
-        lines.append(f"- `{entry['path']}` — {', '.join(entry['roles'])}{suffix}")
-    lines.extend([
-        "",
-        "## Policy",
-        "",
-        "- Do not read all initialization documents unless the context query is insufficient.",
-        "- Read `.project-governor/context/DOCS_MANIFEST.json` before deciding which large docs to open.",
-        "- Prefer `recommended_sections` line ranges from context queries before opening full documents.",
-        "- At session start, run memory-search for prior command failures, repeated mistakes, stale-memory notes, decisions, and task history related to the request.",
-        "- Prefer task-specific retrieval from `.project-governor/context/CONTEXT_INDEX.json`.",
-        "- Treat stale or superseded docs as avoid-by-default unless the task is explicitly about cleanup or history.",
-        "- Start non-trivial work with `.project-governor/state/SESSION.json`; finish with evidence and `record_session_learning.py` for failed commands or stale memories.",
-        "- Use fast read-only scouting for retrieval and high-reasoning models for implementation/review when available.",
-    ])
-    return "\n".join(lines) + "\n"
 
 
 def main() -> int:

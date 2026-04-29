@@ -58,19 +58,42 @@ def sha256(path: Path) -> str:
     digest.update(path.read_bytes())
     return digest.hexdigest()
 
-def main():
-    lint = load_script("design_md_lint.py")
-    verify = load_script("verify_design_usage.py")
-    select = load_script("select_aesthetic.py")
-    env_check = load_script("design_env_check.py")
-    smoke = load_script("design_service_smoke.py")
-    review = load_script("design_service_review.py")
+
+def run_preflight(project: Path) -> dict:
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(SKILL / "scripts" / "design_md_gate.py"),
+            "preflight",
+            "--task",
+            "ui prototype",
+        ],
+        cwd=project,
+        text=True,
+        capture_output=True,
+        check=True,
+        env={},
+    )
+    return json.loads(proc.stdout)
+
+
+def assert_usage_scan(verify, design: Path, component: Path) -> None:
+    usage_findings, scanned = verify.scan_files([component], verify.parse_design_colors(design))
+    assert scanned == [str(component)], scanned
+    assert {item["kind"] for item in usage_findings} == {"raw-hex-not-in-design-md", "tailwind-palette-class"}, usage_findings
+
+
+def test_full_service_flow(lint, verify, env_check, smoke, review) -> None:
     with tempfile.TemporaryDirectory() as td:
         p = Path(td)
         design = p / "DESIGN.md"
         design.write_text(DESIGN, encoding="utf-8")
         report = lint.lint_design_md(design)
         assert report["summary"]["errors"] == 0, report
+        component = p / "src" / "components" / "App.tsx"
+        component.parent.mkdir(parents=True)
+        component.write_text('<button className="bg-blue-500" style={{ color: "#123456" }} />\n', encoding="utf-8")
+        assert_usage_scan(verify, design, component)
         missing = env_check.check_design_env(p, environ={}, write_missing_template=True)
         assert missing["ok"] is False, missing
         assert missing["missing"] == ["GEMINI_BASE_URL", "GEMINI_API_KEY", "GEMINI_MODEL", "STITCH_MCP_API_KEY"], missing
@@ -95,21 +118,7 @@ def main():
         assert configured["gemini_protocol"] == "auto", configured
         assert configured["stitch_mcp_url"] == "https://stitch.googleapis.com/mcp", configured
         assert "test-gemini-key" not in json.dumps(configured), configured
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(SKILL / "scripts" / "design_md_gate.py"),
-                "preflight",
-                "--task",
-                "ui prototype",
-            ],
-            cwd=p,
-            text=True,
-            capture_output=True,
-            check=True,
-            env={},
-        )
-        proof = json.loads(proc.stdout)
+        proof = run_preflight(p)
         assert proof["ok"] is True, proof
         assert proof["design_env"]["ok"] is True, proof
         assert proof["design_env"]["mode"] == "full_service", proof
@@ -128,6 +137,9 @@ def main():
         prompt = review.build_review_prompt("ui prototype", design, report)
         assert "Review this UI/frontend task" in prompt, prompt
         assert "test-gemini-key" not in prompt, prompt
+
+
+def test_env_override(env_check) -> None:
     with tempfile.TemporaryDirectory() as td:
         env_configured = env_check.check_design_env(
             Path(td),
@@ -145,6 +157,9 @@ def main():
         assert env_configured["gemini_protocol"] == "gemini", env_configured
         assert env_configured["stitch_mcp_url"] == "https://stitch.example/mcp", env_configured
         assert "env-gemini-key" not in json.dumps(env_configured), env_configured
+
+
+def test_basic_env_mode(env_check) -> None:
     with tempfile.TemporaryDirectory() as td:
         basic = env_check.check_design_env(
             Path(td),
@@ -155,6 +170,9 @@ def main():
         assert basic["status"] == "basic_mode", basic
         assert basic["mode"] == "basic", basic
         assert not (Path(td) / ".env-design").exists(), basic
+
+
+def test_basic_file_preflight(env_check) -> None:
     with tempfile.TemporaryDirectory() as td:
         p = Path(td)
         (p / "DESIGN.md").write_text(DESIGN, encoding="utf-8")
@@ -166,24 +184,19 @@ def main():
         assert basic_file["basic_mode_source"] == ".env-design", basic_file
         assert basic_file["basic_mode_key"] == "DESIGN_BASIC_MODE", basic_file
         assert basic_file["basic_mode_env"] == "", basic_file
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(SKILL / "scripts" / "design_md_gate.py"),
-                "preflight",
-                "--task",
-                "ui prototype",
-            ],
-            cwd=p,
-            text=True,
-            capture_output=True,
-            check=True,
-            env={},
-        )
-        proof = json.loads(proc.stdout)
+        proof = run_preflight(p)
         assert proof["ok"] is True, proof
         assert proof["design_env"]["ok"] is True, proof
         assert proof["design_env"]["mode"] == "basic", proof
+
+
+def test_design_service_http_version(http) -> None:
+    manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    assert http.PLUGIN_VERSION == manifest["version"], http.PLUGIN_VERSION
+    assert http.USER_AGENT == f"project-governor-design-smoke/{manifest['version']}", http.USER_AGENT
+
+
+def test_hook_basic_mode() -> None:
     with tempfile.TemporaryDirectory() as td:
         p = Path(td)
         design = p / "DESIGN.md"
@@ -219,6 +232,22 @@ def main():
             env={},
         )
         assert allowed.stdout.strip() == "", allowed.stdout
+
+
+def main():
+    lint = load_script("design_md_lint.py")
+    verify = load_script("verify_design_usage.py")
+    load_script("select_aesthetic.py")
+    env_check = load_script("design_env_check.py")
+    http = load_script("design_service_http.py")
+    smoke = load_script("design_service_smoke.py")
+    review = load_script("design_service_review.py")
+    test_full_service_flow(lint, verify, env_check, smoke, review)
+    test_env_override(env_check)
+    test_basic_env_mode(env_check)
+    test_basic_file_preflight(env_check)
+    test_design_service_http_version(http)
+    test_hook_basic_mode()
     print("OK")
 
 if __name__ == "__main__":

@@ -110,17 +110,39 @@ def subagents_for(route: str, mode: str) -> list[str]:
     return list(dict.fromkeys(base))
 
 
+UPGRADE_SEQUENCE = [
+    "session-lifecycle",
+    "version-researcher",
+    "upgrade-advisor",
+    "plugin-upgrade-migrator",
+    "test-first-synthesizer",
+    "engineering-standards-governor",
+    "quality-gate",
+    "evidence-manifest",
+    "merge-readiness",
+]
+
+
+def insert_before(seq: list[str], item: str, before: str) -> None:
+    if item in seq:
+        return
+    index = seq.index(before) if before in seq else len(seq)
+    seq.insert(index, item)
+
+
+def session_required(route: str) -> bool:
+    return route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"}
+
+
 def skill_sequence_from(classification: dict[str, Any], route: str) -> list[str]:
     seq = list(classification.get("required_workflow") or [])
     if route == "upgrade_or_migration":
-        seq = ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"]
-    if route == "standard_feature" and "test-first-synthesizer" not in seq:
-        idx = seq.index("parallel-feature-builder") if "parallel-feature-builder" in seq else len(seq)
-        seq.insert(idx, "test-first-synthesizer")
-    if classification.get("evidence_required") and "evidence-manifest" not in seq:
-        insert_at = seq.index("merge-readiness") if "merge-readiness" in seq else len(seq)
-        seq.insert(insert_at, "evidence-manifest")
-    if route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"} and "session-lifecycle" not in seq:
+        seq = list(UPGRADE_SEQUENCE)
+    if route == "standard_feature":
+        insert_before(seq, "test-first-synthesizer", "parallel-feature-builder")
+    if classification.get("evidence_required"):
+        insert_before(seq, "evidence-manifest", "merge-readiness")
+    if session_required(route) and "session-lifecycle" not in seq:
         seq.insert(0, "session-lifecycle")
     return seq
 
@@ -130,6 +152,106 @@ def skipped_skills(classification: dict[str, Any], route: str) -> list[str]:
     if route == "micro_patch":
         skipped.extend(["session-lifecycle", "evidence-manifest", "harness-doctor"])
     return sorted(set(skipped))
+
+
+def apply_budget_gate(context_budget: dict[str, Any], route_doc_pack: dict[str, Any]) -> None:
+    budget_gate = route_doc_pack.get("context_budget_gate", {}) if isinstance(route_doc_pack, dict) else {}
+    if not budget_gate:
+        return
+    context_budget["max_docs"] = min(context_budget["max_docs"], int(budget_gate.get("max_initial_docs", context_budget["max_docs"])))
+    context_budget["max_sections"] = min(context_budget.get("max_sections", 12), int(budget_gate.get("max_sections", context_budget.get("max_sections", 12))))
+    context_budget["max_total_chars_first"] = int(budget_gate.get("max_total_chars_first", context_budget["max_total_chars"]))
+    context_budget["full_doc_requires_reason"] = bool(budget_gate.get("full_doc_requires_reason", True))
+
+
+def normalized_subagent_mode(classification: dict[str, Any], route: str) -> str:
+    subagent_mode = str(classification.get("subagent_mode", "optional"))
+    if route in {"standard_feature", "risky_feature", "upgrade_or_migration", "research", "refactor"} and subagent_mode == "optional":
+        return "required"
+    return subagent_mode
+
+
+def route_pack_value(route_doc_pack: dict[str, Any], key: str, default: Any) -> Any:
+    if isinstance(route_doc_pack, dict):
+        return route_doc_pack.get(key, default)
+    return default
+
+
+def context_retrieval_policy(route: str, route_doc_pack: dict[str, Any]) -> dict[str, Any]:
+    default_compression = {
+        "strategy": "query_aware_section_excerpts",
+        "prefer_section_summary": True,
+        "defer_full_documents": True,
+    }
+    return {
+        "first_step": "read_docs_manifest_then_query_context_index_v2",
+        "memory_search_first_step": "query_context_index_v2_memory_search",
+        "fallback": "build_context_index_v2",
+        "docs_manifest": ".project-governor/context/DOCS_MANIFEST.json",
+        "session_brief": ".project-governor/context/SESSION_BRIEF.md",
+        "context_index": ".project-governor/context/CONTEXT_INDEX.json",
+        "query_granularity": "section",
+        "read_order": route_pack_value(route_doc_pack, "read_order", []),
+        "stale_doc_filter": {
+            "exclude_statuses_by_default": ["stale", "superseded"],
+            "include_only_when_requested": True,
+        },
+        "compression": route_doc_pack.get("compression", default_compression) if isinstance(route_doc_pack, dict) else {},
+        "startup_memory_search": route not in {"micro_patch", "docs_only"},
+        "read_all_initialization_docs": False,
+    }
+
+
+def state_policy(route: str) -> dict[str, Any]:
+    session_required = route not in {"micro_patch", "docs_only"}
+    return {
+        "state_dir": ".project-governor/state",
+        "session_start": session_required,
+        "session_end": session_required,
+        "command_learning_ledger": ".project-governor/state/COMMAND_LEARNINGS.json",
+        "memory_hygiene_ledger": ".project-governor/state/MEMORY_HYGIENE.json",
+        "one_active_feature_per_session": True,
+        "collision_detection": True,
+    }
+
+
+def memory_policy(route: str) -> dict[str, Any]:
+    memory_required = route not in {"micro_patch", "docs_only"}
+    return {
+        "startup_memory_search_required": memory_required,
+        "startup_memory_search_command": "python3 skills/context-indexer/scripts/query_context_index.py --project . --request <task-request> --memory-search --auto-build --format text",
+        "record_session_learning_required": memory_required,
+        "learning_recorder": "skills/memory-compact/scripts/record_session_learning.py",
+        "failed_commands_target": ".project-governor/state/COMMAND_LEARNINGS.json",
+        "repeated_mistakes_target": "docs/memory/REPEATED_AGENT_MISTAKES.md",
+        "stale_memory_target": ".project-governor/state/MEMORY_HYGIENE.json",
+    }
+
+
+def evidence_policy(evidence_required: bool, gate: str, route: str) -> dict[str, Any]:
+    return {
+        "required": evidence_required,
+        "manifest": ".project-governor/evidence/<task-id>/EVIDENCE.json",
+        "acceptance_mapping_required": evidence_required,
+        "commands_required": gate in {"standard", "strict"} and route != "docs_only",
+    }
+
+
+def quality_rules(route: str, evidence_required: bool) -> dict[str, Any]:
+    return {
+        "do_not_read_all_initialization_docs": True,
+        "do_not_copy_plugin_global_assets": True,
+        "run_route_guard": True,
+        "run_engineering_standards": route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"},
+        "route_guard_uses_git_diff_facts": True,
+        "run_quality_gate": True,
+        "record_failed_commands_before_final": True,
+        "classify_stale_memory_before_final": True,
+        "require_evidence_manifest": evidence_required,
+        "standard_feature_requires_test_first": True,
+        "enforce_context_budget_gate": True,
+        "prefer_section_ranges_before_full_docs": True,
+    }
 
 
 def plan(payload: dict[str, Any]) -> dict[str, Any]:
@@ -142,15 +264,8 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
     model_plan = choose_models(route, gate, prefer_speed, available)
     context_budget = choose_context_budget(route, gate, confidence)
     route_doc_pack = classification.get("route_doc_pack", {})
-    budget_gate = route_doc_pack.get("context_budget_gate", {}) if isinstance(route_doc_pack, dict) else {}
-    if budget_gate:
-        context_budget["max_docs"] = min(context_budget["max_docs"], int(budget_gate.get("max_initial_docs", context_budget["max_docs"])))
-        context_budget["max_sections"] = min(context_budget.get("max_sections", 12), int(budget_gate.get("max_sections", context_budget.get("max_sections", 12))))
-        context_budget["max_total_chars_first"] = int(budget_gate.get("max_total_chars_first", context_budget["max_total_chars"]))
-        context_budget["full_doc_requires_reason"] = bool(budget_gate.get("full_doc_requires_reason", True))
-    subagent_mode = str(classification.get("subagent_mode", "optional"))
-    if route in {"standard_feature", "risky_feature", "upgrade_or_migration", "research", "refactor"} and subagent_mode == "optional":
-        subagent_mode = "required"
+    apply_budget_gate(context_budget, route_doc_pack)
+    subagent_mode = normalized_subagent_mode(classification, route)
     subagents = subagents_for(route, subagent_mode)
     sequence = skill_sequence_from(classification, route)
     evidence_required = bool(classification.get("evidence_required"))
@@ -171,69 +286,15 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
         "model_plan": model_plan,
         "context_budget": context_budget,
         "route_doc_pack": route_doc_pack,
-        "context_retrieval": {
-            "first_step": "read_docs_manifest_then_query_context_index_v2",
-            "memory_search_first_step": "query_context_index_v2_memory_search",
-            "fallback": "build_context_index_v2",
-            "docs_manifest": ".project-governor/context/DOCS_MANIFEST.json",
-            "session_brief": ".project-governor/context/SESSION_BRIEF.md",
-            "context_index": ".project-governor/context/CONTEXT_INDEX.json",
-            "query_granularity": "section",
-            "read_order": route_doc_pack.get("read_order", []) if isinstance(route_doc_pack, dict) else [],
-            "stale_doc_filter": {
-                "exclude_statuses_by_default": ["stale", "superseded"],
-                "include_only_when_requested": True,
-            },
-            "compression": route_doc_pack.get("compression", {
-                "strategy": "query_aware_section_excerpts",
-                "prefer_section_summary": True,
-                "defer_full_documents": True,
-            }) if isinstance(route_doc_pack, dict) else {},
-            "startup_memory_search": route not in {"micro_patch", "docs_only"},
-            "read_all_initialization_docs": False,
-        },
-        "state_policy": {
-            "state_dir": ".project-governor/state",
-            "session_start": route not in {"micro_patch", "docs_only"},
-            "session_end": route not in {"micro_patch", "docs_only"},
-            "command_learning_ledger": ".project-governor/state/COMMAND_LEARNINGS.json",
-            "memory_hygiene_ledger": ".project-governor/state/MEMORY_HYGIENE.json",
-            "one_active_feature_per_session": True,
-            "collision_detection": True,
-        },
-        "memory_policy": {
-            "startup_memory_search_required": route not in {"micro_patch", "docs_only"},
-            "startup_memory_search_command": "python3 skills/context-indexer/scripts/query_context_index.py --project . --request <task-request> --memory-search --auto-build --format text",
-            "record_session_learning_required": route not in {"micro_patch", "docs_only"},
-            "learning_recorder": "skills/memory-compact/scripts/record_session_learning.py",
-            "failed_commands_target": ".project-governor/state/COMMAND_LEARNINGS.json",
-            "repeated_mistakes_target": "docs/memory/REPEATED_AGENT_MISTAKES.md",
-            "stale_memory_target": ".project-governor/state/MEMORY_HYGIENE.json",
-        },
-        "evidence_policy": {
-            "required": evidence_required,
-            "manifest": ".project-governor/evidence/<task-id>/EVIDENCE.json",
-            "acceptance_mapping_required": evidence_required,
-            "commands_required": gate in {"standard", "strict"} and route != "docs_only",
-        },
+        "context_retrieval": context_retrieval_policy(route, route_doc_pack),
+        "state_policy": state_policy(route),
+        "memory_policy": memory_policy(route),
+        "evidence_policy": evidence_policy(evidence_required, gate, route),
         "skill_sequence": sequence,
         "subagent_mode": subagent_mode,
         "subagents": subagents,
         "skipped_skills": skipped_skills(classification, route),
-        "quality_rules": {
-            "do_not_read_all_initialization_docs": True,
-            "do_not_copy_plugin_global_assets": True,
-            "run_route_guard": True,
-            "run_engineering_standards": route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"},
-            "route_guard_uses_git_diff_facts": True,
-            "run_quality_gate": True,
-            "record_failed_commands_before_final": True,
-            "classify_stale_memory_before_final": True,
-            "require_evidence_manifest": evidence_required,
-            "standard_feature_requires_test_first": True,
-            "enforce_context_budget_gate": True,
-            "prefer_section_ranges_before_full_docs": True,
-        },
+        "quality_rules": quality_rules(route, evidence_required),
     }
 
 

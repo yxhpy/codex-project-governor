@@ -16,14 +16,11 @@ SECRET_PATTERNS = [
     re.compile(r"gh[pousr]_[A-Za-z0-9_]{20,}"),
 ]
 
-
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
-
 def today() -> str:
     return utc_now()[:10]
-
 
 def read_json(path: Path, fallback: Any) -> Any:
     if not path.exists():
@@ -32,7 +29,6 @@ def read_json(path: Path, fallback: Any) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return fallback
-
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -110,71 +106,77 @@ def is_repeated(item: dict[str, Any], text: str) -> bool:
     return any(term in lower for term in ["repeated", "again", "keeps", "kept", "重复", "又", "再次"])
 
 
+def has_signal(kind: str, lower: str, kinds: set[str], terms: list[str]) -> bool:
+    return kind in kinds or any(term in lower for term in terms)
+
+
+def secret_classification() -> dict[str, Any]:
+    return {
+        "classification": "secret_or_sensitive",
+        "target_layer": "skip",
+        "action": "do_not_store",
+        "reason": "candidate contains secret-like content",
+    }
+
+
+def command_classification(item: dict[str, Any], text: str) -> dict[str, Any]:
+    target = ".project-governor/state/COMMAND_LEARNINGS.json"
+    if is_repeated(item, text):
+        return {
+            "classification": "repeated_mistake",
+            "target_layer": "docs/memory/REPEATED_AGENT_MISTAKES.md",
+            "action": "record_and_promote",
+            "ledger": target,
+        }
+    return {
+        "classification": "command_learning",
+        "target_layer": target,
+        "action": "record_for_next_session_memory_search",
+    }
+
+
+def layer_classification(classification: str, target_layer: str, action: str) -> dict[str, Any]:
+    return {"classification": classification, "target_layer": target_layer, "action": action}
+
+
+def repeated_signal(kind: str, lower: str) -> bool:
+    return kind == "repeated_mistake" or "repeated mistake" in lower or "agent keeps" in lower or "codex keeps" in lower
+
+
+def risk_signal(kind: str, lower: str) -> bool:
+    return kind == "risk" or lower.startswith("risk:") or "risk register" in lower
+
+
+def open_question_signal(kind: str, lower: str, text: str) -> bool:
+    return kind == "open_question" or "?" in text or lower.startswith("question:") or "unknown" in lower or "unclear" in lower
+
+
+def fallback_classifications(kind: str, lower: str, text: str) -> list[tuple[bool, dict[str, Any]]]:
+    return [
+        (
+            has_signal(kind, lower, {"stale_memory", "stale_item", "superseded_memory"}, ["stale memory", "stale item", "superseded", "deprecated", "outdated", "过期", "失效"]),
+            layer_classification("stale_memory", ".project-governor/state/MEMORY_HYGIENE.json", "queue_for_supersede_or_prune"),
+        ),
+        (repeated_signal(kind, lower), layer_classification("repeated_mistake", "docs/memory/REPEATED_AGENT_MISTAKES.md", "record_and_consider_rule")),
+        (risk_signal(kind, lower), layer_classification("risk", "docs/memory/RISK_REGISTER.md", "record_risk")),
+        (open_question_signal(kind, lower, text), layer_classification("open_question", "docs/memory/OPEN_QUESTIONS.md", "record_question")),
+    ]
+
+
 def classify(item: dict[str, Any]) -> dict[str, Any]:
     text = item_text(item)
     lower = text.lower()
     kind = str(item.get("type") or item.get("kind") or "").lower()
     if contains_secret(text):
-        return {
-            "classification": "secret_or_sensitive",
-            "target_layer": "skip",
-            "action": "do_not_store",
-            "reason": "candidate contains secret-like content",
-        }
+        return secret_classification()
 
-    command_signal = kind in {"command_failure", "failed_command", "command_error"} or any(
-        term in lower for term in ["command failed", "exit code", "returncode", "permission denied", "approval required", "命令失败", "执行错误"]
-    )
-    stale_signal = kind in {"stale_memory", "stale_item", "superseded_memory"} or any(
-        term in lower for term in ["stale memory", "stale item", "superseded", "deprecated", "outdated", "过期", "失效"]
-    )
-    repeated_signal = kind == "repeated_mistake" or "repeated mistake" in lower or "agent keeps" in lower or "codex keeps" in lower
-    risk_signal = kind == "risk" or lower.startswith("risk:") or "risk register" in lower
-    open_question_signal = kind == "open_question" or "?" in text or lower.startswith("question:") or "unknown" in lower or "unclear" in lower
-
+    command_signal = has_signal(kind, lower, {"command_failure", "failed_command", "command_error"}, ["command failed", "exit code", "returncode", "permission denied", "approval required", "命令失败", "执行错误"])
     if command_signal:
-        target = ".project-governor/state/COMMAND_LEARNINGS.json"
-        if is_repeated(item, text):
-            return {
-                "classification": "repeated_mistake",
-                "target_layer": "docs/memory/REPEATED_AGENT_MISTAKES.md",
-                "action": "record_and_promote",
-                "ledger": target,
-            }
-        return {
-            "classification": "command_learning",
-            "target_layer": target,
-            "action": "record_for_next_session_memory_search",
-        }
-    if stale_signal:
-        return {
-            "classification": "stale_memory",
-            "target_layer": ".project-governor/state/MEMORY_HYGIENE.json",
-            "action": "queue_for_supersede_or_prune",
-        }
-    if repeated_signal:
-        return {
-            "classification": "repeated_mistake",
-            "target_layer": "docs/memory/REPEATED_AGENT_MISTAKES.md",
-            "action": "record_and_consider_rule",
-        }
-    if risk_signal:
-        return {
-            "classification": "risk",
-            "target_layer": "docs/memory/RISK_REGISTER.md",
-            "action": "record_risk",
-        }
-    if open_question_signal:
-        return {
-            "classification": "open_question",
-            "target_layer": "docs/memory/OPEN_QUESTIONS.md",
-            "action": "record_question",
-        }
-    return {
-        "classification": "temporary_note",
-        "target_layer": "task_or_session_only",
-        "action": "do_not_promote_without_evidence",
-    }
+        return command_classification(item, text)
+    for matched, result in fallback_classifications(kind, lower, text):
+        if matched:
+            return result
+    return layer_classification("temporary_note", "task_or_session_only", "do_not_promote_without_evidence")
 
 
 def ensure_markdown(path: Path, header: str, table_header: str) -> None:
@@ -190,36 +192,80 @@ def append_line(path: Path, line: str, header: str, table_header: str) -> None:
         fh.write(line + "\n")
 
 
+def touch_existing_learning(entry: dict[str, Any]) -> None:
+    entry["last_seen_at"] = utc_now()
+    entry["times_seen"] = int(entry.get("times_seen", 1)) + 1
+    entry["status"] = "active"
+
+
+def touch_existing_hygiene(entry: dict[str, Any]) -> None:
+    entry["last_seen_at"] = utc_now()
+    entry["times_seen"] = int(entry.get("times_seen", 1)) + 1
+
+
+def command_learning_fields(item: dict[str, Any], source: str) -> dict[str, str]:
+    return {
+        "command": short(str(item.get("command") or item.get("text") or "")),
+        "error": short(str(item.get("error") or item.get("stderr") or "")),
+        "lesson": short(str(item.get("lesson") or item.get("correct_behavior") or "Review this command before repeating it.")),
+        "evidence": short(str(item.get("evidence") or source)),
+    }
+
+
+def repeat_count(item: dict[str, Any], repeated: bool) -> int:
+    fallback = 2 if repeated else 1
+    return int(item.get("repeat_count", fallback) or fallback)
+
+
+def command_learning_entry(item: dict[str, Any], task_id: str, source: str, learning_id: str, repeated: bool) -> dict[str, Any]:
+    fields = command_learning_fields(item, source)
+    return {
+        "id": learning_id,
+        "date": today(),
+        "task_id": task_id,
+        "command": fields["command"],
+        "error_signature": fields["error"],
+        "lesson": fields["lesson"],
+        "classification": "repeated_mistake" if repeated else "command_learning",
+        "times_seen": repeat_count(item, repeated),
+        "first_seen_at": utc_now(),
+        "last_seen_at": utc_now(),
+        "status": "active",
+        "evidence": fields["evidence"],
+    }
+
+
 def upsert_learning(project: Path, item: dict[str, Any], task_id: str, source: str, repeated: bool = False) -> dict[str, Any]:
     path = project / ".project-governor" / "state" / "COMMAND_LEARNINGS.json"
     data = read_json(path, {"schema": "project-governor-command-learnings-v1", "learnings": []})
     command = short(str(item.get("command") or item.get("text") or ""))
     error = short(str(item.get("error") or item.get("stderr") or ""))
     lesson = short(str(item.get("lesson") or item.get("correct_behavior") or "Review this command before repeating it."))
-    evidence = short(str(item.get("evidence") or source))
     learning_id = stable_id(command, error, lesson)
     existing = next((entry for entry in data.setdefault("learnings", []) if entry.get("id") == learning_id), None)
     if existing:
-        existing["last_seen_at"] = utc_now()
-        existing["times_seen"] = int(existing.get("times_seen", 1)) + 1
-        existing["status"] = "active"
+        touch_existing_learning(existing)
         return {"path": str(path), "id": learning_id, "op": "updated"}
-    data["learnings"].append({
-        "id": learning_id,
-        "date": today(),
-        "task_id": task_id,
-        "command": command,
-        "error_signature": error,
-        "lesson": lesson,
-        "classification": "repeated_mistake" if repeated else "command_learning",
-        "times_seen": int(item.get("repeat_count", 2 if repeated else 1) or (2 if repeated else 1)),
-        "first_seen_at": utc_now(),
-        "last_seen_at": utc_now(),
-        "status": "active",
-        "evidence": evidence,
-    })
+    data["learnings"].append(command_learning_entry(item, task_id, source, learning_id, repeated))
     write_json(path, data)
     return {"path": str(path), "id": learning_id, "op": "created"}
+
+
+def hygiene_entry(item: dict[str, Any], task_id: str, source: str, hygiene_id: str) -> dict[str, Any]:
+    return {
+        "id": hygiene_id,
+        "date": today(),
+        "task_id": task_id,
+        "subject": short(str(item.get("memory") or item.get("text") or item.get("path") or "stale memory candidate")),
+        "source_path": str(item.get("path") or ""),
+        "reason": short(str(item.get("reason") or item.get("evidence") or "Marked stale by session learning.")),
+        "recommended_action": short(str(item.get("recommended_action") or "Mark superseded in source memory or prune during memory compaction.")),
+        "status": "open",
+        "times_seen": 1,
+        "first_seen_at": utc_now(),
+        "last_seen_at": utc_now(),
+        "evidence": short(str(item.get("evidence") or source)),
+    }
 
 
 def record_hygiene(project: Path, item: dict[str, Any], task_id: str, source: str) -> dict[str, Any]:
@@ -227,27 +273,12 @@ def record_hygiene(project: Path, item: dict[str, Any], task_id: str, source: st
     data = read_json(path, {"schema": "project-governor-memory-hygiene-v1", "items": []})
     subject = short(str(item.get("memory") or item.get("text") or item.get("path") or "stale memory candidate"))
     reason = short(str(item.get("reason") or item.get("evidence") or "Marked stale by session learning."))
-    action = short(str(item.get("recommended_action") or "Mark superseded in source memory or prune during memory compaction."))
     hygiene_id = stable_id(subject, reason)
     existing = next((entry for entry in data.setdefault("items", []) if entry.get("id") == hygiene_id), None)
     if existing:
-        existing["last_seen_at"] = utc_now()
-        existing["times_seen"] = int(existing.get("times_seen", 1)) + 1
+        touch_existing_hygiene(existing)
         return {"path": str(path), "id": hygiene_id, "op": "updated"}
-    data["items"].append({
-        "id": hygiene_id,
-        "date": today(),
-        "task_id": task_id,
-        "subject": subject,
-        "source_path": str(item.get("path") or ""),
-        "reason": reason,
-        "recommended_action": action,
-        "status": "open",
-        "times_seen": 1,
-        "first_seen_at": utc_now(),
-        "last_seen_at": utc_now(),
-        "evidence": short(str(item.get("evidence") or source)),
-    })
+    data["items"].append(hygiene_entry(item, task_id, source, hygiene_id))
     write_json(path, data)
     return {"path": str(path), "id": hygiene_id, "op": "created"}
 

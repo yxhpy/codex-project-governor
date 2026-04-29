@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.1",
+  "current_latest": "6.2.2",
   "versions": [
     {
       "version": "0.4.1",
@@ -459,6 +459,40 @@
           "name": "Analyzer split quality",
           "summary": "Splits the skill catalog analyzer into focused modules with tests and line-budget coverage.",
           "user_value": "Catalog audits remain maintainable and pass engineering standards without source-size warnings.",
+          "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.2.2",
+      "title": "Diagnostics Baseline Cleanup",
+      "features": [
+        {
+          "id": "diagnostics_baseline_cleanup",
+          "name": "Diagnostics baseline cleanup",
+          "summary": "Refactors touched deterministic helpers and tests so diff-scope and all-scope engineering standards pass without warnings.",
+          "user_value": "Maintainers can ship future governance changes from a clean diagnostics baseline instead of carrying avoidable size and complexity warnings.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "context_architecture_roles",
+          "name": "Architecture context roles",
+          "summary": "Adds architecture role classification for docs/architecture paths so route-specific doc packs can retrieve architecture sources directly.",
+          "user_value": "Refactor and architecture-sensitive work can find the right architecture docs through context-indexer instead of relying on broad document reads.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "design_service_version_identity",
+          "name": "Design service version identity",
+          "summary": "Derives DESIGN.md service smoke client identity from the plugin manifest instead of hard-coded older release strings.",
+          "user_value": "Service smoke requests and MCP initialize metadata stay aligned with the installed plugin version.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "release_diagnostics_evidence",
+          "name": "Release diagnostics evidence",
+          "summary": "Records diagnostics cleanup evidence, expanded regression checks, and context-index refresh coverage in the task quality report.",
+          "user_value": "The release has auditable verification for helper refactors, version consistency, and context retrieval behavior.",
           "requires_project_migration": false
         }
       ]

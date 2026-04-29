@@ -45,19 +45,28 @@ def parse_env_file(path: Path) -> dict[str, str]:
 def is_truthy(value: object) -> bool:
     return str(value).strip().lower() in TRUTHY_VALUES
 
+def has_skip_flag(file_values: dict[str, str]) -> bool:
+    env_skip = any(is_truthy(os.environ.get(key, "")) for key in SKIP_ENV_KEYS)
+    file_skip = any(is_truthy(file_values.get(key, "")) for key in SKIP_ENV_KEYS)
+    return env_skip or file_skip
+
+def alias_configured(aliases: tuple[str, ...], file_values: dict[str, str]) -> bool:
+    env_configured = any(os.environ.get(key, "").strip() for key in aliases)
+    file_configured = any(file_values.get(key, "").strip() for key in aliases)
+    return env_configured or file_configured
+
+def missing_env_keys(file_values: dict[str, str]) -> list[str]:
+    return [
+        canonical
+        for canonical, aliases in REQUIRED_ENV
+        if not alias_configured(aliases, file_values)
+    ]
+
 def design_env_ok(root: Path):
     file_values = parse_env_file(root / ENV_FILE)
-    if any(is_truthy(os.environ.get(key, "")) for key in SKIP_ENV_KEYS):
+    if has_skip_flag(file_values):
         return True, "ok"
-    if any(is_truthy(file_values.get(key, "")) for key in SKIP_ENV_KEYS):
-        return True, "ok"
-    missing = []
-    for canonical, aliases in REQUIRED_ENV:
-        if any(os.environ.get(key, "").strip() for key in aliases):
-            continue
-        if any(file_values.get(key, "").strip() for key in aliases):
-            continue
-        missing.append(canonical)
+    missing = missing_env_keys(file_values)
     if missing:
         return False, "Design service config missing: " + ", ".join(missing) + ". Set shell environment variables, fill project .env-design, or set DESIGN_BASIC_MODE=1 in .env-design before UI edits."
     return True, "ok"
@@ -99,39 +108,55 @@ def bash_mentions_ui_write(command: str) -> bool:
 def block(reason: str) -> None:
     print(json.dumps({"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":reason}}, ensure_ascii=False))
 
-def main() -> int:
+def output_prompt_context(root: Path, prompt: str) -> None:
+    (root / STATE_DIR).mkdir(parents=True, exist_ok=True)
+    (root / STATE_DIR / "last-ui-prompt.json").write_text(json.dumps({"prompt": prompt}, indent=2, ensure_ascii=False), encoding="utf-8")
+    msg = "This appears to be UI/frontend work. Use $design-md-aesthetic-governor, configure Gemini/Stitch via environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 in the shell environment or .env-design for basic mode. Then read DESIGN.md, run preflight, and edit UI files."
+    print(json.dumps({"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":msg}}, ensure_ascii=False))
+
+def handle_user_prompt(root: Path, event: dict) -> None:
+    prompt = event.get("prompt", "")
+    if UI_PROMPT_RE.search(prompt):
+        output_prompt_context(root, prompt)
+
+def command_from_input(tool_input: object) -> str:
+    if isinstance(tool_input, dict):
+        return tool_input.get("command", "")
+    return ""
+
+def should_gate_tool(tool: str, tool_input: object) -> bool:
+    command = command_from_input(tool_input)
+    if tool == "apply_patch":
+        return any(UI_FILE_RE.search(path) for path in extract_paths_from_patch(command))
+    if tool == "Bash":
+        return bash_mentions_ui_write(command)
+    return UI_FILE_RE.search(json.dumps(tool_input, ensure_ascii=False)) is not None
+
+def handle_pre_tool_use(root: Path, event: dict) -> None:
+    tool_input = event.get("tool_input") or {}
+    if should_gate_tool(event.get("tool_name", ""), tool_input):
+        ok, reason = proof_ok(root)
+        if not ok:
+            block(reason)
+
+def load_event() -> dict | None:
     try:
-        event = json.load(sys.stdin)
+        return json.load(sys.stdin)
     except Exception:
+        return None
+
+def main() -> int:
+    event = load_event()
+    if event is None:
         return 0
     root = root_dir()
     os.chdir(root)
     name = event.get("hook_event_name")
     if name == "UserPromptSubmit":
-        prompt = event.get("prompt", "")
-        if UI_PROMPT_RE.search(prompt):
-            (root / STATE_DIR).mkdir(parents=True, exist_ok=True)
-            (root / STATE_DIR / "last-ui-prompt.json").write_text(json.dumps({"prompt": prompt}, indent=2, ensure_ascii=False), encoding="utf-8")
-            msg = "This appears to be UI/frontend work. Use $design-md-aesthetic-governor, configure Gemini/Stitch via environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 in the shell environment or .env-design for basic mode. Then read DESIGN.md, run preflight, and edit UI files."
-            print(json.dumps({"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":msg}}, ensure_ascii=False))
+        handle_user_prompt(root, event)
         return 0
     if name == "PreToolUse":
-        tool = event.get("tool_name", "")
-        tool_input = event.get("tool_input") or {}
-        command = tool_input.get("command", "") if isinstance(tool_input, dict) else ""
-        should_gate = False
-        if tool == "apply_patch":
-            paths = extract_paths_from_patch(command)
-            should_gate = any(UI_FILE_RE.search(p) for p in paths)
-        elif tool == "Bash":
-            should_gate = bash_mentions_ui_write(command)
-        else:
-            should_gate = UI_FILE_RE.search(json.dumps(tool_input, ensure_ascii=False)) is not None
-        if should_gate:
-            ok, reason = proof_ok(root)
-            if not ok:
-                block(reason)
-                return 0
+        handle_pre_tool_use(root, event)
     return 0
 
 if __name__ == "__main__":

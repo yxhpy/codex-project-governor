@@ -1,5 +1,22 @@
 # Changelog
 
+## 6.2.2 - Diagnostics Baseline Cleanup
+
+### Added
+
+- Added split helper modules for context-index roles, task-router policy/config, DESIGN.md service HTTP calls, and self-test helpers.
+
+### Changed
+
+- Refactored diagnostics-heavy helper scripts and tests so engineering standards pass with a clean all-scope baseline.
+- Updated context role classification so `docs/architecture/**` is indexed as architecture context.
+- Updated DESIGN.md service smoke identity to derive its version from plugin metadata.
+
+### Compatibility
+
+- Existing CLI entry points, output schemas, skill names, and template paths remain compatible.
+- No initialized-project migration is required.
+
 ## 6.2.0 - Claude Code Compatibility Adapter
 
 ### Added

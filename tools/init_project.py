@@ -146,6 +146,25 @@ def write_install_manifest(
     return manifest_rel
 
 
+def template_skip_reason(rel: Path, profile: str, include_global: bool) -> str | None:
+    if is_application_path(rel):
+        return "application"
+    if is_global_template(rel) and not include_global:
+        return "global"
+    if profile == "clean" and not is_project_local_template(rel) and not is_global_template(rel):
+        return "global"
+    return None
+
+
+def copy_template_file(src: Path, target: Path, rel: Path, overwrite: bool) -> str:
+    dst = target / rel
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if dst.exists() and not overwrite:
+        return "preserved"
+    shutil.copy2(src, dst)
+    return "created"
+
+
 def copy_templates(target: Path, *, mode: str, profile: str = "clean", overwrite: bool = False) -> InitResult:
     if not TEMPLATE_ROOT.exists():
         raise FileNotFoundError(f"Template root not found: {TEMPLATE_ROOT}")
@@ -159,23 +178,19 @@ def copy_templates(target: Path, *, mode: str, profile: str = "clean", overwrite
     for src in iter_template_files():
         rel = src.relative_to(TEMPLATE_ROOT)
         text = rel.as_posix()
-        if is_application_path(rel):
+        skip_reason = template_skip_reason(rel, profile, include_global)
+        if skip_reason == "application":
             skipped_application.append(text)
             continue
-        if is_global_template(rel) and not include_global:
-            skipped_global.append(text)
-            continue
-        if profile == "clean" and not is_project_local_template(rel) and not is_global_template(rel):
+        if skip_reason == "global":
             skipped_global.append(text)
             continue
 
-        dst = target / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if dst.exists() and not overwrite:
+        status = copy_template_file(src, target, rel, overwrite)
+        if status == "preserved":
             preserved.append(text)
-            continue
-        shutil.copy2(src, dst)
-        created.append(text)
+        else:
+            created.append(text)
 
     manifest_rel = write_install_manifest(
         target,

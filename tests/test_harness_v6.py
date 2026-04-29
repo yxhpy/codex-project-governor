@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PY = sys.executable
+HARNESS_DOCTOR = ROOT / 'skills/harness-doctor/scripts/doctor.py'
 
 
 class HarnessV6Test(unittest.TestCase):
@@ -19,8 +20,16 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.2.1')
-        self.assertIn('Harness v6.2.1', manifest['description'])
+        self.assertEqual(manifest['version'], '6.2.2')
+        self.assertIn('Harness v6.2.2', manifest['description'])
+
+    def test_harness_doctor_uses_feature_matrix_current_latest(self):
+        data = self.run_json([PY, str(HARNESS_DOCTOR), '--project', str(ROOT), '--execution-readiness'])
+        self.assertEqual(data['status'], 'pass')
+        self.assertFalse(
+            any('manifest version' in warning for warning in data['warnings']),
+            data['warnings'],
+        )
 
     def test_orchestrator_uses_router_and_evidence(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'Add dashboard export feature with tests'])
@@ -51,6 +60,14 @@ class HarnessV6Test(unittest.TestCase):
             self.assertNotIn('sk-secretsecretsecretsecret', auth_entry['summary'])
             task_entry = next(e for e in index['entries'] if e['path'] == 'tasks/demo/ITERATION_PLAN.md')
             self.assertIn('task_history', task_entry['roles'])
+
+            (project / 'docs' / 'architecture').mkdir(parents=True)
+            (project / 'docs' / 'architecture' / 'ARCHITECTURE.md').write_text('# Architecture\n\nSystem boundaries.\n', encoding='utf-8')
+            self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/build_context_index.py'), '--project', str(project), '--write'])
+            index = json.loads((project / '.project-governor/context/CONTEXT_INDEX.json').read_text(encoding='utf-8'))
+            architecture_entry = next(e for e in index['entries'] if e['path'] == 'docs/architecture/ARCHITECTURE.md')
+            self.assertIn('architecture', architecture_entry['roles'])
+
             queried = self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/query_context_index.py'), '--project', str(project), '--request', 'auth login', '--route', 'risky_feature'])
             self.assertIn('confidence', queried)
             self.assertFalse(queried['read_all_initialization_docs'])

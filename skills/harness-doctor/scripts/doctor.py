@@ -20,6 +20,19 @@ REQUIRED_SKILLS = {
     "evidence-manifest",
     "harness-doctor",
 }
+REQUIRED_STATE_FILES = ["FEATURES.json", "AGENTS.json", "ISSUES.json", "PROGRESS.md", "SESSION.json"]
+REQUIRED_SCRIPT_PATHS = [
+    "skills/task-router/scripts/classify_task.py",
+    "skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py",
+    "skills/context-indexer/scripts/build_context_index.py",
+    "skills/context-indexer/scripts/query_context_index.py",
+    "skills/route-guard/scripts/check_route_guard.py",
+    "skills/route-guard/scripts/collect_diff_facts.py",
+    "skills/quality-gate/scripts/run_quality_gate.py",
+    "skills/merge-readiness/scripts/check_merge_readiness.py",
+    "skills/session-lifecycle/scripts/session_lifecycle.py",
+    "skills/evidence-manifest/scripts/write_evidence_manifest.py",
+]
 
 
 def check_file(path: Path, label: str, blockers: list[str], warnings: list[str]) -> None:
@@ -37,66 +50,86 @@ def compile_script(path: Path, blockers: list[str]) -> None:
         blockers.append(f"python compile failed for {path}: {exc}")
 
 
-def diagnose(project: Path, execution_readiness: bool = False) -> dict[str, Any]:
-    blockers: list[str] = []
-    warnings: list[str] = []
+def expected_manifest_version(project: Path, warnings: list[str]) -> str | None:
+    matrix_path = project / "releases" / "FEATURE_MATRIX.json"
+    if not matrix_path.exists():
+        return None
+    try:
+        matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        warnings.append(f"release feature matrix is invalid JSON: {exc}")
+        return None
+    version = matrix.get("current_latest")
+    return version if isinstance(version, str) and version else None
+
+
+def check_manifest(project: Path, blockers: list[str], warnings: list[str]) -> None:
     manifest_path = project / ".codex-plugin" / "plugin.json"
     check_file(manifest_path, "plugin manifest", blockers, warnings)
-    manifest = {}
+    expected_version = expected_manifest_version(project, warnings)
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if manifest.get("version") != "6.2.0":
-                warnings.append(f"manifest version is {manifest.get('version')}, expected 6.2.0")
+            if expected_version and manifest.get("version") != expected_version:
+                warnings.append(f"manifest version is {manifest.get('version')}, expected {expected_version}")
         except Exception as exc:
             blockers.append(f"plugin manifest is invalid JSON: {exc}")
+
+
+def check_skills(project: Path, blockers: list[str], warnings: list[str]) -> None:
     skills_dir = project / "skills"
     check_file(skills_dir, "skills directory", blockers, warnings)
-    if skills_dir.exists():
-        names = {p.name for p in skills_dir.iterdir() if p.is_dir()}
-        missing = sorted(REQUIRED_SKILLS - names)
-        if missing:
-            blockers.append(f"missing required Harness v6 skills: {missing}")
-        for skill in names:
-            if not (skills_dir / skill / "SKILL.md").exists():
-                blockers.append(f"skill missing SKILL.md: {skill}")
-    index = project / ".project-governor" / "context" / "CONTEXT_INDEX.json"
-    if index.exists():
-        try:
-            data = json.loads(index.read_text(encoding="utf-8"))
-            if data.get("schema") != "project-governor-context-index-v2":
-                warnings.append(f"context index schema is {data.get('schema')}, expected v2")
-        except Exception as exc:
-            blockers.append(f"context index invalid JSON: {exc}")
-    else:
-        warnings.append("context index is missing; run context-indexer --write")
-    docs_manifest = project / ".project-governor" / "context" / "DOCS_MANIFEST.json"
-    if docs_manifest.exists():
-        try:
-            data = json.loads(docs_manifest.read_text(encoding="utf-8"))
-            if data.get("schema") != "project-governor-docs-manifest-v1":
-                warnings.append(f"docs manifest schema is {data.get('schema')}, expected project-governor-docs-manifest-v1")
-        except Exception as exc:
-            blockers.append(f"docs manifest invalid JSON: {exc}")
-    else:
-        warnings.append("docs manifest is missing; run context-indexer --write")
+    if not skills_dir.exists():
+        return
+    names = {p.name for p in skills_dir.iterdir() if p.is_dir()}
+    missing = sorted(REQUIRED_SKILLS - names)
+    if missing:
+        blockers.append(f"missing required Harness v6 skills: {missing}")
+    for skill in names:
+        if not (skills_dir / skill / "SKILL.md").exists():
+            blockers.append(f"skill missing SKILL.md: {skill}")
+
+
+def check_json_schema(path: Path, label: str, expected_schema: str, blockers: list[str], warnings: list[str]) -> None:
+    if not path.exists():
+        warnings.append(f"{label} is missing; run context-indexer --write")
+        return
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        blockers.append(f"{label} invalid JSON: {exc}")
+        return
+    if data.get("schema") != expected_schema:
+        warnings.append(f"{label} schema is {data.get('schema')}, expected {expected_schema}")
+
+
+def check_context_outputs(project: Path, blockers: list[str], warnings: list[str]) -> None:
+    context = project / ".project-governor" / "context"
+    check_json_schema(context / "CONTEXT_INDEX.json", "context index", "project-governor-context-index-v2", blockers, warnings)
+    check_json_schema(context / "DOCS_MANIFEST.json", "docs manifest", "project-governor-docs-manifest-v1", blockers, warnings)
+
+
+def check_state_files(project: Path, warnings: list[str]) -> None:
     state = project / ".project-governor" / "state"
-    for rel in ["FEATURES.json", "AGENTS.json", "ISSUES.json", "PROGRESS.md", "SESSION.json"]:
+    for rel in REQUIRED_STATE_FILES:
         if not (state / rel).exists():
             warnings.append(f"state file missing: .project-governor/state/{rel}")
-    for rel in [
-        "skills/task-router/scripts/classify_task.py",
-        "skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py",
-        "skills/context-indexer/scripts/build_context_index.py",
-        "skills/context-indexer/scripts/query_context_index.py",
-        "skills/route-guard/scripts/check_route_guard.py",
-        "skills/route-guard/scripts/collect_diff_facts.py",
-        "skills/quality-gate/scripts/run_quality_gate.py",
-        "skills/merge-readiness/scripts/check_merge_readiness.py",
-        "skills/session-lifecycle/scripts/session_lifecycle.py",
-        "skills/evidence-manifest/scripts/write_evidence_manifest.py",
-    ]:
-        compile_script(project / rel, blockers if execution_readiness else warnings)
+
+
+def compile_required_scripts(project: Path, execution_readiness: bool, blockers: list[str], warnings: list[str]) -> None:
+    target = blockers if execution_readiness else warnings
+    for rel in REQUIRED_SCRIPT_PATHS:
+        compile_script(project / rel, target)
+
+
+def diagnose(project: Path, execution_readiness: bool = False) -> dict[str, Any]:
+    blockers: list[str] = []
+    warnings: list[str] = []
+    check_manifest(project, blockers, warnings)
+    check_skills(project, blockers, warnings)
+    check_context_outputs(project, blockers, warnings)
+    check_state_files(project, warnings)
+    compile_required_scripts(project, execution_readiness, blockers, warnings)
     status = "fail" if blockers else "pass"
     return {
         "status": status,

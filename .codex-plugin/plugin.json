@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "6.2.1",
-  "description": "Codex Project Governor Harness v6.2.1: Claude Code plugin compatibility with manifest, commands, subagents, hooks, MCP wiring, marketplace example, and CLAUDE.md template, plus engineering standards checks, token-efficient docs navigation, session-learning memory ledgers, context-index v2, governed memory search, evidence gates, route guards, GPT orchestration, DESIGN.md UI workflows, skill catalog consolidation, and compact default prompts.",
+  "version": "6.2.2",
+  "description": "Codex Project Governor Harness v6.2.2: diagnostics baseline cleanup, architecture-aware context roles, manifest-derived DESIGN.md service identity, Claude Code plugin compatibility, engineering standards checks, token-efficient docs navigation, session-learning memory ledgers, context-index v2, governed memory search, evidence gates, route guards, GPT orchestration, DESIGN.md UI workflows, skill catalog consolidation, and compact default prompts.",
   "author": { "name": "yxhpy" },
   "homepage": "https://github.com/yxhpy/codex-project-governor",
   "repository": "https://github.com/yxhpy/codex-project-governor",
@@ -22,14 +22,14 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Project Governor Harness",
-    "shortDescription": "Harness v6.2.1 for Codex and Claude Code project governance",
-    "longDescription": "Adds Harness v6.2.1: Claude Code plugin compatibility with .claude-plugin metadata, pg-* commands, Claude subagents, plugin hooks, MCP wiring, a GitHub marketplace example, and a target-project CLAUDE.md template that imports AGENTS.md, plus engineering standards checks for source size, function complexity, mock leakage, test assertions, boundary-test planning, and reuse-first coding, token-efficient docs navigation with DOCS_MANIFEST, section-level context retrieval, route-specific doc packs, context budget gates, session-learning memory ledgers for failed commands and stale memories, proactive memory-search startup policy, one-command user-level Git install/update support for local marketplaces, one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, governed memory search, skill catalog consolidation, compact scenario-level default prompts, AGENTS.md rule-template drift migration, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, doctor checks, and DESIGN.md-gated UI workflows with full-service or .env-design basic mode. The project carries durable state and auditable evidence while Codex or Claude Code executes, reviews, searches memory, checks engineering standards, compacts work, and avoids repeating known failures.",
+    "shortDescription": "Harness v6.2.2 for Codex and Claude Code project governance",
+    "longDescription": "Adds Harness v6.2.2: diagnostics baseline cleanup for deterministic helpers and tests, architecture-aware context roles for docs/architecture retrieval, manifest-derived DESIGN.md service smoke identity, Claude Code plugin compatibility with .claude-plugin metadata, pg-* commands, Claude subagents, plugin hooks, MCP wiring, a GitHub marketplace example, and a target-project CLAUDE.md template that imports AGENTS.md, plus engineering standards checks for source size, function complexity, mock leakage, test assertions, boundary-test planning, and reuse-first coding, token-efficient docs navigation with DOCS_MANIFEST, section-level context retrieval, route-specific doc packs, context budget gates, session-learning memory ledgers for failed commands and stale memories, proactive memory-search startup policy, one-command user-level Git install/update support for local marketplaces, one route source of truth, GPT-5.5 runtime planning, project-local state, evidence manifests, context-index v2, governed memory search, skill catalog consolidation, compact scenario-level default prompts, AGENTS.md rule-template drift migration, diff-derived route guard facts, lifecycle session start/end, stricter quality/merge readiness gates, doctor checks, and DESIGN.md-gated UI workflows with full-service or .env-design basic mode. The project carries durable state and auditable evidence while Codex or Claude Code executes, reviews, searches memory, checks engineering standards, compacts work, and avoids repeating known failures.",
     "developerName": "yxhpy",
     "category": "Developer Tools",
     "websiteURL": "https://github.com/yxhpy/codex-project-governor",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use Project Governor Harness v6.2.1 to plan and execute this change with route selection, context retrieval, session state, evidence, quality gates, and merge readiness.",
+      "Use Project Governor Harness v6.2.2 to plan and execute this change with route selection, context retrieval, session state, evidence, quality gates, and merge readiness.",
       "Use Project Governor to initialize governance for this repository without changing application code.",
       "Use Project Governor to refresh, reinstall, or migrate project governance after a plugin update while preserving local customizations.",
       "Use Project Governor to evaluate evidence, risks, and upgrade choices before changing dependencies, tools, SDKs, runtimes, or governance assets.",

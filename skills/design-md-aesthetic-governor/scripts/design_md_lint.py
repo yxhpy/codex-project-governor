@@ -10,20 +10,30 @@ REF_RE = re.compile(r"\{([^{}]+)\}")
 ALLOWED_COMPONENT_PROPS = {"backgroundColor", "textColor", "typography", "rounded", "padding", "size", "height", "width"}
 SECTION_ORDER = [["overview", "brand & style"], ["colors"], ["typography"], ["layout", "layout & spacing"], ["elevation & depth", "elevation"], ["shapes"], ["components"], ["do's and don'ts", "dos and don'ts", "do’s and don’ts"]]
 
+def unquote(value: str) -> str | None:
+    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+        return value[1:-1]
+    return None
+
+def parse_number(value: str) -> Any:
+    if re.fullmatch(r"-?\d+", value):
+        return int(value)
+    if re.fullmatch(r"-?\d+\.\d+", value):
+        return float(value)
+    return None
+
 def parse_scalar(value: str) -> Any:
     value = value.strip()
     if not value:
         return ""
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
-        return value[1:-1]
+    quoted = unquote(value)
+    if quoted is not None:
+        return quoted
     if value.lower() in {"true", "false"}:
         return value.lower() == "true"
-    if re.fullmatch(r"-?\d+", value):
-        try: return int(value)
-        except Exception: return value
-    if re.fullmatch(r"-?\d+\.\d+", value):
-        try: return float(value)
-        except Exception: return value
+    number = parse_number(value)
+    if number is not None:
+        return number
     return value
 
 def parse_simple_yaml(text: str) -> Dict[str, Any]:
@@ -99,94 +109,186 @@ def canonical_section(name: str) -> int:
             return idx
     return 999
 
+
+def finding(severity: str, path: str, message: str) -> dict[str, str]:
+    return {"severity": severity, "path": path, "message": message}
+
+
+def token_group(data: Dict[str, Any], name: str) -> Dict[str, Any]:
+    value = data.get(name)
+    return value if isinstance(value, dict) else {}
+
+
+def lint_metadata(data: Dict[str, Any], colors: Dict[str, Any], typography: Dict[str, Any]) -> List[dict[str, str]]:
+    findings: List[dict[str, str]] = []
+    if not data.get("name"):
+        findings.append(finding("warning", "name", "Missing design system name."))
+    if colors and "primary" not in colors:
+        findings.append(finding("warning", "colors.primary", "Colors exist but no primary color token is defined."))
+    if colors and not typography:
+        findings.append(finding("warning", "typography", "Colors exist but no typography tokens are defined."))
+    return findings
+
+
+def lint_color_tokens(colors: Dict[str, Any]) -> List[dict[str, str]]:
+    findings: List[dict[str, str]] = []
+    for name, val in colors.items():
+        if not isinstance(val, str) or not HEX_RE.match(val):
+            findings.append(finding("error", f"colors.{name}", f"Color token must be #RGB or #RRGGBB, got {val!r}."))
+    return findings
+
+
+def lint_dimension_tokens(group_name: str, group: Dict[str, Any]) -> List[dict[str, str]]:
+    findings: List[dict[str, str]] = []
+    for name, val in group.items():
+        if isinstance(val, (int, float)):
+            continue
+        if not isinstance(val, str) or not (DIM_RE.match(val) or REF_RE.fullmatch(val)):
+            findings.append(finding("warning", f"{group_name}.{name}", f"Expected dimension like 8px/1rem or token reference, got {val!r}."))
+    return findings
+
+
+def lint_typography_tokens(typography: Dict[str, Any]) -> List[dict[str, str]]:
+    findings: List[dict[str, str]] = []
+    for tname, tval in typography.items():
+        if not isinstance(tval, dict):
+            findings.append(finding("error", f"typography.{tname}", "Typography token must be an object."))
+            continue
+        for required in ("fontFamily", "fontSize"):
+            if required not in tval:
+                findings.append(finding("warning", f"typography.{tname}.{required}", f"Typography token should define {required}."))
+    return findings
+
+
+def component_reference_findings(flat: Dict[str, Any], cname: str, prop: str, val: Any) -> tuple[List[dict[str, str]], set[str]]:
+    findings: List[dict[str, str]] = []
+    referenced_color_paths: set[str] = set()
+    if not isinstance(val, str):
+        return findings, referenced_color_paths
+    for ref in REF_RE.findall(val):
+        if ref not in flat:
+            findings.append(finding("error", f"components.{cname}.{prop}", f"Broken token reference {{{ref}}}."))
+        if ref.startswith("colors."):
+            referenced_color_paths.add(ref)
+    return findings, referenced_color_paths
+
+
+def component_contrast_finding(flat: Dict[str, Any], cname: str, cval: Dict[str, Any]) -> dict[str, str] | None:
+    bg = cval.get("backgroundColor")
+    fg = cval.get("textColor")
+    if not (isinstance(bg, str) and isinstance(fg, str)):
+        return None
+    bgv = flat.get(bg.strip("{}")) if REF_RE.fullmatch(bg) else bg
+    fgv = flat.get(fg.strip("{}")) if REF_RE.fullmatch(fg) else fg
+    if not (isinstance(bgv, str) and isinstance(fgv, str) and HEX_RE.match(bgv) and HEX_RE.match(fgv)):
+        return None
+    cr = contrast_ratio(bgv, fgv)
+    severity = "warning" if cr < 4.5 else "info"
+    return finding(severity, f"components.{cname}", f"textColor {fgv} on backgroundColor {bgv} contrast ratio {cr:.2f}:1.")
+
+
+def lint_component_tokens(components: Dict[str, Any], flat: Dict[str, Any]) -> tuple[List[dict[str, str]], set[str]]:
+    findings: List[dict[str, str]] = []
+    referenced_color_paths: set[str] = set()
+    for cname, cval in components.items():
+        if not isinstance(cval, dict):
+            findings.append(finding("error", f"components.{cname}", "Component token must be an object."))
+            continue
+        for prop, val in cval.items():
+            if prop not in ALLOWED_COMPONENT_PROPS:
+                findings.append(finding("warning", f"components.{cname}.{prop}", f"Unknown component property {prop!r}; preserve but review."))
+            ref_findings, ref_colors = component_reference_findings(flat, cname, prop, val)
+            findings.extend(ref_findings)
+            referenced_color_paths.update(ref_colors)
+        contrast_finding = component_contrast_finding(flat, cname, cval)
+        if contrast_finding:
+            findings.append(contrast_finding)
+    return findings, referenced_color_paths
+
+
+def lint_unused_colors(colors: Dict[str, Any], components: Dict[str, Any], referenced_color_paths: set[str]) -> List[dict[str, str]]:
+    findings: List[dict[str, str]] = []
+    base_colors = {"primary", "secondary", "neutral", "surface", "background", "text"}
+    if not (colors and components):
+        return findings
+    for cname in colors.keys():
+        if f"colors.{cname}" not in referenced_color_paths and cname not in base_colors:
+            findings.append(finding("info", f"colors.{cname}", "Color token is not referenced by component tokens."))
+    return findings
+
+
+def lint_sections(body: str) -> tuple[List[dict[str, str]], list[str]]:
+    findings: List[dict[str, str]] = []
+    sections = re.findall(r"^##\s+(.+?)\s*$", body, flags=re.M)
+    seen, order = set(), []
+    for section in sections:
+        key = section.strip().lower()
+        if key in seen:
+            findings.append(finding("error", f"section.{section}", "Duplicate section heading; reject the file."))
+        seen.add(key)
+        order.append(canonical_section(section))
+    filtered = [x for x in order if x != 999]
+    if filtered != sorted(filtered):
+        findings.append(finding("warning", "sections", "Known sections appear outside canonical DESIGN.md order."))
+    return findings, sections
+
+
+def summary_for(findings: List[dict[str, str]]) -> Dict[str, int]:
+    summary = {"errors": 0, "warnings": 0, "info": 0}
+    for item in findings:
+        if item["severity"] == "error":
+            summary["errors"] += 1
+        elif item["severity"] == "warning":
+            summary["warnings"] += 1
+        else:
+            summary["info"] += 1
+    return summary
+
+
+def design_system(data: Dict[str, Any], colors: Dict[str, Any], typography: Dict[str, Any], spacing: Dict[str, Any], rounded: Dict[str, Any], components: Dict[str, Any], sections: list[str]) -> Dict[str, Any]:
+    return {
+        "name": data.get("name"),
+        "version": data.get("version"),
+        "tokenCounts": {
+            "colors": len(colors),
+            "typography": len(typography),
+            "spacing": len(spacing),
+            "rounded": len(rounded),
+            "components": len(components),
+        },
+        "sections": sections,
+    }
+
+
 def lint_design_md(path: Path) -> Dict[str, Any]:
     content = path.read_text(encoding="utf-8")
     fm, body, findings = split_front_matter(content)
     data = parse_simple_yaml(fm) if fm else {}
     flat = flatten_tokens(data)
+    colors = token_group(data, "colors")
+    typography = token_group(data, "typography")
+    spacing = token_group(data, "spacing")
+    rounded = token_group(data, "rounded")
+    components = token_group(data, "components")
 
-    def finding(sev, path_, msg):
-        findings.append({"severity": sev, "path": path_, "message": msg})
-
-    colors = data.get("colors") if isinstance(data.get("colors"), dict) else {}
-    typography = data.get("typography") if isinstance(data.get("typography"), dict) else {}
-    spacing = data.get("spacing") if isinstance(data.get("spacing"), dict) else {}
-    rounded = data.get("rounded") if isinstance(data.get("rounded"), dict) else {}
-    components = data.get("components") if isinstance(data.get("components"), dict) else {}
-
-    if not data.get("name"):
-        finding("warning", "name", "Missing design system name.")
-    if colors and "primary" not in colors:
-        finding("warning", "colors.primary", "Colors exist but no primary color token is defined.")
-    if colors and not typography:
-        finding("warning", "typography", "Colors exist but no typography tokens are defined.")
-
-    for name, val in colors.items():
-        if not isinstance(val, str) or not HEX_RE.match(val):
-            finding("error", f"colors.{name}", f"Color token must be #RGB or #RRGGBB, got {val!r}.")
-
+    findings.extend(lint_metadata(data, colors, typography))
+    findings.extend(lint_color_tokens(colors))
     for group_name, group in (("spacing", spacing), ("rounded", rounded)):
-        for name, val in group.items():
-            if isinstance(val, (int, float)):
-                continue
-            if not isinstance(val, str) or not (DIM_RE.match(val) or REF_RE.fullmatch(val)):
-                finding("warning", f"{group_name}.{name}", f"Expected dimension like 8px/1rem or token reference, got {val!r}.")
+        findings.extend(lint_dimension_tokens(group_name, group))
+    findings.extend(lint_typography_tokens(typography))
+    component_findings, referenced_color_paths = lint_component_tokens(components, flat)
+    findings.extend(component_findings)
+    findings.extend(lint_unused_colors(colors, components, referenced_color_paths))
+    section_findings, sections = lint_sections(body)
+    findings.extend(section_findings)
 
-    for tname, tval in typography.items():
-        if not isinstance(tval, dict):
-            finding("error", f"typography.{tname}", "Typography token must be an object.")
-            continue
-        for required in ("fontFamily", "fontSize"):
-            if required not in tval:
-                finding("warning", f"typography.{tname}.{required}", f"Typography token should define {required}.")
-
-    referenced_color_paths = set()
-    for cname, cval in components.items():
-        if not isinstance(cval, dict):
-            finding("error", f"components.{cname}", "Component token must be an object.")
-            continue
-        for prop, val in cval.items():
-            if prop not in ALLOWED_COMPONENT_PROPS:
-                finding("warning", f"components.{cname}.{prop}", f"Unknown component property {prop!r}; preserve but review.")
-            if isinstance(val, str):
-                for ref in REF_RE.findall(val):
-                    if ref not in flat:
-                        finding("error", f"components.{cname}.{prop}", f"Broken token reference {{{ref}}}.")
-                    if ref.startswith("colors."):
-                        referenced_color_paths.add(ref)
-        bg = cval.get("backgroundColor")
-        fg = cval.get("textColor")
-        if isinstance(bg, str) and isinstance(fg, str):
-            bgv = flat.get(bg.strip("{}")) if REF_RE.fullmatch(bg) else bg
-            fgv = flat.get(fg.strip("{}")) if REF_RE.fullmatch(fg) else fg
-            if isinstance(bgv, str) and isinstance(fgv, str) and HEX_RE.match(bgv) and HEX_RE.match(fgv):
-                cr = contrast_ratio(bgv, fgv)
-                finding("warning" if cr < 4.5 else "info", f"components.{cname}", f"textColor {fgv} on backgroundColor {bgv} contrast ratio {cr:.2f}:1.")
-
-    if colors and components:
-        for cname in colors.keys():
-            if f"colors.{cname}" not in referenced_color_paths and cname not in {"primary", "secondary", "neutral", "surface", "background", "text"}:
-                finding("info", f"colors.{cname}", "Color token is not referenced by component tokens.")
-
-    sections = re.findall(r"^##\s+(.+?)\s*$", body, flags=re.M)
-    seen, order = set(), []
-    for s in sections:
-        key = s.strip().lower()
-        if key in seen:
-            finding("error", f"section.{s}", "Duplicate section heading; reject the file.")
-        seen.add(key)
-        order.append(canonical_section(s))
-    filtered = [x for x in order if x != 999]
-    if filtered != sorted(filtered):
-        finding("warning", "sections", "Known sections appear outside canonical DESIGN.md order.")
-
-    finding("info", "token-summary", f"colors={len(colors)}, typography={len(typography)}, spacing={len(spacing)}, rounded={len(rounded)}, components={len(components)}")
-    summary = {"errors": 0, "warnings": 0, "info": 0}
-    for f in findings:
-        if f["severity"] == "error": summary["errors"] += 1
-        elif f["severity"] == "warning": summary["warnings"] += 1
-        else: summary["info"] += 1
-    return {"file": str(path), "summary": summary, "findings": findings, "designSystem": {"name": data.get("name"), "version": data.get("version"), "tokenCounts": {"colors": len(colors), "typography": len(typography), "spacing": len(spacing), "rounded": len(rounded), "components": len(components)}, "sections": sections}}
+    findings.append(finding("info", "token-summary", f"colors={len(colors)}, typography={len(typography)}, spacing={len(spacing)}, rounded={len(rounded)}, components={len(components)}"))
+    return {
+        "file": str(path),
+        "summary": summary_for(findings),
+        "findings": findings,
+        "designSystem": design_system(data, colors, typography, spacing, rounded, components, sections),
+    }
 
 def main() -> int:
     ap = argparse.ArgumentParser()

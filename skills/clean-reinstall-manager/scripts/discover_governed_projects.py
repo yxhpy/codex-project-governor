@@ -34,6 +34,21 @@ def looks_like_plugin_source(path: Path) -> bool:
     return manifest.exists() and "codex-project-governor" in read_text(manifest)
 
 
+def child_dirs(path: Path) -> list[Path]:
+    try:
+        return sorted([child for child in path.iterdir() if child.is_dir()])
+    except OSError:
+        return []
+
+
+def skip_child(path: Path) -> bool:
+    return path.name in SKIP_DIRS or (path.name.startswith(".") and path.name not in {".project-governor", ".codex"})
+
+
+def candidate_children(path: Path) -> list[Path]:
+    return [child for child in child_dirs(path) if not skip_child(child)]
+
+
 def iter_candidate_dirs(root: Path, max_depth: int) -> Iterable[Path]:
     root = root.expanduser().resolve()
     if not root.exists():
@@ -44,13 +59,7 @@ def iter_candidate_dirs(root: Path, max_depth: int) -> Iterable[Path]:
         yield current
         if depth >= max_depth:
             continue
-        try:
-            children = sorted([p for p in current.iterdir() if p.is_dir()])
-        except OSError:
-            continue
-        for child in reversed(children):
-            if child.name in SKIP_DIRS or child.name.startswith(".") and child.name not in {".project-governor", ".codex"}:
-                continue
+        for child in reversed(candidate_children(current)):
             stack.append((child, depth + 1))
 
 

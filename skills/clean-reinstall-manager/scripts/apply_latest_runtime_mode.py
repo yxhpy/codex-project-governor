@@ -76,6 +76,35 @@ def apply_project(project: Path, plugin_root: Path, *, apply: bool) -> dict:
     return {"project": str(project), "runtime": runtime, "context_index": index}
 
 
+def discover_projects(roots: list[Path]) -> list[dict]:
+    discovered: list[dict] = []
+    for root in roots:
+        if root.exists():
+            discovered.extend(discover(root.resolve()))
+    return discovered
+
+
+def not_project_response(discovered: list[dict]) -> dict:
+    return {
+        "status": "not_project_stop",
+        "message": "Current directory is not a Project Governor project. No project files were modified.",
+        "discovered_projects": discovered,
+        "user_choices": ["ignore", "all", "selected"],
+    }
+
+
+def select_projects(discovered: list[dict], select: str) -> list[dict]:
+    if select == "all":
+        return discovered
+    selected_paths = set(select.split(","))
+    return [project for project in discovered if project["path"] in selected_paths]
+
+
+def selected_runtime_response(selected: list[dict], plugin_root: Path, apply: bool) -> dict:
+    results = [apply_project(Path(item["path"]), plugin_root, apply=apply) for item in selected]
+    return {"status": "selected_projects_runtime_mode_ready", "selected_count": len(selected), "results": results}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Apply GPT-5.5 Project Governor runtime mode to one or more governed projects.")
     parser.add_argument("--path", type=Path, default=Path.cwd())
@@ -93,22 +122,13 @@ def main() -> int:
         return 0
 
     roots = args.discover_root or [Path.home()]
-    discovered = []
-    for root in roots:
-        if root.exists():
-            discovered.extend(discover(root.resolve()))
+    discovered = discover_projects(roots)
     if not is_project(path) and args.select in {"current", "ignore"}:
-        print(json.dumps({
-            "status": "not_project_stop",
-            "message": "Current directory is not a Project Governor project. No project files were modified.",
-            "discovered_projects": discovered,
-            "user_choices": ["ignore", "all", "selected"],
-        }, indent=2, ensure_ascii=False))
+        print(json.dumps(not_project_response(discovered), indent=2, ensure_ascii=False))
         return 0
 
-    selected = discovered if args.select == "all" else [p for p in discovered if p["path"] in set(args.select.split(","))]
-    results = [apply_project(Path(item["path"]), plugin_root, apply=args.apply) for item in selected]
-    print(json.dumps({"status": "selected_projects_runtime_mode_ready", "selected_count": len(selected), "results": results}, indent=2, ensure_ascii=False))
+    selected = select_projects(discovered, args.select)
+    print(json.dumps(selected_runtime_response(selected, plugin_root, args.apply), indent=2, ensure_ascii=False))
     return 0
 
 if __name__ == "__main__":

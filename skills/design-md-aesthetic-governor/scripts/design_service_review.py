@@ -101,19 +101,134 @@ def write_evidence(root: Path, report: dict[str, object]) -> tuple[Path, Path]:
     return json_path, md_path
 
 
-def main() -> int:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a real Gemini/Stitch design-service review without printing secrets.")
     parser.add_argument("--project", type=Path, default=Path.cwd())
     parser.add_argument("--design", default="DESIGN.md")
     parser.add_argument("--task", required=True)
     parser.add_argument("--timeout", type=int, default=30)
     parser.add_argument("--write-template", action="store_true")
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def load_dependencies() -> tuple[object, object, object]:
+    return load_script("design_env_check.py"), load_script("design_service_smoke.py"), load_script("design_md_lint.py")
+
+
+def blocked(reason: str, **extra: object) -> dict[str, object]:
+    return {"ok": False, "status": "blocked", "reason": reason, **extra}
+
+
+def load_design_report(root: Path, design: str, linter: object) -> tuple[Path | None, dict[str, object], dict[str, object] | None]:
+    design_path = (root / design).resolve()
+    if not design_path.exists():
+        return None, {}, blocked("DESIGN.md missing", design=str(design_path))
+
+    lint_report = linter.lint_design_md(design_path)
+    if lint_report.get("summary", {}).get("errors", 0):
+        return design_path, lint_report, blocked("DESIGN.md lint errors", lint_summary=lint_report.get("summary"))
+    return design_path, lint_report, None
+
+
+def initial_report(task: str, design_path: Path, lint_report: dict[str, object], config: dict[str, str], smoke: object) -> dict[str, object]:
+    report: dict[str, object] = {
+        "ok": False,
+        "status": "running",
+        "timestamp": int(time.time()),
+        "task": task,
+        "design": str(design_path),
+        "design_sha256": sha256(design_path),
+        "lint_summary": lint_report.get("summary", {}),
+        "gemini": {
+            "configured": True,
+            "model": config["model"],
+            "protocol_requested": smoke.normalize_gemini_protocol(config["requested_protocol"]),
+            "protocol": config["protocol"],
+            "url": config["url"],
+            "request_shape": "gemini_generate_content" if config["protocol"] == "gemini" else "openai_chat_completions",
+        },
+        "stitch": {
+            "configured": bool(config["stitch_key"]),
+            "url": config["stitch_endpoint"],
+            "request_shape": "mcp_initialize_and_tools_list",
+        },
+    }
+    return report
+
+
+def run_gemini_review(report: dict[str, object], smoke: object, config: dict[str, str], prompt: str, timeout: int) -> bool:
+    payload = smoke.gemini_payload(config["protocol"], config["model"], prompt)
+    try:
+        if config["protocol"] == "gemini":
+            status, data = smoke.post_gemini_native(config["url"], config["api_key"], payload, timeout)
+        else:
+            status, data = smoke.post_json(config["url"], config["api_key"], payload, timeout)
+        response_shape_ok = smoke.valid_gemini_response(config["protocol"], data)
+        gemini_ok = 200 <= status < 300 and response_shape_ok
+        report["gemini"] = {
+            **report["gemini"],
+            "ok": gemini_ok,
+            "http_status": status,
+            "response_shape_ok": response_shape_ok,
+            "review_preview": smoke.content_preview(data),
+        }
+        hint = smoke.gemini_response_hint(config["protocol"], config["base_url"], data)
+        if not response_shape_ok and hint:
+            report["gemini"] = {**report["gemini"], "hint": hint}
+        return gemini_ok
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:500]
+        report["gemini"] = {**report["gemini"], "ok": False, "http_status": exc.code, "error_preview": body}
+    except Exception as exc:
+        report["gemini"] = {**report["gemini"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
+    return False
+
+
+def stitch_server_info(data: dict[str, object] | str) -> dict[str, object]:
+    if not isinstance(data, dict):
+        return {}
+    result = data.get("result")
+    if isinstance(result, dict) and isinstance(result.get("serverInfo"), dict):
+        return {"server_info": result["serverInfo"]}
+    return {}
+
+
+def run_stitch_review(report: dict[str, object], smoke: object, config: dict[str, str], timeout: int) -> bool:
+    try:
+        init_status, init_data = smoke.post_mcp_initialize(config["stitch_endpoint"], config["stitch_key"], timeout)
+        tools_status, tools_data = smoke.post_mcp_tools_list(config["stitch_endpoint"], config["stitch_key"], timeout)
+        stitch_ok = 200 <= init_status < 300 and 200 <= tools_status < 300
+        report["stitch"] = {
+            **report["stitch"],
+            "ok": stitch_ok,
+            "http_status": init_status,
+            "tools_status": tools_status,
+            "tools": tool_names(tools_data),
+        }
+        report["stitch"] = {**report["stitch"], **stitch_server_info(init_data)}
+        return stitch_ok
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:500]
+        report["stitch"] = {**report["stitch"], "ok": False, "http_status": exc.code, "error_preview": body}
+    except Exception as exc:
+        report["stitch"] = {**report["stitch"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
+    return False
+
+
+def finalize_report(root: Path, report: dict[str, object], gemini_ok: bool, stitch_ok: bool) -> None:
+    report["ok"] = bool(gemini_ok and stitch_ok)
+    report["status"] = "passed" if report["ok"] else "failed"
+    try:
+        json_path, md_path = write_evidence(root, report)
+        report["evidence"] = {"json": str(json_path), "markdown": str(md_path)}
+    except OSError as exc:
+        report["evidence_error"] = {"error": exc.__class__.__name__, "message": str(exc)[:300]}
+
+
+def main() -> int:
+    args = parse_args()
     root = args.project.resolve()
-    env_check = load_script("design_env_check.py")
-    smoke = load_script("design_service_smoke.py")
-    linter = load_script("design_md_lint.py")
+    env_check, smoke, linter = load_dependencies()
 
     env_report = env_check.check_design_env(root, write_missing_template=args.write_template)
     if not env_report["ok"]:
@@ -124,105 +239,18 @@ def main() -> int:
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
 
-    design_path = (root / args.design).resolve()
-    if not design_path.exists():
-        print(json.dumps({"ok": False, "status": "blocked", "reason": "DESIGN.md missing", "design": str(design_path)}, indent=2, ensure_ascii=False))
+    design_path, lint_report, blocked_report = load_design_report(root, args.design, linter)
+    if blocked_report:
+        print(json.dumps(blocked_report, indent=2, ensure_ascii=False))
         return 2
+    assert design_path is not None
 
-    lint_report = linter.lint_design_md(design_path)
-    if lint_report.get("summary", {}).get("errors", 0):
-        print(json.dumps({"ok": False, "status": "blocked", "reason": "DESIGN.md lint errors", "lint_summary": lint_report.get("summary")}, indent=2, ensure_ascii=False))
-        return 2
-
-    values = smoke.merged_env(root, os.environ)
-    base_url = smoke.first_value(values, "GEMINI_BASE_URL", "DESIGN_GEMINI_BASE_URL")
-    api_key = smoke.first_value(values, "GEMINI_API_KEY", "DESIGN_GEMINI_API_KEY")
-    model = smoke.first_value(values, "GEMINI_MODEL", "DESIGN_GEMINI_MODEL")
-    requested_protocol = smoke.first_value(values, "GEMINI_PROTOCOL", "DESIGN_GEMINI_PROTOCOL") or str(env_report.get("gemini_protocol") or "auto")
-    protocol = smoke.resolve_gemini_protocol(requested_protocol, base_url)
-    gemini_url = smoke.gemini_request_url(protocol, base_url, model)
-    stitch_key = smoke.first_value(values, "STITCH_MCP_API_KEY", "DESIGN_STITCH_MCP_API_KEY")
-    stitch_endpoint = smoke.first_value(values, "STITCH_MCP_URL", "DESIGN_STITCH_MCP_URL", "STITCH_MCP_ENDPOINT", "DESIGN_STITCH_MCP_ENDPOINT") or env_check.DEFAULT_STITCH_MCP_URL
-
+    config = smoke.service_config(root, env_check, env_report)
     review_prompt = build_review_prompt(args.task, design_path, lint_report)
-    payload = smoke.gemini_payload(protocol, model, review_prompt)
-    report: dict[str, object] = {
-        "ok": False,
-        "status": "running",
-        "timestamp": int(time.time()),
-        "task": args.task,
-        "design": str(design_path),
-        "design_sha256": sha256(design_path),
-        "lint_summary": lint_report.get("summary", {}),
-        "gemini": {
-            "configured": True,
-            "model": model,
-            "protocol_requested": smoke.normalize_gemini_protocol(requested_protocol),
-            "protocol": protocol,
-            "url": gemini_url,
-            "request_shape": "gemini_generate_content" if protocol == "gemini" else "openai_chat_completions",
-        },
-        "stitch": {
-            "configured": bool(stitch_key),
-            "url": stitch_endpoint,
-            "request_shape": "mcp_initialize_and_tools_list",
-        },
-    }
-
-    gemini_ok = False
-    try:
-        if protocol == "gemini":
-            status, data = smoke.post_gemini_native(gemini_url, api_key, payload, args.timeout)
-        else:
-            status, data = smoke.post_json(gemini_url, api_key, payload, args.timeout)
-        response_shape_ok = smoke.valid_gemini_response(protocol, data)
-        gemini_ok = 200 <= status < 300 and response_shape_ok
-        report["gemini"] = {
-            **report["gemini"],
-            "ok": gemini_ok,
-            "http_status": status,
-            "response_shape_ok": response_shape_ok,
-            "review_preview": smoke.content_preview(data),
-        }
-        hint = smoke.gemini_response_hint(protocol, base_url, data)
-        if not response_shape_ok and hint:
-            report["gemini"] = {**report["gemini"], "hint": hint}
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:500]
-        report["gemini"] = {**report["gemini"], "ok": False, "http_status": exc.code, "error_preview": body}
-    except Exception as exc:
-        report["gemini"] = {**report["gemini"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
-
-    stitch_ok = False
-    try:
-        init_status, init_data = smoke.post_mcp_initialize(stitch_endpoint, stitch_key, args.timeout)
-        tools_status, tools_data = smoke.post_mcp_tools_list(stitch_endpoint, stitch_key, args.timeout)
-        stitch_ok = 200 <= init_status < 300 and 200 <= tools_status < 300
-        report["stitch"] = {
-            **report["stitch"],
-            "ok": stitch_ok,
-            "http_status": init_status,
-            "tools_status": tools_status,
-            "tools": tool_names(tools_data),
-        }
-        if isinstance(init_data, dict):
-            result = init_data.get("result")
-            if isinstance(result, dict) and isinstance(result.get("serverInfo"), dict):
-                report["stitch"] = {**report["stitch"], "server_info": result["serverInfo"]}
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:500]
-        report["stitch"] = {**report["stitch"], "ok": False, "http_status": exc.code, "error_preview": body}
-    except Exception as exc:
-        report["stitch"] = {**report["stitch"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
-
-    report["ok"] = bool(gemini_ok and stitch_ok)
-    report["status"] = "passed" if report["ok"] else "failed"
-    try:
-        json_path, md_path = write_evidence(root, report)
-        report["evidence"] = {"json": str(json_path), "markdown": str(md_path)}
-    except OSError as exc:
-        report["evidence_error"] = {"error": exc.__class__.__name__, "message": str(exc)[:300]}
-
+    report = initial_report(args.task, design_path, lint_report, config, smoke)
+    gemini_ok = run_gemini_review(report, smoke, config, review_prompt, args.timeout)
+    stitch_ok = run_stitch_review(report, smoke, config, args.timeout)
+    finalize_report(root, report, gemini_ok, stitch_ok)
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0 if report["ok"] else 1
 

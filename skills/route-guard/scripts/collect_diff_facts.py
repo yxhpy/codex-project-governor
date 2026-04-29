@@ -56,19 +56,46 @@ def has_weakened_assertions(diff_text: str) -> bool:
     return removed_assert or added_skip
 
 
-def collect(repo: Path) -> dict[str, Any]:
-    status = parse_status(repo)
+def paths_with_hints(paths: list[str], hints: tuple[str, ...]) -> list[str]:
+    return [p for p in paths if any(hint in p.lower() for hint in hints)]
+
+
+def dependency_paths(paths: list[str]) -> list[str]:
+    return [p for p in paths if Path(p).name in DEPENDENCY_FILES]
+
+
+def test_paths(paths: list[str]) -> list[str]:
+    return [p for p in paths if "test" in p.lower() or "spec" in p.lower()]
+
+
+def changed_path_groups(status: dict[str, list[str]]) -> dict[str, Any]:
     all_paths = status["modified_files"] + status["added_files"] + status["deleted_files"] + status["renamed_files"]
-    lower = [p.lower() for p in all_paths]
-    dependencies = [p for p in all_paths if Path(p).name in DEPENDENCY_FILES]
-    api_files = [p for p in all_paths if any(h in p.lower() for h in API_HINTS)]
-    schema_files = [p for p in all_paths if any(h in p.lower() for h in SCHEMA_HINTS)]
-    global_style_files = [p for p in all_paths if any(h in p.lower() for h in GLOBAL_STYLE_HINTS)]
-    shared_components = [p for p in all_paths if any(h in p.lower() for h in SHARED_COMPONENT_HINTS)]
-    test_files = [p for p in all_paths if "test" in p.lower() or "spec" in p.lower()]
+    return {
+        "all_paths": all_paths,
+        "dependencies": dependency_paths(all_paths),
+        "api_files": paths_with_hints(all_paths, API_HINTS),
+        "schema_files": paths_with_hints(all_paths, SCHEMA_HINTS),
+        "global_style_files": paths_with_hints(all_paths, GLOBAL_STYLE_HINTS),
+        "shared_components": paths_with_hints(all_paths, SHARED_COMPONENT_HINTS),
+        "test_files": test_paths(all_paths),
+    }
+
+
+def test_change_flags(repo: Path, status: dict[str, list[str]], test_files: list[str]) -> dict[str, bool]:
     tests_deleted = any(p in status["deleted_files"] for p in test_files)
     assertions_weakened = any(has_weakened_assertions(changed_lines(repo, p)) for p in test_files if p not in status["deleted_files"])
-    tests_skipped = assertions_weakened
+    return {
+        "tests_deleted": tests_deleted,
+        "assertions_weakened": assertions_weakened,
+        "tests_skipped": assertions_weakened,
+    }
+
+
+def collect(repo: Path) -> dict[str, Any]:
+    status = parse_status(repo)
+    groups = changed_path_groups(status)
+    test_flags = test_change_flags(repo, status, groups["test_files"])
+    all_paths = groups["all_paths"]
     rewrite_detected = len(all_paths) >= 20 or len(status["deleted_files"]) >= 5
     return {
         "status": "collected",
@@ -77,22 +104,22 @@ def collect(repo: Path) -> dict[str, Any]:
         "added_files": status["added_files"],
         "deleted_files": status["deleted_files"],
         "renamed_files": status["renamed_files"],
-        "dependencies_added": bool(dependencies),
-        "dependency_files_changed": dependencies,
-        "api_contract_changed": bool(api_files),
-        "api_files_changed": api_files,
-        "schema_changed": bool(schema_files),
-        "schema_files_changed": schema_files,
-        "global_style_changed": bool(global_style_files),
-        "global_style_files_changed": global_style_files,
-        "shared_component_changed": bool(shared_components),
-        "shared_components_changed": shared_components,
+        "dependencies_added": bool(groups["dependencies"]),
+        "dependency_files_changed": groups["dependencies"],
+        "api_contract_changed": bool(groups["api_files"]),
+        "api_files_changed": groups["api_files"],
+        "schema_changed": bool(groups["schema_files"]),
+        "schema_files_changed": groups["schema_files"],
+        "global_style_changed": bool(groups["global_style_files"]),
+        "global_style_files_changed": groups["global_style_files"],
+        "shared_component_changed": bool(groups["shared_components"]),
+        "shared_components_changed": groups["shared_components"],
         "new_components_added": any("component" in p.lower() for p in status["added_files"]),
         "rewrite_detected": rewrite_detected,
-        "tests_deleted": tests_deleted,
-        "assertions_weakened": assertions_weakened,
-        "tests_skipped": tests_skipped,
-        "test_files_changed": test_files,
+        "tests_deleted": test_flags["tests_deleted"],
+        "assertions_weakened": test_flags["assertions_weakened"],
+        "tests_skipped": test_flags["tests_skipped"],
+        "test_files_changed": groups["test_files"],
     }
 
 

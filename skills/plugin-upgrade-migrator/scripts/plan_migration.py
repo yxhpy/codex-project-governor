@@ -20,44 +20,45 @@ def migrations(plugin_root: Path, current: str, target: str) -> list[dict[str, A
     return [migration for migration in data.get("migrations", []) if version_between(str(migration.get("to")), current, target)]
 
 
+def diagnostic_operation(project: Path, plugin_root: Path, operation: dict[str, Any], relative_path: str, policy: str) -> dict[str, Any]:
+    return {
+        "op": operation.get("op", "diagnostic"),
+        "path": relative_path,
+        "source": operation.get("source"),
+        "policy": policy,
+        "status": "diagnostic_only",
+        "action": "manual_review",
+        "project_exists": project.exists(),
+        "current_sha256": None,
+        "installed_sha256": None,
+        "source_sha256": sha256_path(plugin_root / operation.get("source", "")) if operation.get("source") else None,
+        "reason": operation.get("reason", ""),
+    }
+
+
+def action_status(current_hash: str | None, source_hash: str | None, installed_hash: str | None, policy: str) -> tuple[str, str]:
+    if current_hash is None:
+        return ("add_if_missing", "safe_add") if source_hash else ("manual_review", "source_missing")
+    if policy in {"append_only", "never_overwrite"}:
+        return "skip", policy
+    if installed_hash and current_hash == installed_hash:
+        return "replace_from_template", "safe_update_unchanged_from_install"
+    if installed_hash and current_hash != installed_hash:
+        return "manual_review_or_three_way_merge", "user_modified"
+    return "manual_review", "existing_untracked"
+
+
 def classify(project: Path, plugin_root: Path, operation: dict[str, Any], tracked_files: dict[str, dict[str, Any]]) -> dict[str, Any]:
     relative_path = operation["path"]
     policy = operation_policy(relative_path, operation.get("upgrade_policy"))
     if operation.get("op") == "run_hygiene_check" or policy == "diagnostic_only":
-        return {
-            "op": operation.get("op", "diagnostic"),
-            "path": relative_path,
-            "source": operation.get("source"),
-            "policy": policy,
-            "status": "diagnostic_only",
-            "action": "manual_review",
-            "project_exists": project.exists(),
-            "current_sha256": None,
-            "installed_sha256": None,
-            "source_sha256": sha256_path(plugin_root / operation.get("source", "")) if operation.get("source") else None,
-            "reason": operation.get("reason", ""),
-        }
+        return diagnostic_operation(project, plugin_root, operation, relative_path, policy)
 
     current_hash = sha256_path(project / relative_path)
     source_path = operation.get("source") or relative_path
     source_hash = sha256_path(plugin_root / source_path)
     installed_hash = tracked_files.get(relative_path, {}).get("installed_sha256")
-
-    if current_hash is None:
-        action = "add_if_missing" if source_hash else "manual_review"
-        status = "safe_add" if source_hash else "source_missing"
-    elif policy in {"append_only", "never_overwrite"}:
-        action = "skip"
-        status = policy
-    elif installed_hash and current_hash == installed_hash:
-        action = "replace_from_template"
-        status = "safe_update_unchanged_from_install"
-    elif installed_hash and current_hash != installed_hash:
-        action = "manual_review_or_three_way_merge"
-        status = "user_modified"
-    else:
-        action = "manual_review"
-        status = "existing_untracked"
+    action, status = action_status(current_hash, source_hash, installed_hash, policy)
 
     return {
         "op": operation.get("op", "add_or_merge"),
@@ -129,11 +130,8 @@ def rule_template_drift_operations(
     return operations
 
 
-def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[str, Any]:
-    install_manifest = load_json(project / ".project-governor" / "INSTALL_MANIFEST.json", {}) or {}
-    tracked_files = tracked(install_manifest)
+def migration_operations(project: Path, plugin_root: Path, current: str, target: str, tracked_files: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     operations: list[dict[str, Any]] = []
-
     for migration in migrations(plugin_root, current, target):
         for operation in migration.get("operations", []):
             operations.append(
@@ -144,12 +142,31 @@ def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[st
                     "to": migration.get("to"),
                 }
             )
+    return operations
 
-    operations.extend(rule_template_drift_operations(project, plugin_root, tracked_files, operations, current, target))
 
+def operation_groups(operations: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     safe = [operation for operation in operations if operation["action"] in {"add_if_missing", "replace_from_template"}]
     manual = [operation for operation in operations if operation["action"] in {"manual_review", "manual_review_or_three_way_merge"}]
     skipped = [operation for operation in operations if operation["action"] == "skip"]
+    return safe, manual, skipped
+
+
+def recommended_action(safe: list[dict[str, Any]], manual: list[dict[str, Any]]) -> str:
+    if safe and manual:
+        return "apply_safe_then_review_conflicts"
+    if safe:
+        return "apply_safe"
+    return "manual_review" if manual else "no_project_migration_needed"
+
+
+def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[str, Any]:
+    install_manifest = load_json(project / ".project-governor" / "INSTALL_MANIFEST.json", {}) or {}
+    tracked_files = tracked(install_manifest)
+    operations = migration_operations(project, plugin_root, current, target, tracked_files)
+    operations.extend(rule_template_drift_operations(project, plugin_root, tracked_files, operations, current, target))
+
+    safe, manual, skipped = operation_groups(operations)
     return {
         "status": "planned",
         "project": str(project),
@@ -163,9 +180,7 @@ def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[st
             "manual_review_count": len(manual),
             "skipped_count": len(skipped),
         },
-        "recommended_action": "apply_safe_then_review_conflicts"
-        if safe and manual
-        else ("apply_safe" if safe else ("manual_review" if manual else "no_project_migration_needed")),
+        "recommended_action": recommended_action(safe, manual),
     }
 
 

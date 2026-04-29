@@ -128,33 +128,30 @@ def candidate_recommendation(item: dict[str, Any], matched: set[str], quality: d
     return "defer"
 
 
-def analyze(payload: dict[str, Any], request: str) -> dict[str, Any]:
-    current = Version.parse(payload["current_version"])
-    request_needs = infer_needs(request + " " + payload.get("project_context", "")) or {"upgrade", "version_research"}
-    raw_versions = sorted(payload.get("candidate_versions", []), key=lambda item: Version.parse(item["version"]))
-    newer = [item for item in raw_versions if Version.parse(item["version"]) > current]
-    candidates = []
-    for idx, item in enumerate(newer):
-        v = Version.parse(item["version"])
-        matched = infer_needs(version_text(item)) & request_needs
-        quality = evidence_quality(item.get("evidence", []))
-        rec = candidate_recommendation(item, matched, quality)
-        candidates.append({
-            "version": str(v),
-            "title": item.get("title", ""),
-            "date": item.get("date", ""),
-            "summary": item.get("summary", ""),
-            "distance": {"from": str(current), "to": str(v), **current.distance_to(v)},
-            "skipped_versions_before_this_candidate": [x["version"] for x in newer[:idx]],
-            "evidence_quality": quality,
-            "matched_needs": sorted(matched),
-            "relevant_changes": item.get("changes", []),
-            "breaking_changes": item.get("breaking_changes", []),
-            "migration_steps": item.get("migration_steps", []),
-            "risk": max_risk(item),
-            "recommendation": rec,
-            "why": build_why(rec, matched, quality, item),
-        })
+def candidate_entry(item: dict[str, Any], current: Version, request_needs: set[str], skipped: list[dict[str, Any]]) -> dict[str, Any]:
+    version = Version.parse(item["version"])
+    matched = infer_needs(version_text(item)) & request_needs
+    quality = evidence_quality(item.get("evidence", []))
+    recommendation = candidate_recommendation(item, matched, quality)
+    return {
+        "version": str(version),
+        "title": item.get("title", ""),
+        "date": item.get("date", ""),
+        "summary": item.get("summary", ""),
+        "distance": {"from": str(current), "to": str(version), **current.distance_to(version)},
+        "skipped_versions_before_this_candidate": [entry["version"] for entry in skipped],
+        "evidence_quality": quality,
+        "matched_needs": sorted(matched),
+        "relevant_changes": item.get("changes", []),
+        "breaking_changes": item.get("breaking_changes", []),
+        "migration_steps": item.get("migration_steps", []),
+        "risk": max_risk(item),
+        "recommendation": recommendation,
+        "why": build_why(recommendation, matched, quality, item),
+    }
+
+
+def overall_recommendation(candidates: list[dict[str, Any]]) -> tuple[str, dict[str, Any] | None]:
     target = next((c for c in candidates if c["recommendation"] in {"required", "recommended"}), None)
     if target:
         action = "recommend_upgrade" if target["recommendation"] == "recommended" else "upgrade_required_after_confirmation"
@@ -163,6 +160,19 @@ def analyze(payload: dict[str, Any], request: str) -> dict[str, Any]:
         action = "preview_in_isolated_iteration" if target["recommendation"] == "preview_in_isolation" else "consider_after_more_research"
     else:
         action = "pin_current"
+    return action, target
+
+
+def analyze(payload: dict[str, Any], request: str) -> dict[str, Any]:
+    current = Version.parse(payload["current_version"])
+    request_needs = infer_needs(request + " " + payload.get("project_context", "")) or {"upgrade", "version_research"}
+    raw_versions = sorted(payload.get("candidate_versions", []), key=lambda item: Version.parse(item["version"]))
+    newer = [item for item in raw_versions if Version.parse(item["version"]) > current]
+    candidates = [
+        candidate_entry(item, current, request_needs, newer[:idx])
+        for idx, item in enumerate(newer)
+    ]
+    action, target = overall_recommendation(candidates)
     return {
         "subject": payload.get("subject", "unknown"),
         "current_version": str(current),

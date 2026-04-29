@@ -85,6 +85,35 @@ class EngineeringStandardsGovernorTest(unittest.TestCase):
             self.assertEqual(data["status"], "pass")
             self.assertEqual(data["summary"]["blocker_count"], 0)
 
+    def test_generated_project_governor_backups_are_ignored(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "src").mkdir()
+            (repo / ".project-governor" / "backups" / "snapshot" / "skills").mkdir(parents=True)
+            (repo / "src" / "service.py").write_text(
+                "def load_count(items):\n"
+                "    if not items:\n"
+                "        return 0\n"
+                "    return len(items)\n",
+                encoding="utf-8",
+            )
+            complex_lines = ["def old_snapshot(value):"]
+            for index in range(24):
+                complex_lines.append(f"    if value == {index}:")
+                complex_lines.append(f"        return {index}")
+            complex_lines.append("    return -1")
+            (repo / ".project-governor" / "backups" / "snapshot" / "skills" / "old.py").write_text(
+                "\n".join(complex_lines) + "\n",
+                encoding="utf-8",
+            )
+
+            proc = self.run_checker(repo)
+
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            data = json.loads(proc.stdout)
+            self.assertEqual(data["status"], "pass")
+            self.assertEqual([item["path"] for item in data["files"]], ["src/service.py"])
+
     def test_diff_scope_suppresses_existing_baseline_debt(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)

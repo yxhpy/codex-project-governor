@@ -31,6 +31,52 @@ def is_ui_file(path: Path) -> bool:
         return True
     return any(part in s.split("/") for part in UI_PARTS)
 
+
+def findings_for_file(path: Path, allowed_colors: set[str]) -> list[dict[str, str]]:
+    try:
+        txt = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return []
+    findings: list[dict[str, str]] = []
+    for m in HEX_RE.finditer(txt):
+        val = m.group(0).lower()
+        if val not in allowed_colors:
+            findings.append({"severity":"error", "file":str(path), "kind":"raw-hex-not-in-design-md", "value":m.group(0), "message":"Raw hex color is not declared in DESIGN.md."})
+    for m in TAILWIND_PALETTE_RE.finditer(txt):
+        findings.append({"severity":"warning", "file":str(path), "kind":"tailwind-palette-class", "value":m.group(0), "message":"Tailwind palette class may bypass DESIGN.md token roles. Prefer mapped theme tokens."})
+    return findings
+
+
+def scan_files(files: list[Path], allowed_colors: set[str]) -> tuple[list[dict[str, str]], list[str]]:
+    findings: list[dict[str, str]] = []
+    scanned: list[str] = []
+    for f in files:
+        if not f.exists() or not is_ui_file(f):
+            continue
+        scanned.append(str(f))
+        findings.extend(findings_for_file(f, allowed_colors))
+    return findings, scanned
+
+
+def summary_for(findings: list[dict[str, str]], scanned: list[str]) -> dict[str, int]:
+    return {"errors": sum(1 for x in findings if x["severity"]=="error"), "warnings": sum(1 for x in findings if x["severity"]=="warning"), "scanned_files": len(scanned)}
+
+
+def write_report(report: dict[str, object]) -> None:
+    out_dir = Path(".codex/design-md-governor")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "design-usage-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def print_report(report: dict[str, object], fmt: str) -> None:
+    if fmt == "json":
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    print(report["summary"])
+    for f in report["findings"]:
+        print(f"[{f['severity']}] {f['file']}: {f['value']} — {f['message']}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--design", default="DESIGN.md")
@@ -39,32 +85,11 @@ def main() -> int:
     args = ap.parse_args()
     files = [Path(x) for x in args.changed_files] if args.changed_files else git_changed_files()
     allowed_colors = parse_design_colors(Path(args.design))
-    findings, scanned = [], []
-    for f in files:
-        if not f.exists() or not is_ui_file(f):
-            continue
-        scanned.append(str(f))
-        try:
-            txt = f.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue
-        for m in HEX_RE.finditer(txt):
-            val = m.group(0).lower()
-            if val not in allowed_colors:
-                findings.append({"severity":"error", "file":str(f), "kind":"raw-hex-not-in-design-md", "value":m.group(0), "message":"Raw hex color is not declared in DESIGN.md."})
-        for m in TAILWIND_PALETTE_RE.finditer(txt):
-            findings.append({"severity":"warning", "file":str(f), "kind":"tailwind-palette-class", "value":m.group(0), "message":"Tailwind palette class may bypass DESIGN.md token roles. Prefer mapped theme tokens."})
-    summary = {"errors": sum(1 for x in findings if x["severity"]=="error"), "warnings": sum(1 for x in findings if x["severity"]=="warning"), "scanned_files": len(scanned)}
+    findings, scanned = scan_files(files, allowed_colors)
+    summary = summary_for(findings, scanned)
     report = {"summary": summary, "scanned_files": scanned, "findings": findings}
-    out_dir = Path(".codex/design-md-governor")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "design-usage-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    if args.format == "json":
-        print(json.dumps(report, indent=2, ensure_ascii=False))
-    else:
-        print(summary)
-        for f in findings:
-            print(f"[{f['severity']}] {f['file']}: {f['value']} — {f['message']}")
+    write_report(report)
+    print_report(report, args.format)
     return 1 if summary["errors"] else 0
 
 if __name__ == "__main__":

@@ -17,29 +17,58 @@ def load_evidence(data: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def evidence_ready(evidence: dict[str, Any] | None) -> tuple[bool, list[str]]:
-    if evidence is None:
-        return False, ["evidence manifest is missing"]
-    issues: list[str] = []
+def acceptance_issues(evidence: dict[str, Any]) -> list[str]:
     criteria = evidence.get("acceptance_criteria", [])
+    issues: list[str] = []
     if not criteria:
         issues.append("evidence has no acceptance criteria mapping")
     for index, criterion in enumerate(criteria):
         if not isinstance(criterion, dict) or not criterion.get("criterion") or not criterion.get("proof"):
             issues.append(f"acceptance criterion {index} is incomplete")
+    return issues
+
+
+def test_issues(evidence: dict[str, Any]) -> list[str]:
+    issues: list[str] = []
     for index, test in enumerate(evidence.get("tests", [])):
         if not isinstance(test, dict) or not test.get("command") or test.get("status") not in {"passed", "pass", True}:
             issues.append(f"test evidence {index} is not passing")
+    return issues
+
+
+def docs_refresh_issues(evidence: dict[str, Any]) -> list[str]:
     docs_refresh = evidence.get("docs_refresh", {})
     if isinstance(docs_refresh, dict) and docs_refresh.get("needed") is True and not docs_refresh.get("files_updated"):
-        issues.append("docs refresh is needed but no files were updated")
+        return ["docs refresh is needed but no files were updated"]
+    return []
+
+
+def evidence_ready(evidence: dict[str, Any] | None) -> tuple[bool, list[str]]:
+    if evidence is None:
+        return False, ["evidence manifest is missing"]
+    issues: list[str] = []
+    issues.extend(acceptance_issues(evidence))
+    issues.extend(test_issues(evidence))
+    issues.extend(docs_refresh_issues(evidence))
     return not issues, issues
 
 
-def evaluate_readiness(data: dict[str, Any]) -> dict[str, Any]:
-    blockers = list(data.get("blockers", []))
-    warnings = list(data.get("warnings", []))
+def quality_gate_from(data: dict[str, Any]) -> dict[str, Any]:
     quality_gate = data.get("quality_gate", {})
+    return quality_gate if isinstance(quality_gate, dict) else {}
+
+
+def required_evidence(data: dict[str, Any], quality_gate: dict[str, Any]) -> bool:
+    return bool(
+        data.get("require_evidence")
+        or quality_gate.get("evidence_required")
+        or quality_gate.get("level") == "strict"
+        or quality_gate.get("quality_level") == "strict"
+    )
+
+
+def collect_readiness_blockers(data: dict[str, Any], quality_gate: dict[str, Any]) -> list[str]:
+    blockers = list(data.get("blockers", []))
     if quality_gate.get("status") not in {"pass", "passed", True}:
         blockers.append("quality gate has not passed")
     if data.get("required_docs_missing"):
@@ -48,15 +77,32 @@ def evaluate_readiness(data: dict[str, Any]) -> dict[str, Any]:
         blockers.append("required manual approval is missing")
     if data.get("open_repair_items"):
         blockers.append("repair-loop still has unresolved items")
+    return blockers
 
-    require_evidence = bool(data.get("require_evidence") or quality_gate.get("evidence_required") or quality_gate.get("level") == "strict" or quality_gate.get("quality_level") == "strict")
+
+def apply_evidence_status(
+    blockers: list[str],
+    warnings: list[str],
+    *,
+    require_evidence: bool,
+    evidence: dict[str, Any] | None,
+) -> None:
+    if not require_evidence:
+        if evidence is None:
+            warnings.append("no evidence manifest supplied; Harness v6 recommends evidence for all non-trivial merges")
+        return
+    ok, issues = evidence_ready(evidence)
+    if not ok:
+        blockers.extend(issues)
+
+
+def evaluate_readiness(data: dict[str, Any]) -> dict[str, Any]:
+    warnings = list(data.get("warnings", []))
+    quality_gate = quality_gate_from(data)
+    blockers = collect_readiness_blockers(data, quality_gate)
+    require_evidence = required_evidence(data, quality_gate)
     evidence = load_evidence(data)
-    if require_evidence:
-        ok, issues = evidence_ready(evidence)
-        if not ok:
-            blockers.extend(issues)
-    elif evidence is None:
-        warnings.append("no evidence manifest supplied; Harness v6 recommends evidence for all non-trivial merges")
+    apply_evidence_status(blockers, warnings, require_evidence=require_evidence, evidence=evidence)
 
     status = "ready" if not blockers else "not_ready"
     return {

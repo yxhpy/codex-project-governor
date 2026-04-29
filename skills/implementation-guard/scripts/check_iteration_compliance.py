@@ -24,9 +24,8 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def check(data: dict[str, Any]) -> dict[str, Any]:
+def rewrite_findings(data: dict[str, Any]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
-
     for file_path, pct in data.get("rewrite_pct_by_file", {}).items():
         try:
             numeric_pct = float(pct)
@@ -42,16 +41,23 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
                 "threshold": REWRITE_THRESHOLD,
                 "message": "Large replacement detected; require explicit rewrite approval or a smaller patch."
             })
+    return findings
 
+
+def dependency_findings(data: dict[str, Any]) -> list[dict[str, Any]]:
     dependency_changes = data.get("dependency_changes", [])
     if dependency_changes:
-        findings.append({
+        return [{
             "severity": "blocking",
             "type": "dependency_change_requires_decision",
             "items": dependency_changes,
             "message": "Production dependency changes require a decision note and alternatives analysis."
-        })
+        }]
+    return []
 
+
+def new_file_findings(data: dict[str, Any]) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
     new_files = set(data.get("new_files", []))
     justified = set(data.get("justified_new_files", []))
     unjustified = sorted(new_files - justified)
@@ -70,17 +76,29 @@ def check(data: dict[str, Any]) -> dict[str, Any]:
             "threshold": NEW_FILE_THRESHOLD,
             "message": "Large feature footprint; verify this is not greenfield redevelopment."
         })
+    return findings
 
+
+def contract_findings(data: dict[str, Any]) -> list[dict[str, Any]]:
     contract_changes = set(data.get("public_contract_changes", []))
     approved = set(data.get("approved_contract_changes", []))
     unapproved_contracts = sorted(contract_changes - approved)
     if unapproved_contracts:
-        findings.append({
+        return [{
             "severity": "blocking",
             "type": "public_contract_change_requires_decision",
             "items": unapproved_contracts,
             "message": "Public contract changes require explicit approval and docs updates."
-        })
+        }]
+    return []
+
+
+def check(data: dict[str, Any]) -> dict[str, Any]:
+    findings: list[dict[str, Any]] = []
+    findings.extend(rewrite_findings(data))
+    findings.extend(dependency_findings(data))
+    findings.extend(new_file_findings(data))
+    findings.extend(contract_findings(data))
 
     blocking = any(f["severity"] == "blocking" for f in findings)
     return {"status": "fail" if blocking else "pass", "findings": findings}

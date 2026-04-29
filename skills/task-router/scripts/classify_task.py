@@ -8,126 +8,38 @@ import sys
 from pathlib import Path
 from typing import Any
 
-RISK_TERMS = {
-    "auth", "authentication", "authorization", "permission", "role", "rbac",
-    "payment", "billing", "invoice", "refund", "checkout", "order",
-    "security", "privacy", "pii", "secret", "token", "oauth", "session", "cookie",
-    "migration", "schema", "database", "db", "data model", "webhook", "external api",
-    "encryption", "production", "compliance", "rate limit", "concurrency", "lock",
-    "delete", "destructive", "data loss", "rollback", "cache",
-    "登录", "注册", "认证", "鉴权", "授权", "权限", "角色", "支付", "扣款", "退款",
-    "订单", "账单", "安全", "隐私", "密钥", "令牌", "数据库", "迁移", "数据模型",
-    "接口", "生产", "合规", "并发", "锁", "缓存", "删除", "数据丢失", "回滚",
-}
-REFACTOR_TERMS = {"refactor", "restructure", "rewrite", "cleanup", "reorganize", "extract", "split", "重构", "重写", "整理"}
-UPGRADE_TERMS = {"upgrade", "update dependency", "bump", "version", "migrate to", "sdk", "framework", "release", "升级", "依赖", "版本", "迁移"}
-RESEARCH_TERMS = {"research", "compare", "investigate", "evaluate", "调研", "研究", "对比", "评估"}
-CLEAN_TERMS = {"clean", "reinstall", "refresh", "hygiene", "trash", "quarantine", "重装", "清理", "刷新"}
-UI_TERMS = {
-    "ui", "style", "component", "screen", "page", "layout", "button", "modal", "theme",
-    "design", "dashboard", "widget", "css", "margin", "padding", "color", "font", "class",
-    "页面", "样式", "组件", "间距", "颜色", "视觉", "设计",
-}
-TEST_TERMS = {"test", "spec", "coverage", "fixture", "mock", "test only", "add tests", "测试", "用例"}
-DOCS_TERMS = {"docs", "documentation", "readme", "guide", "manual", "文档", "说明"}
-BUG_TERMS = {"bug", "fix", "broken", "error", "crash", "regression", "修复", "错误", "失败", "崩溃"}
-MICRO_TERMS = {"style", "css", "class", "margin", "padding", "spacing", "color", "font", "label", "copy", "typo", "text", "文案", "错别字", "颜色", "标题", "间距"}
-GLOBAL_SHARED_TERMS = {"shared", "global", "common", "design token", "theme", "tokens", "components/ui", "design-system", "全局", "共享", "通用", "设计 token"}
-DOC_TARGET_RE = re.compile(r"\b(readme|changelog|license|contributing|agents\.md|claude\.md)\b", re.IGNORECASE)
-DOCS_ONLY_BLOCKING_SIGNALS = {"risk_domain", "refactor_signal", "upgrade_signal", "research_signal", "clean_signal", "ui_signal", "test_signal"}
-PRODUCTION_CHANGE_RE = re.compile(
-    r"\b(add|create|implement|build|change|update)\s+(?:an?\s+|the\s+)?"
-    r"(?!tests?\b)(helper|utility|service|component|endpoint|feature|parser|export|api|hook|schema|workflow|command|script)\b",
-    re.IGNORECASE,
-)
-DOC_PACKS = {
-    "micro_patch": {
-        "primary_roles": ["agent_instructions"],
-        "max_initial_docs": 1,
-        "max_sections": 3,
-        "max_total_chars_first": 12_000,
-        "memory_search": False,
-    },
-    "docs_only": {
-        "primary_roles": ["doc", "agent_instructions", "governance_history"],
-        "max_initial_docs": 3,
-        "max_sections": 8,
-        "max_total_chars_first": 40_000,
-        "memory_search": False,
-    },
-    "test_only": {
-        "primary_roles": ["test", "code", "conventions"],
-        "max_initial_docs": 2,
-        "max_sections": 8,
-        "max_total_chars_first": 50_000,
-        "memory_search": True,
-    },
-    "standard_feature": {
-        "primary_roles": ["agent_instructions", "conventions", "test", "code", "quality"],
-        "max_initial_docs": 4,
-        "max_sections": 10,
-        "max_total_chars_first": 80_000,
-        "memory_search": True,
-    },
-    "ui_change": {
-        "primary_roles": ["design", "ui_or_component", "conventions", "test"],
-        "max_initial_docs": 4,
-        "max_sections": 10,
-        "max_total_chars_first": 80_000,
-        "memory_search": True,
-    },
-    "risky_feature": {
-        "primary_roles": ["agent_instructions", "decision", "quality", "test", "security", "auth", "payment", "data_model"],
-        "max_initial_docs": 8,
-        "max_sections": 16,
-        "max_total_chars_first": 140_000,
-        "memory_search": True,
-    },
-    "refactor": {
-        "primary_roles": ["architecture", "decision", "conventions", "test", "quality"],
-        "max_initial_docs": 8,
-        "max_sections": 14,
-        "max_total_chars_first": 120_000,
-        "memory_search": True,
-    },
-    "dependency_upgrade": {
-        "primary_roles": ["governance_history", "decision", "quality", "test", "data_model"],
-        "max_initial_docs": 8,
-        "max_sections": 14,
-        "max_total_chars_first": 140_000,
-        "memory_search": True,
-    },
-    "upgrade_or_migration": {
-        "primary_roles": ["governance_history", "decision", "quality", "test", "data_model"],
-        "max_initial_docs": 8,
-        "max_sections": 14,
-        "max_total_chars_first": 140_000,
-        "memory_search": True,
-    },
-    "research": {
-        "primary_roles": ["doc", "decision", "memory", "task_history", "governance_history"],
-        "max_initial_docs": 10,
-        "max_sections": 18,
-        "max_total_chars_first": 160_000,
-        "memory_search": True,
-    },
-    "clean_reinstall_or_refresh": {
-        "primary_roles": ["agent_instructions", "governance_history", "quality"],
-        "max_initial_docs": 5,
-        "max_sections": 10,
-        "max_total_chars_first": 80_000,
-        "memory_search": True,
-    },
-}
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
-NEGATIVE_PATTERNS = [
-    ("do_not_change_api", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(api|接口|contract|response|public contract)"),
-    ("do_not_change_schema", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,36}(schema|database|db|数据表|数据库|模型)"),
-    ("do_not_add_files", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(new file|add file|新增文件|加文件|新文件)"),
-    ("do_not_add_dependencies", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(dependenc|package|library|npm|pip|依赖|包)"),
-    ("do_not_change_global_style", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(global style|theme|token|全局样式|主题|token)"),
-    ("do_not_change_shared_components", r"(do not|don't|dont|no|without|不要|不准|不能|别).{0,32}(shared component|common component|共享组件|通用组件)"),
-]
+from task_router_config import (
+    BUG_TERMS,
+    CLEAN_TERMS,
+    DOC_TARGET_RE,
+    DOCS_ONLY_BLOCKING_SIGNALS,
+    DOCS_TERMS,
+    GLOBAL_SHARED_TERMS,
+    MICRO_TERMS,
+    NEGATIVE_PATTERNS,
+    PRODUCTION_CHANGE_RE,
+    REFACTOR_TERMS,
+    RESEARCH_TERMS,
+    RISK_SCORE_GROUPS,
+    RISK_TERMS,
+    TEST_TERMS,
+    UI_TERMS,
+    UPGRADE_TERMS,
+)
+from task_router_policy import (
+    escalations_for,
+    evidence_required_for,
+    route_budget,
+    route_doc_pack,
+    route_guard_requirements,
+    subagent_mode,
+    workflow,
+    workflow_skills,
+)
 
 
 def load(path: Path | None, request: str | None) -> dict[str, Any]:
@@ -235,18 +147,9 @@ def is_test_only_request(signals: list[str], text: str, risk_score: float) -> bo
 def compute_risk_score(text: str, hints: dict[str, Any], negative_constraints: list[str]) -> float:
     active = neutralize_guardrail_terms(strip_negative_constraints(text), negative_constraints)
     score = 0.0
-    if has_any(active, RISK_TERMS):
-        score += 0.42
-    if any(term in active for term in ["auth", "oauth", "token", "session", "permission", "认证", "权限", "登录"]):
-        score += 0.18
-    if any(term in active for term in ["payment", "billing", "refund", "支付", "扣款", "退款"]):
-        score += 0.22
-    if any(term in active for term in ["schema", "database", "migration", "数据库", "迁移"]):
-        score += 0.20
-    if has_any(active, UPGRADE_TERMS):
-        score += 0.16
-    if has_any(active, REFACTOR_TERMS):
-        score += 0.18
+    for terms, amount in RISK_SCORE_GROUPS:
+        if has_any(active, terms):
+            score += amount
     if is_shared_or_global(text, hints):
         score += 0.12
     expected_modified = int(hints.get("expected_modified_files", 0) or 0)
@@ -260,185 +163,37 @@ def compute_risk_score(text: str, hints: dict[str, Any], negative_constraints: l
     return round(max(0.0, min(0.99, score)), 2)
 
 
-def compute_confidence(text: str, hints: dict[str, Any], risk_score: float, negative_constraints: list[str]) -> tuple[float, list[str]]:
-    confidence = 0.56
-    reasons: list[str] = []
+ConfidenceAdjustment = tuple[bool, float, str]
+
+
+def confidence_adjustments(text: str, hints: dict[str, Any], risk_score: float, negative_constraints: list[str]) -> list[ConfidenceAdjustment]:
     explicit_target = has_explicit_target(text, hints)
     micro_intent = has_any(text, MICRO_TERMS)
     exact_file_only = bool(hints.get("exact_file_only") or "only this file" in text or "只改这个文件" in text or "只改" in text)
     expected_modified = int(hints.get("expected_modified_files", 1 if explicit_target else 3) or 3)
-    if explicit_target:
-        confidence += 0.20
-        reasons.append("Explicit target detected.")
-    if micro_intent:
-        confidence += 0.14
-        reasons.append("Local style/copy/spacing intent detected.")
-    if exact_file_only or expected_modified <= 1:
-        confidence += 0.08
-        reasons.append("Small file budget requested or inferred.")
-    if negative_constraints:
-        confidence += 0.04
-        reasons.append("Negative constraints converted to guardrails.")
-    if risk_score >= 0.45:
-        confidence -= 0.22
-        reasons.append("Risk score requires conservative route.")
-    if is_shared_or_global(text, hints):
-        confidence -= 0.15
-        reasons.append("Shared/global impact detected.")
+    return [
+        (explicit_target, 0.20, "Explicit target detected."),
+        (micro_intent, 0.14, "Local style/copy/spacing intent detected."),
+        (exact_file_only or expected_modified <= 1, 0.08, "Small file budget requested or inferred."),
+        (bool(negative_constraints), 0.04, "Negative constraints converted to guardrails."),
+        (risk_score >= 0.45, -0.22, "Risk score requires conservative route."),
+        (is_shared_or_global(text, hints), -0.15, "Shared/global impact detected."),
+    ]
+
+
+def compute_confidence(text: str, hints: dict[str, Any], risk_score: float, negative_constraints: list[str]) -> tuple[float, list[str]]:
+    confidence = 0.56
+    reasons: list[str] = []
+    for applies, amount, reason in confidence_adjustments(text, hints, risk_score, negative_constraints):
+        if applies:
+            confidence += amount
+            reasons.append(reason)
     return max(0.0, min(0.99, round(confidence, 2))), reasons
 
 
-def route_budget(route: str, lane: str) -> dict[str, Any]:
-    if route == "micro_patch":
-        return {
-            "max_files_changed": 1,
-            "max_new_files": 0,
-            "allow_dependencies": False,
-            "allow_public_contract_changes": False,
-            "allow_schema_changes": False,
-            "allow_refactor": False,
-            "allow_global_style_changes": False,
-            "allow_shared_component_changes": False,
-            "allow_new_components": False,
-            "requires_adr_or_pdr": False,
-        }
-    if route in {"dependency_upgrade", "upgrade_or_migration"}:
-        return {
-            "max_files_changed": 8,
-            "max_new_files": 3,
-            "allow_dependencies": True,
-            "allow_public_contract_changes": False,
-            "allow_schema_changes": False,
-            "allow_refactor": False,
-            "requires_adr_or_pdr": True,
-        }
-    if lane == "fast_lane":
-        return {"max_files_changed": 3, "max_new_files": 1, "allow_dependencies": False, "allow_public_contract_changes": False, "allow_schema_changes": False}
-    if lane == "risk_lane":
-        return {"max_files_changed": 10, "max_new_files": 4, "allow_dependencies": False, "allow_public_contract_changes": True, "allow_schema_changes": True, "requires_adr_or_pdr": True}
-    if lane == "refactor_lane":
-        return {"max_files_changed": 12, "max_new_files": 2, "allow_dependencies": False, "allow_public_contract_changes": False, "allow_schema_changes": False, "allow_refactor": True, "requires_adr_or_pdr": True}
-    return {"max_files_changed": 8, "max_new_files": 3, "allow_dependencies": False, "allow_public_contract_changes": False, "allow_schema_changes": False}
-
-
-def route_guard_requirements(route: str, budget: dict[str, Any], negative_constraints: list[str]) -> dict[str, Any]:
-    guard = {
-        "route": route,
-        "max_modified_files": budget.get("max_files_changed", 9999),
-        "max_added_files": budget.get("max_new_files", 9999),
-        "allow_dependencies": bool(budget.get("allow_dependencies", False)),
-        "allow_api_changes": bool(budget.get("allow_public_contract_changes", False)),
-        "allow_schema_changes": bool(budget.get("allow_schema_changes", False)),
-        "allow_new_components": bool(budget.get("allow_new_components", True)),
-        "allow_global_style_changes": bool(budget.get("allow_global_style_changes", True)),
-        "allow_shared_component_changes": bool(budget.get("allow_shared_component_changes", True)),
-        "allow_rewrite": bool(budget.get("allow_refactor", False)),
-        "max_repair_rounds": 3,
-        "negative_constraints": negative_constraints,
-        "must_stop_if_budget_exceeded": True,
-    }
-    if "do_not_change_api" in negative_constraints:
-        guard["allow_api_changes"] = False
-    if "do_not_change_schema" in negative_constraints:
-        guard["allow_schema_changes"] = False
-    if "do_not_add_files" in negative_constraints:
-        guard["max_added_files"] = 0
-    if "do_not_add_dependencies" in negative_constraints:
-        guard["allow_dependencies"] = False
-    if "do_not_change_global_style" in negative_constraints:
-        guard["allow_global_style_changes"] = False
-    if "do_not_change_shared_components" in negative_constraints:
-        guard["allow_shared_component_changes"] = False
-    return guard
-
-
-def route_doc_pack(route: str, quality: str) -> dict[str, Any]:
-    config = dict(DOC_PACKS.get(route, DOC_PACKS["standard_feature"]))
-    if quality == "strict":
-        config["max_initial_docs"] = max(config["max_initial_docs"], 6)
-        config["max_sections"] = max(config["max_sections"], 14)
-    return {
-        "id": f"{route}_doc_pack",
-        "route": route,
-        "primary_roles": config["primary_roles"],
-        "read_order": [
-            ".project-governor/context/DOCS_MANIFEST.json",
-            ".project-governor/context/SESSION_BRIEF.md",
-            "memory_search" if config["memory_search"] else "skip_memory_search_for_route",
-            "query_context_index.recommended_sections",
-            "full_documents_only_if_sections_insufficient",
-        ],
-        "context_budget_gate": {
-            "max_initial_docs": config["max_initial_docs"],
-            "max_sections": config["max_sections"],
-            "max_total_chars_first": config["max_total_chars_first"],
-            "full_doc_requires_reason": True,
-            "exclude_doc_statuses_by_default": ["stale", "superseded"],
-        },
-        "compression": {
-            "strategy": "query_aware_section_excerpts",
-            "prefer_section_summary": True,
-            "defer_full_documents": True,
-        },
-        "escalate_to_full_docs_if": [
-            "context_index_missing_or_stale",
-            "query_confidence_below_threshold",
-            "public_contract_or_template_path_change_requires_source_of_truth",
-            "section_excerpt_conflicts_with_adjacent_code",
-        ],
-    }
-
-
-def workflow(route: str) -> tuple[list[str], list[str]]:
-    if route == "micro_patch":
-        return ["direct-edit", "route-guard", "quality-gate", "evidence-manifest-lite"], [
-            "context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "test-first-synthesizer", "subagent-activation", "subagent-audit",
-        ]
-    if route in {"clean_reinstall_or_refresh"}:
-        return ["clean-reinstall-manager", "context-indexer", "harness-doctor", "quality-gate"], ["parallel-feature-builder"]
-    if route == "research":
-        return ["session-lifecycle", "research-radar", "context-indexer", "version-researcher", "evidence-manifest"], []
-    if route in {"dependency_upgrade", "upgrade_or_migration"}:
-        return ["session-lifecycle", "version-researcher", "upgrade-advisor", "plugin-upgrade-migrator", "test-first-synthesizer", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
-    if route == "docs_only":
-        return ["direct-edit", "quality-gate", "merge-readiness"], ["parallel-feature-builder", "subagent-audit", "test-first-synthesizer"]
-    if route == "test_only":
-        return ["context-indexer", "context-pack-builder", "direct-edit", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], ["parallel-feature-builder"]
-    if route == "risky_feature":
-        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
-    if route == "refactor":
-        return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "architecture-drift-check", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
-    return ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "test-first-synthesizer", "parallel-feature-builder", "engineering-standards-governor", "quality-gate", "evidence-manifest", "merge-readiness"], []
-
-
-def workflow_skills(items: list[str]) -> list[str]:
-    skills: list[str] = []
-    aliases = {"direct-edit": None, "evidence-manifest-lite": "evidence-manifest"}
-    for item in items:
-        item = aliases.get(item, item)
-        if not item:
-            continue
-        if item.endswith("-quality-gate"):
-            item = "quality-gate"
-        if item not in skills:
-            skills.append(item)
-    return skills
-
-
-def subagent_mode(route: str, quality: str, confidence: float, shared_or_global: bool) -> str:
-    if route == "micro_patch" and confidence >= 0.82 and not shared_or_global:
-        return "none"
-    if route in {"docs_only", "test_only", "clean_reinstall_or_refresh"}:
-        return "optional" if confidence < 0.70 else "none"
-    if route in {"standard_feature", "ui_change", "bugfix", "risky_feature", "refactor", "dependency_upgrade", "upgrade_or_migration", "research"}:
-        return "required" if quality == "strict" or confidence < 0.85 or route in {"standard_feature", "risky_feature", "refactor", "dependency_upgrade", "upgrade_or_migration", "research"} else "optional"
-    return "optional"
-
-
-def classify(data: dict[str, Any]) -> dict[str, Any]:
+def routing_context(data: dict[str, Any]) -> dict[str, Any]:
     hints = data.get("hints", {}) if isinstance(data.get("hints", {}), dict) else {}
     text = task_text(data)
-    request = str(data.get("request", data.get("user_request", "")))
     negative_constraints = detect_negative_constraints(text)
     signals = risk_signals(text)
     risk_score = compute_risk_score(text, hints, negative_constraints)
@@ -448,68 +203,133 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
     shared_or_global = is_shared_or_global(text, hints)
     expected_modified = int(hints.get("expected_modified_files", 1 if explicit_target else 3) or 3)
     expected_added = int(hints.get("expected_added_files", 0) or 0)
-
-    if "clean_signal" in signals:
-        route, lane, quality, intent = "clean_reinstall_or_refresh", "standard_lane", "standard", "maintenance"
-    elif "research_signal" in signals and "upgrade_signal" not in signals:
-        route, lane, quality, intent = "research", "research_lane", "standard", "research"
-    elif "upgrade_signal" in signals:
-        route, lane, quality, intent = "dependency_upgrade", "risk_lane" if risk_score >= 0.45 else "standard_lane", "strict" if risk_score >= 0.45 else "standard", "upgrade"
-    elif is_docs_only_request(signals, risk_score):
-        route, lane, quality, intent = "docs_only", "fast_lane", "light", "docs"
-    elif is_test_only_request(signals, text, risk_score):
-        route, lane, quality, intent = "test_only", "fast_lane", "light", "test"
-    elif explicit_target and micro_intent and risk_score < 0.35 and not shared_or_global and expected_modified <= 1 and expected_added == 0 and confidence >= 0.82:
-        route, lane, quality, intent = "micro_patch", "fast_lane", "light", "micro_patch"
-    elif "refactor_signal" in signals:
-        route, lane, quality, intent = "refactor", "refactor_lane", "strict", "refactor"
-    elif risk_score >= 0.45:
-        route, lane, quality, intent = "risky_feature", "risk_lane", "strict", "feature_or_fix"
-    elif "ui_signal" in signals or shared_or_global:
-        route, lane, quality, intent = "ui_change", "standard_lane", "standard", "ui_change"
-    else:
-        route, lane, quality, intent = "standard_feature", "standard_lane", "standard", "feature_or_fix"
-
-    budget = route_budget(route, lane)
-    required, skipped = workflow(route)
-    guard = route_guard_requirements(route, budget, negative_constraints)
-    evidence_required = route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"} or quality == "strict"
-    escalations = [
-        "modified files exceed route budget",
-        "new files added when not allowed",
-        "shared/global component changed unexpectedly",
-        "public API, schema, dependency, or style-system change required",
-        "rewrite threshold exceeded",
-        "quality gate fails after repair-loop limit",
-    ]
-    if evidence_required:
-        escalations.append("evidence manifest is missing or incomplete")
-    if quality in {"standard", "strict"}:
-        escalations.append("tests cannot validate the change")
-
     return {
-        "status": "classified",
-        "router_version": "project-governor-harness-v6-router",
-        "request": request,
-        "intent": intent,
-        "route": route,
-        "lane": lane,
-        "quality_level": quality,
-        "quality_gate": quality,
-        "confidence": confidence,
-        "risk_score": risk_score,
-        "risk_signals": signals,
+        "hints": hints,
+        "text": text,
+        "request": str(data.get("request", data.get("user_request", ""))),
         "negative_constraints": negative_constraints,
+        "signals": signals,
+        "risk_score": risk_score,
+        "confidence": confidence,
+        "reasons": reasons,
         "task_shape": {
             "explicit_target": explicit_target,
             "micro_intent": micro_intent,
             "shared_or_global": shared_or_global,
             "expected_modified_files": expected_modified,
             "expected_added_files": expected_added,
-            "docs_only": route == "docs_only",
-            "test_only": route == "test_only",
         },
-        "subagent_mode": subagent_mode(route, quality, confidence, shared_or_global),
+    }
+
+
+RouteChoice = tuple[str, str, str, str]
+
+
+def clean_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    return ("clean_reinstall_or_refresh", "standard_lane", "standard", "maintenance") if "clean_signal" in ctx["signals"] else None
+
+
+def research_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    if "research_signal" in ctx["signals"] and "upgrade_signal" not in ctx["signals"]:
+        return "research", "research_lane", "standard", "research"
+    return None
+
+
+def upgrade_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    if "upgrade_signal" not in ctx["signals"]:
+        return None
+    risky = ctx["risk_score"] >= 0.45
+    return "dependency_upgrade", "risk_lane" if risky else "standard_lane", "strict" if risky else "standard", "upgrade"
+
+
+def docs_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    return ("docs_only", "fast_lane", "light", "docs") if is_docs_only_request(ctx["signals"], ctx["risk_score"]) else None
+
+
+def test_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    if is_test_only_request(ctx["signals"], ctx["text"], ctx["risk_score"]):
+        return "test_only", "fast_lane", "light", "test"
+    return None
+
+
+def micro_patch_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    shape = ctx["task_shape"]
+    if (
+        shape["explicit_target"]
+        and shape["micro_intent"]
+        and ctx["risk_score"] < 0.35
+        and not shape["shared_or_global"]
+        and shape["expected_modified_files"] <= 1
+        and shape["expected_added_files"] == 0
+        and ctx["confidence"] >= 0.82
+    ):
+        return "micro_patch", "fast_lane", "light", "micro_patch"
+    return None
+
+
+def refactor_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    return ("refactor", "refactor_lane", "strict", "refactor") if "refactor_signal" in ctx["signals"] else None
+
+
+def risky_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    return ("risky_feature", "risk_lane", "strict", "feature_or_fix") if ctx["risk_score"] >= 0.45 else None
+
+
+def ui_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    shape = ctx["task_shape"]
+    if "ui_signal" in ctx["signals"] or shape["shared_or_global"]:
+        return "ui_change", "standard_lane", "standard", "ui_change"
+    return None
+
+
+ROUTE_SELECTORS = (
+    clean_route,
+    research_route,
+    upgrade_route,
+    docs_route,
+    test_route,
+    micro_patch_route,
+    refactor_route,
+    risky_route,
+    ui_route,
+)
+
+
+def select_route(ctx: dict[str, Any]) -> RouteChoice:
+    for selector in ROUTE_SELECTORS:
+        choice = selector(ctx)
+        if choice:
+            return choice
+    return "standard_feature", "standard_lane", "standard", "feature_or_fix"
+
+
+def classify(data: dict[str, Any]) -> dict[str, Any]:
+    ctx = routing_context(data)
+    route, lane, quality, intent = select_route(ctx)
+    budget = route_budget(route, lane)
+    required, skipped = workflow(route)
+    guard = route_guard_requirements(route, budget, ctx["negative_constraints"])
+    evidence_required = evidence_required_for(route, quality)
+    escalations = escalations_for(evidence_required, quality)
+    task_shape = dict(ctx["task_shape"])
+    task_shape["docs_only"] = route == "docs_only"
+    task_shape["test_only"] = route == "test_only"
+
+    return {
+        "status": "classified",
+        "router_version": "project-governor-harness-v6-router",
+        "request": ctx["request"],
+        "intent": intent,
+        "route": route,
+        "lane": lane,
+        "quality_level": quality,
+        "quality_gate": quality,
+        "confidence": ctx["confidence"],
+        "risk_score": ctx["risk_score"],
+        "risk_signals": ctx["signals"],
+        "negative_constraints": ctx["negative_constraints"],
+        "task_shape": task_shape,
+        "subagent_mode": subagent_mode(route, quality, ctx["confidence"], task_shape["shared_or_global"]),
         "required_skills": workflow_skills(required),
         "required_workflow": required,
         "skipped_workflow": skipped,
@@ -519,7 +339,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         "evidence_required": evidence_required,
         "escalate_if": escalations,
         "escalation_triggers": escalations,
-        "reasons": reasons or ["Defaulted to Harness v6 safe standard workflow."],
+        "reasons": ctx["reasons"] or ["Defaulted to Harness v6 safe standard workflow."],
     }
 
 

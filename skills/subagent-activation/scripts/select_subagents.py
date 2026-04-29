@@ -25,6 +25,10 @@ AGENTS = {
 NO_SUBAGENT_ROUTES = {"micro_patch", "docs_only"}
 OPTIONAL_ROUTES = {"tiny_patch", "test_only", "ui_change", "bugfix"}
 REQUIRED_ROUTES = {"standard_feature", "risky_feature", "migration", "dependency_upgrade", "refactor"}
+REQUIRED_WORKFLOWS = {"init-existing-project", "pr-governance-review", "research-radar", "version-researcher"}
+PR_REVIEW_AGENTS = ["iteration-compliance-reviewer", "style-drift-reviewer", "architecture-drift-reviewer", "test-planner", "dependency-risk-reviewer", "docs-memory-reviewer"]
+INIT_EXISTING_AGENTS = ["context-scout", "pattern-reuse-scout", "risk-scout", "test-planner", "docs-memory-reviewer"]
+RESEARCH_AGENTS = ["context-scout", "risk-scout", "docs-memory-reviewer", "quality-reviewer"]
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -41,22 +45,60 @@ def unique(items: list[str]) -> list[str]:
     return out
 
 
+def explicit_mode_for(data: dict[str, Any]) -> str | None:
+    explicit_mode = data.get("subagent_mode")
+    return str(explicit_mode) if explicit_mode in {"none", "optional", "required"} else None
+
+
+def required_mode_for(workflow: str, route: str, quality: str) -> str | None:
+    if workflow in REQUIRED_WORKFLOWS:
+        return "required"
+    if route in REQUIRED_ROUTES or quality == "strict":
+        return "required"
+    return None
+
+
+def optional_route_mode(route: str, confidence: float, data: dict[str, Any]) -> str:
+    if route in NO_SUBAGENT_ROUTES and confidence >= 0.85:
+        return "none"
+    if route in OPTIONAL_ROUTES:
+        return "required" if confidence < 0.7 or data.get("target_is_shared_component") else "optional"
+    return "optional"
+
+
 def infer_mode(data: dict[str, Any]) -> str:
-    if data.get("subagent_mode") in {"none", "optional", "required"}:
-        return str(data["subagent_mode"])
+    explicit_mode = explicit_mode_for(data)
+    if explicit_mode:
+        return explicit_mode
     workflow = str(data.get("workflow", data.get("skill", "")))
     route = str(data.get("route", ""))
     quality = str(data.get("quality_level", data.get("quality_gate", "")))
     confidence = float(data.get("confidence", 0.7) or 0.7)
-    if workflow in {"init-existing-project", "pr-governance-review", "research-radar", "version-researcher"}:
-        return "required"
-    if route in NO_SUBAGENT_ROUTES and confidence >= 0.85:
-        return "none"
+    required_mode = required_mode_for(workflow, route, quality)
+    return required_mode or optional_route_mode(route, confidence, data)
+
+
+def workflow_agents(workflow: str) -> list[str] | None:
+    if workflow == "pr-governance-review":
+        return PR_REVIEW_AGENTS
+    if workflow == "init-existing-project":
+        return INIT_EXISTING_AGENTS
+    if workflow in {"research-radar", "version-researcher"}:
+        return RESEARCH_AGENTS
+    return None
+
+
+def base_agents_for(route: str, quality: str, workflow: str) -> list[str]:
+    agents = ["context-scout"]
+    if route not in {"docs_only", "test_only"}:
+        agents.append("pattern-reuse-scout")
     if route in REQUIRED_ROUTES or quality == "strict":
-        return "required"
-    if route in OPTIONAL_ROUTES:
-        return "required" if confidence < 0.7 or data.get("target_is_shared_component") else "optional"
-    return "optional"
+        agents.append("risk-scout")
+    if route != "docs_only":
+        agents.append("test-planner")
+    if workflow == "parallel-feature-builder" or route in REQUIRED_ROUTES:
+        agents.extend(["implementation-writer", "test-writer", "quality-reviewer"])
+    return agents
 
 
 def selected_for(data: dict[str, Any], mode: str) -> list[str]:
@@ -66,22 +108,7 @@ def selected_for(data: dict[str, Any], mode: str) -> list[str]:
     route = str(data.get("route", ""))
     quality = str(data.get("quality_level", data.get("quality_gate", "")))
 
-    if workflow == "pr-governance-review":
-        return ["iteration-compliance-reviewer", "style-drift-reviewer", "architecture-drift-reviewer", "test-planner", "dependency-risk-reviewer", "docs-memory-reviewer"]
-    if workflow == "init-existing-project":
-        return ["context-scout", "pattern-reuse-scout", "risk-scout", "test-planner", "docs-memory-reviewer"]
-    if workflow in {"research-radar", "version-researcher"}:
-        return ["context-scout", "risk-scout", "docs-memory-reviewer", "quality-reviewer"]
-
-    agents = ["context-scout"]
-    if route not in {"docs_only", "test_only"}:
-        agents.append("pattern-reuse-scout")
-    if route in {"standard_feature", "risky_feature", "migration", "dependency_upgrade", "refactor"} or quality == "strict":
-        agents.append("risk-scout")
-    if route not in {"docs_only"}:
-        agents.append("test-planner")
-    if workflow == "parallel-feature-builder" or route in REQUIRED_ROUTES:
-        agents.extend(["implementation-writer", "test-writer", "quality-reviewer"])
+    agents = workflow_agents(workflow) or base_agents_for(route, quality, workflow)
     if data.get("repair_expected"):
         agents.append("repair-agent")
     return unique(agents)

@@ -5,21 +5,16 @@ import argparse
 import importlib.util
 import json
 import os
-import ssl
+import sys
 import urllib.error
-import urllib.request
 from pathlib import Path
 from typing import Mapping
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-USER_AGENT = "project-governor-design-smoke/6.0.2"
-CA_FILE_CANDIDATES = (
-    "/etc/ssl/cert.pem",
-    "/opt/homebrew/etc/openssl@3/cert.pem",
-    "/opt/homebrew/etc/ca-certificates/cert.pem",
-    "/usr/local/etc/openssl@3/cert.pem",
-    "/usr/local/etc/ca-certificates/cert.pem",
-)
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from design_service_http import content_preview, post_gemini_native, post_json, post_mcp_initialize, post_mcp_tools_list
 
 
 def load_env_checker():
@@ -97,149 +92,6 @@ def resolve_gemini_protocol(protocol: str, base_url: str) -> str:
     return "openai"
 
 
-def default_ssl_context() -> ssl.SSLContext:
-    env_cafile = os.environ.get("SSL_CERT_FILE", "").strip()
-    candidates = (env_cafile, *CA_FILE_CANDIDATES) if env_cafile else CA_FILE_CANDIDATES
-    for candidate in candidates:
-        path = Path(candidate)
-        if path.is_file():
-            return ssl.create_default_context(cafile=str(path))
-    return ssl.create_default_context()
-
-
-def post_json(url: str, api_key: str, payload: dict[str, object], timeout: int) -> tuple[int, dict[str, object] | str]:
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": USER_AGENT,
-        },
-        method="POST",
-    )
-    context = default_ssl_context()
-    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-        text = response.read().decode("utf-8", errors="replace")
-        try:
-            data: dict[str, object] | str = json.loads(text)
-        except json.JSONDecodeError:
-            data = text[:500]
-        return response.status, data
-
-
-def post_gemini_native(url: str, api_key: str, payload: dict[str, object], timeout: int) -> tuple[int, dict[str, object] | str]:
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "X-Goog-Api-Key": api_key,
-            "Content-Type": "application/json",
-            "User-Agent": USER_AGENT,
-        },
-        method="POST",
-    )
-    context = default_ssl_context()
-    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-        text = response.read().decode("utf-8", errors="replace")
-        try:
-            data: dict[str, object] | str = json.loads(text)
-        except json.JSONDecodeError:
-            data = text[:500]
-        return response.status, data
-
-
-def post_mcp_initialize(url: str, api_key: str, timeout: int) -> tuple[int, dict[str, object] | str]:
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "initialize",
-        "params": {
-            "protocolVersion": "2025-06-18",
-            "capabilities": {},
-            "clientInfo": {"name": "project-governor-design-smoke", "version": "6.0.2"},
-        },
-    }
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "X-Goog-Api-Key": api_key,
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-            "User-Agent": USER_AGENT,
-        },
-        method="POST",
-    )
-    context = default_ssl_context()
-    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-        text = response.read().decode("utf-8", errors="replace")
-        try:
-            data: dict[str, object] | str = json.loads(text)
-        except json.JSONDecodeError:
-            data = text[:500]
-        return response.status, data
-
-
-def post_mcp_tools_list(url: str, api_key: str, timeout: int) -> tuple[int, dict[str, object] | str]:
-    payload = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "X-Goog-Api-Key": api_key,
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-            "User-Agent": USER_AGENT,
-        },
-        method="POST",
-    )
-    context = default_ssl_context()
-    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-        text = response.read().decode("utf-8", errors="replace")
-        try:
-            data: dict[str, object] | str = json.loads(text)
-        except json.JSONDecodeError:
-            data = text[:500]
-        return response.status, data
-
-
-def content_preview(data: dict[str, object] | str) -> str:
-    if isinstance(data, str):
-        return data[:300]
-    try:
-        choices = data.get("choices")
-        if isinstance(choices, list) and choices:
-            first = choices[0]
-            if isinstance(first, dict):
-                message = first.get("message")
-                if isinstance(message, dict):
-                    content = message.get("content")
-                    if isinstance(content, str):
-                        return content[:300]
-                text = first.get("text")
-                if isinstance(text, str):
-                    return text[:300]
-        candidates = data.get("candidates")
-        if isinstance(candidates, list) and candidates:
-            first = candidates[0]
-            if isinstance(first, dict):
-                content = first.get("content")
-                if isinstance(content, dict):
-                    parts = content.get("parts")
-                    if isinstance(parts, list):
-                        text_parts = [part.get("text", "") for part in parts if isinstance(part, dict) and isinstance(part.get("text"), str)]
-                        if text_parts:
-                            return "\n".join(text_parts)[:300]
-    except Exception:
-        pass
-    return ""
-
-
 def valid_gemini_response(protocol: str, data: dict[str, object] | str) -> bool:
     if not isinstance(data, dict):
         return False
@@ -282,14 +134,121 @@ def gemini_request_url(protocol: str, base_url: str, model: str) -> str:
     return openai_chat_url(base_url)
 
 
-def main() -> int:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke test DESIGN.md Aesthetic Governor external design services without printing secrets.")
     parser.add_argument("--project", type=Path, default=Path.cwd())
     parser.add_argument("--task", default="Return one short sentence confirming the design review smoke test is reachable.")
     parser.add_argument("--timeout", type=int, default=20)
     parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def service_config(root: Path, checker: object, env_report: dict[str, object]) -> dict[str, str]:
+    values = merged_env(root, os.environ)
+    base_url = first_value(values, "GEMINI_BASE_URL", "DESIGN_GEMINI_BASE_URL")
+    api_key = first_value(values, "GEMINI_API_KEY", "DESIGN_GEMINI_API_KEY")
+    model = first_value(values, "GEMINI_MODEL", "DESIGN_GEMINI_MODEL")
+    requested_protocol = first_value(values, "GEMINI_PROTOCOL", "DESIGN_GEMINI_PROTOCOL") or str(env_report.get("gemini_protocol") or "auto")
+    stitch_key = first_value(values, "STITCH_MCP_API_KEY", "DESIGN_STITCH_MCP_API_KEY")
+    stitch_endpoint = first_value(values, "STITCH_MCP_URL", "DESIGN_STITCH_MCP_URL", "STITCH_MCP_ENDPOINT", "DESIGN_STITCH_MCP_ENDPOINT") or checker.DEFAULT_STITCH_MCP_URL
+    protocol = resolve_gemini_protocol(requested_protocol, base_url)
+    url = gemini_request_url(protocol, base_url, model)
+    return {
+        "base_url": base_url,
+        "api_key": api_key,
+        "model": model,
+        "requested_protocol": requested_protocol,
+        "protocol": protocol,
+        "stitch_key": stitch_key,
+        "stitch_endpoint": stitch_endpoint,
+        "url": url,
+    }
+
+
+def initial_report(config: dict[str, str], dry_run: bool) -> dict[str, object]:
+    report: dict[str, object] = {
+        "ok": False,
+        "status": "dry_run" if dry_run else "running",
+        "gemini": {
+            "configured": True,
+            "model": config["model"],
+            "protocol_requested": normalize_gemini_protocol(config["requested_protocol"]),
+            "protocol": config["protocol"],
+            "url": config["url"],
+            "request_shape": "gemini_generate_content" if config["protocol"] == "gemini" else "openai_chat_completions",
+        },
+        "stitch": {
+            "configured": bool(config["stitch_key"]),
+            "endpoint_configured": bool(config["stitch_endpoint"]),
+            "url": config["stitch_endpoint"],
+            "request_shape": "mcp_initialize_streamable_http",
+            "status": "endpoint_present",
+        },
+    }
+    return report
+
+
+def run_gemini_smoke(report: dict[str, object], config: dict[str, str], task: str, timeout: int) -> bool:
+    payload = gemini_payload(config["protocol"], config["model"], task)
+    try:
+        if config["protocol"] == "gemini":
+            status, data = post_gemini_native(config["url"], config["api_key"], payload, timeout)
+        else:
+            status, data = post_json(config["url"], config["api_key"], payload, timeout)
+        response_shape_ok = valid_gemini_response(config["protocol"], data)
+        gemini_ok = 200 <= status < 300 and response_shape_ok
+        report["gemini"] = {
+            **report["gemini"],
+            "ok": gemini_ok,
+            "http_status": status,
+            "response_shape_ok": response_shape_ok,
+            "content_preview": content_preview(data),
+        }
+        hint = gemini_response_hint(config["protocol"], config["base_url"], data)
+        if not response_shape_ok and hint:
+            report["gemini"] = {**report["gemini"], "hint": hint}
+        return gemini_ok
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:500]
+        report["gemini"] = {**report["gemini"], "ok": False, "http_status": exc.code, "error_preview": body}
+    except Exception as exc:
+        report["gemini"] = {**report["gemini"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
+    return False
+
+
+def stitch_server_info(data: dict[str, object] | str) -> dict[str, object]:
+    if not isinstance(data, dict):
+        return {}
+    result = data.get("result")
+    if not isinstance(result, dict):
+        return {}
+    server_info = result.get("serverInfo")
+    if not isinstance(server_info, dict):
+        return {}
+    return {
+        "server_name": server_info.get("name"),
+        "server_version": server_info.get("version"),
+    }
+
+
+def run_stitch_smoke(report: dict[str, object], config: dict[str, str], timeout: int) -> bool:
+    if not config["stitch_key"]:
+        return False
+    try:
+        stitch_status, stitch_data = post_mcp_initialize(config["stitch_endpoint"], config["stitch_key"], timeout)
+        stitch_ok = 200 <= stitch_status < 300
+        report["stitch"] = {**report["stitch"], "ok": stitch_ok, "http_status": stitch_status, **stitch_server_info(stitch_data)}
+        return stitch_ok
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:500]
+        report["stitch"] = {**report["stitch"], "ok": False, "http_status": exc.code, "error_preview": body}
+    except Exception as exc:
+        report["stitch"] = {**report["stitch"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
+    return False
+
+
+def main() -> int:
+    args = parse_args()
     root = args.project.resolve()
     checker = load_env_checker()
     env_report = checker.check_design_env(root, write_missing_template=False)
@@ -300,90 +259,20 @@ def main() -> int:
         print(json.dumps({"ok": True, "status": "basic_mode", "gemini": {"skipped": True}, "stitch": {"skipped": True}}, indent=2, ensure_ascii=False))
         return 0
 
-    values = merged_env(root, os.environ)
-    base_url = first_value(values, "GEMINI_BASE_URL", "DESIGN_GEMINI_BASE_URL")
-    api_key = first_value(values, "GEMINI_API_KEY", "DESIGN_GEMINI_API_KEY")
-    model = first_value(values, "GEMINI_MODEL", "DESIGN_GEMINI_MODEL")
-    requested_protocol = first_value(values, "GEMINI_PROTOCOL", "DESIGN_GEMINI_PROTOCOL") or str(env_report.get("gemini_protocol") or "auto")
     try:
-        protocol = resolve_gemini_protocol(requested_protocol, base_url)
+        config = service_config(root, checker, env_report)
     except ValueError as exc:
         print(json.dumps({"ok": False, "status": "blocked", "error": str(exc)}, indent=2, ensure_ascii=False))
         return 2
-    stitch_key = first_value(values, "STITCH_MCP_API_KEY", "DESIGN_STITCH_MCP_API_KEY")
-    stitch_endpoint = first_value(values, "STITCH_MCP_URL", "DESIGN_STITCH_MCP_URL", "STITCH_MCP_ENDPOINT", "DESIGN_STITCH_MCP_ENDPOINT") or checker.DEFAULT_STITCH_MCP_URL
-    url = gemini_request_url(protocol, base_url, model)
 
-    report: dict[str, object] = {
-        "ok": False,
-        "status": "dry_run" if args.dry_run else "running",
-        "gemini": {
-            "configured": True,
-            "model": model,
-            "protocol_requested": normalize_gemini_protocol(requested_protocol),
-            "protocol": protocol,
-            "url": url,
-            "request_shape": "gemini_generate_content" if protocol == "gemini" else "openai_chat_completions",
-        },
-        "stitch": {
-            "configured": bool(stitch_key),
-            "endpoint_configured": bool(stitch_endpoint),
-            "url": stitch_endpoint,
-            "request_shape": "mcp_initialize_streamable_http",
-            "status": "endpoint_present",
-        },
-    }
+    report = initial_report(config, args.dry_run)
     if args.dry_run:
         report["ok"] = True
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
 
-    payload = gemini_payload(protocol, model, args.task)
-    gemini_ok = False
-    try:
-        if protocol == "gemini":
-            status, data = post_gemini_native(url, api_key, payload, args.timeout)
-        else:
-            status, data = post_json(url, api_key, payload, args.timeout)
-        response_shape_ok = valid_gemini_response(protocol, data)
-        gemini_ok = 200 <= status < 300 and response_shape_ok
-        report["gemini"] = {
-            **report["gemini"],
-            "ok": gemini_ok,
-            "http_status": status,
-            "response_shape_ok": response_shape_ok,
-            "content_preview": content_preview(data),
-        }
-        hint = gemini_response_hint(protocol, base_url, data)
-        if not response_shape_ok and hint:
-            report["gemini"] = {**report["gemini"], "hint": hint}
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:500]
-        report["gemini"] = {**report["gemini"], "ok": False, "http_status": exc.code, "error_preview": body}
-    except Exception as exc:
-        report["gemini"] = {**report["gemini"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
-
-    stitch_ok = False
-    if stitch_key:
-        try:
-            stitch_status, stitch_data = post_mcp_initialize(stitch_endpoint, stitch_key, args.timeout)
-            stitch_ok = 200 <= stitch_status < 300
-            report["stitch"] = {**report["stitch"], "ok": stitch_ok, "http_status": stitch_status}
-            if isinstance(stitch_data, dict):
-                result = stitch_data.get("result")
-                if isinstance(result, dict):
-                    server_info = result.get("serverInfo")
-                    if isinstance(server_info, dict):
-                        report["stitch"] = {
-                            **report["stitch"],
-                            "server_name": server_info.get("name"),
-                            "server_version": server_info.get("version"),
-                        }
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")[:500]
-            report["stitch"] = {**report["stitch"], "ok": False, "http_status": exc.code, "error_preview": body}
-        except Exception as exc:
-            report["stitch"] = {**report["stitch"], "ok": False, "error": exc.__class__.__name__, "message": str(exc)[:300]}
+    gemini_ok = run_gemini_smoke(report, config, args.task, args.timeout)
+    stitch_ok = run_stitch_smoke(report, config, args.timeout)
     report["ok"] = bool(gemini_ok and stitch_ok)
     report["status"] = "passed" if report["ok"] else "failed"
     print(json.dumps(report, indent=2, ensure_ascii=False))

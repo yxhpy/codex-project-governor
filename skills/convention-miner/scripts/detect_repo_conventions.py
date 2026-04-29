@@ -30,47 +30,73 @@ def rel(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
 
-def detect(root: Path) -> dict[str, Any]:
-    files = [p for p in root.rglob("*") if p.is_file() and ".git" not in p.parts]
-    package_manager = []
+def repo_files(root: Path) -> list[Path]:
+    return [path for path in root.rglob("*") if path.is_file() and ".git" not in path.parts]
+
+
+def detect_package_managers(root: Path) -> list[dict[str, str]]:
+    package_manager: list[dict[str, str]] = []
     for lockfile, name in LOCKFILES.items():
         if (root / lockfile).exists():
             package_manager.append({"name": name, "evidence": lockfile})
+    return package_manager
 
-    languages = set()
-    for p in files:
-        if p.suffix in {".ts", ".tsx"}:
-            languages.add("TypeScript")
-        elif p.suffix in {".js", ".jsx"}:
-            languages.add("JavaScript")
-        elif p.suffix == ".py":
-            languages.add("Python")
-        elif p.suffix == ".rs":
-            languages.add("Rust")
-        elif p.suffix == ".go":
-            languages.add("Go")
 
+def language_for(path: Path) -> str | None:
+    if path.suffix in {".ts", ".tsx"}:
+        return "TypeScript"
+    if path.suffix in {".js", ".jsx"}:
+        return "JavaScript"
+    if path.suffix == ".py":
+        return "Python"
+    if path.suffix == ".rs":
+        return "Rust"
+    if path.suffix == ".go":
+        return "Go"
+    return None
+
+
+def detect_languages(files: list[Path]) -> list[str]:
+    return sorted({language for path in files if (language := language_for(path))})
+
+
+def package_json_dependencies(package_json: Path) -> dict[str, Any]:
+    pkg = json.loads(package_json.read_text(encoding="utf-8"))
+    return {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+
+
+def detect_frameworks(root: Path) -> list[dict[str, str]]:
     package_json = root / "package.json"
-    frameworks = []
-    if package_json.exists():
-        try:
-            pkg = json.loads(package_json.read_text(encoding="utf-8"))
-            deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
-            for key in ["react", "next", "vue", "svelte", "express", "fastify", "vite", "vitest", "jest"]:
-                if key in deps:
-                    frameworks.append({"name": key, "evidence": "package.json"})
-        except json.JSONDecodeError:
-            frameworks.append({"name": "package.json-unreadable", "evidence": "package.json"})
+    if not package_json.exists():
+        return []
+    try:
+        deps = package_json_dependencies(package_json)
+    except json.JSONDecodeError:
+        return [{"name": "package.json-unreadable", "evidence": "package.json"}]
+    return [
+        {"name": key, "evidence": "package.json"}
+        for key in ["react", "next", "vue", "svelte", "express", "fastify", "vite", "vitest", "jest"]
+        if key in deps
+    ]
 
-    source_roots = [d for d in SRC_DIRS if (root / d).exists()]
-    test_files = [rel(p, root) for p in files if any(pattern in p.as_posix() for pattern in TEST_PATTERNS)]
+
+def detect_source_roots(root: Path) -> list[str]:
+    return [dirname for dirname in SRC_DIRS if (root / dirname).exists()]
+
+
+def detect_test_files(files: list[Path], root: Path) -> list[str]:
+    return sorted(rel(path, root) for path in files if any(pattern in path.as_posix() for pattern in TEST_PATTERNS))[:50]
+
+
+def detect(root: Path) -> dict[str, Any]:
+    files = repo_files(root)
 
     return {
-        "package_manager": package_manager,
-        "languages": sorted(languages),
-        "frameworks": frameworks,
-        "source_roots": source_roots,
-        "test_files": sorted(test_files)[:50],
+        "package_manager": detect_package_managers(root),
+        "languages": detect_languages(files),
+        "frameworks": detect_frameworks(root),
+        "source_roots": detect_source_roots(root),
+        "test_files": detect_test_files(files, root),
         "file_count": len(files),
     }
 

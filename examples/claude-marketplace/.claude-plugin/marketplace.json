@@ -12,10 +12,10 @@
       "source": {
         "source": "github",
         "repo": "yxhpy/codex-project-governor",
-        "ref": "v6.2.1"
+        "ref": "v6.2.2"
       },
       "description": "Project Governor Harness for Claude Code and Codex.",
-      "version": "6.2.1",
+      "version": "6.2.2",
       "homepage": "https://github.com/yxhpy/codex-project-governor",
       "repository": "https://github.com/yxhpy/codex-project-governor",
       "license": "MIT",

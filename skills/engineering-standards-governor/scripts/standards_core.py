@@ -32,6 +32,7 @@ IGNORED_DIRS = {
     ".hg",
     ".mypy_cache",
     ".next",
+    ".project-governor/backups",
     ".project-governor/context",
     ".pytest_cache",
     ".tox",
@@ -373,4 +374,3 @@ def strip_string_literals(text: str) -> str:
         return "".join("\n" if char == "\n" else " " for char in value)
 
     return STRING_LITERAL_RE.sub(replace, text)
-

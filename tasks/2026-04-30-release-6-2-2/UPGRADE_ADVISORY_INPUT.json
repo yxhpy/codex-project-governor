@@ -1,0 +1,24 @@
+{
+  "project_requirements": [
+    "Publish the completed diagnostics baseline cleanup as a Project Governor patch release.",
+    "Keep Codex and Claude Code plugin metadata, release notes, feature matrix, tests, and install instructions in sync."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance-plugin",
+      "current": "6.2.1",
+      "latest": "6.2.2",
+      "safe_target": "6.2.2",
+      "available_versions": ["6.2.1", "6.2.2"],
+      "wanted_by": ["publish new version"],
+      "required_by": [],
+      "requirement_matches": ["diagnostics baseline cleanup", "release metadata sync"],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release for deterministic helper refactors, diagnostics baseline cleanup, architecture role indexing, and version identity cleanup. No dependency, template path, migration metadata, or deterministic JSON schema change is required."
+    }
+  ]
+}

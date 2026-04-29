@@ -92,22 +92,13 @@ def normalize_list(value: Any) -> list[str]:
     return [str(value)]
 
 
-def recommendation_for(dep: dict[str, Any], project_requirements: list[str], distance: dict[str, Any]) -> tuple[str, int, list[str]]:
+def urgency_score(dep: dict[str, Any], required_by: list[str], wanted_by: list[str], requirement_matches: list[str]) -> tuple[int, list[str]]:
     reasons: list[str] = []
     score = 0
-
-    security = bool(dep.get("security", False))
-    eol = bool(dep.get("eol", False))
-    breaking = bool(dep.get("breaking", False))
-    required_by = normalize_list(dep.get("required_by"))
-    wanted_by = normalize_list(dep.get("wanted_by"))
-    requirement_matches = normalize_list(dep.get("requirement_matches"))
-    risk = str(dep.get("risk", "unknown")).lower()
-
-    if security:
+    if dep.get("security", False):
         score += 60
         reasons.append("security issue present")
-    if eol:
+    if dep.get("eol", False):
         score += 50
         reasons.append("current version is EOL or unsupported")
     if required_by:
@@ -119,81 +110,108 @@ def recommendation_for(dep: dict[str, Any], project_requirements: list[str], dis
     if requirement_matches:
         score += 20
         reasons.append("matches project requirement: " + "; ".join(requirement_matches))
+    return score, reasons
 
+
+def distance_score(distance: dict[str, Any]) -> tuple[int, list[str]]:
     if distance.get("known") and distance.get("major", 0) >= 1:
-        score += 8
-        reasons.append(f"behind by {distance['major']} major version(s)")
-    elif distance.get("known") and distance.get("minor", 0) >= 2:
-        score += 5
-        reasons.append(f"behind by {distance['minor']} minor version(s)")
+        return 8, [f"behind by {distance['major']} major version(s)"]
+    if distance.get("known") and distance.get("minor", 0) >= 2:
+        return 5, [f"behind by {distance['minor']} minor version(s)"]
+    return 0, []
 
+
+def migration_score(risk: str, breaking: bool) -> tuple[int, list[str]]:
+    reasons: list[str] = []
+    score = 0
     score += RISK_WEIGHT.get(risk, RISK_WEIGHT["unknown"])
     if risk in {"medium", "high", "unknown"}:
         reasons.append(f"migration risk is {risk}")
     if breaking:
         score -= 12
         reasons.append("candidate includes breaking changes")
+    return score, reasons
 
-    if security or eol or required_by:
-        return "upgrade_required", score, reasons
+
+def recommendation_name(score: int, required: bool, breaking: bool, risk: str) -> str:
+    if required:
+        return "upgrade_required"
     if score >= 35:
-        return "recommend_upgrade", score, reasons
+        return "recommend_upgrade"
     if score >= 15:
-        return "consider_upgrade", score, reasons
+        return "consider_upgrade"
     if breaking or risk == "high":
-        return "defer", score, reasons or ["upgrade risk outweighs current requirement relevance"]
-    return "defer", score, reasons or ["no direct relevance to the current request was provided"]
+        return "defer"
+    return "defer"
+
+
+def recommendation_for(dep: dict[str, Any], project_requirements: list[str], distance: dict[str, Any]) -> tuple[str, int, list[str]]:
+    required_by = normalize_list(dep.get("required_by"))
+    wanted_by = normalize_list(dep.get("wanted_by"))
+    requirement_matches = normalize_list(dep.get("requirement_matches"))
+    risk = str(dep.get("risk", "unknown")).lower()
+    breaking = bool(dep.get("breaking", False))
+    required = bool(dep.get("security", False) or dep.get("eol", False) or required_by)
+
+    urgency, urgency_reasons = urgency_score(dep, required_by, wanted_by, requirement_matches)
+    distance_points, distance_reasons = distance_score(distance)
+    migration_points, migration_reasons = migration_score(risk, breaking)
+    score = urgency + distance_points + migration_points
+    reasons = urgency_reasons + distance_reasons + migration_reasons
+
+    recommendation = recommendation_name(score, required, breaking, risk)
+    if recommendation == "defer" and not reasons:
+        reasons = ["upgrade risk outweighs current requirement relevance"] if breaking or risk == "high" else ["no direct relevance to the current request was provided"]
+    return recommendation, score, reasons
+
+
+def candidate_result(dep: dict[str, Any], project_requirements: list[str]) -> dict[str, Any]:
+    current = Version.parse(dep.get("current"))
+    latest = Version.parse(dep.get("latest"))
+    distance = version_distance(current, latest)
+    recommendation, score, reasons = recommendation_for(dep, project_requirements, distance)
+    return {
+        "name": dep.get("name"),
+        "type": dep.get("type", "unknown"),
+        "current": dep.get("current"),
+        "candidate": dep.get("latest"),
+        "recommended_target": dep.get("safe_target") or dep.get("latest"),
+        "version_distance": distance,
+        "skipped_versions": count_skipped_versions(normalize_list(dep.get("available_versions")), current, latest),
+        "requirement_relevance": {
+            "required_by": normalize_list(dep.get("required_by")),
+            "wanted_by": normalize_list(dep.get("wanted_by")),
+            "matches": normalize_list(dep.get("requirement_matches")),
+        },
+        "risk": str(dep.get("risk", "unknown")).lower(),
+        "breaking": bool(dep.get("breaking", False)),
+        "recommendation": recommendation,
+        "score": score,
+        "why": reasons,
+        "notes": dep.get("notes", ""),
+        "choices": ["upgrade_now", "plan_upgrade_iteration", "defer", "reject_or_pin"],
+    }
+
+
+def sorted_results(dependencies: list[dict[str, Any]], project_requirements: list[str]) -> list[dict[str, Any]]:
+    results = [candidate_result(dep, project_requirements) for dep in dependencies]
+    priority = {"upgrade_required": 0, "recommend_upgrade": 1, "consider_upgrade": 2, "defer": 3, "reject_or_pin": 4}
+    results.sort(key=lambda item: (priority.get(str(item["recommendation"]), 9), -int(item["score"])))
+    return results
+
+
+def summary_for(results: list[dict[str, Any]]) -> dict[str, int]:
+    labels = ["upgrade_required", "recommend_upgrade", "consider_upgrade", "defer", "reject_or_pin"]
+    return {label: sum(1 for item in results if item["recommendation"] == label) for label in labels}
 
 
 def analyze(data: dict[str, Any]) -> dict[str, Any]:
     project_requirements = normalize_list(data.get("project_requirements"))
-    dependencies = data.get("dependencies", [])
-    results: list[dict[str, Any]] = []
-
-    for dep in dependencies:
-        current = Version.parse(dep.get("current"))
-        latest = Version.parse(dep.get("latest"))
-        distance = version_distance(current, latest)
-        skipped = count_skipped_versions(normalize_list(dep.get("available_versions")), current, latest)
-        recommendation, score, reasons = recommendation_for(dep, project_requirements, distance)
-        risk = str(dep.get("risk", "unknown")).lower()
-        result = {
-            "name": dep.get("name"),
-            "type": dep.get("type", "unknown"),
-            "current": dep.get("current"),
-            "candidate": dep.get("latest"),
-            "recommended_target": dep.get("safe_target") or dep.get("latest"),
-            "version_distance": distance,
-            "skipped_versions": skipped,
-            "requirement_relevance": {
-                "required_by": normalize_list(dep.get("required_by")),
-                "wanted_by": normalize_list(dep.get("wanted_by")),
-                "matches": normalize_list(dep.get("requirement_matches")),
-            },
-            "risk": risk,
-            "breaking": bool(dep.get("breaking", False)),
-            "recommendation": recommendation,
-            "score": score,
-            "why": reasons,
-            "notes": dep.get("notes", ""),
-            "choices": ["upgrade_now", "plan_upgrade_iteration", "defer", "reject_or_pin"],
-        }
-        results.append(result)
-
-    priority = {"upgrade_required": 0, "recommend_upgrade": 1, "consider_upgrade": 2, "defer": 3, "reject_or_pin": 4}
-    results.sort(key=lambda item: (priority.get(str(item["recommendation"]), 9), -int(item["score"])))
-
-    summary = {
-        "upgrade_required": sum(1 for item in results if item["recommendation"] == "upgrade_required"),
-        "recommend_upgrade": sum(1 for item in results if item["recommendation"] == "recommend_upgrade"),
-        "consider_upgrade": sum(1 for item in results if item["recommendation"] == "consider_upgrade"),
-        "defer": sum(1 for item in results if item["recommendation"] == "defer"),
-        "reject_or_pin": sum(1 for item in results if item["recommendation"] == "reject_or_pin"),
-    }
+    results = sorted_results(data.get("dependencies", []), project_requirements)
     return {
         "status": "review_required" if results else "no_candidates",
         "project_requirements": project_requirements,
-        "summary": summary,
+        "summary": summary_for(results),
         "candidates": results,
         "policy": "Advisory only. Do not edit manifests or install packages until the user selects an upgrade path.",
     }

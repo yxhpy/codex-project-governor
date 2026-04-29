@@ -11,20 +11,26 @@ from typing import Any
 EXTENSIONS = {".ts", ".tsx", ".js", ".jsx", ".py"}
 IGNORED_DIRS = {".git", "node_modules", "dist", "build", ".next", "coverage"}
 EXPORT_RE = re.compile(r"(?:export\s+)?(?:function|class|const|interface|type)\s+([A-Z_a-z][A-Z_a-z0-9]*)")
+PATH_CATEGORY_RULES = (
+    ("test_double", ("fixture", "mock", "testdata")),
+    ("hook", ("hook",)),
+    ("service", ("service", "client")),
+    ("schema", ("schema", "model")),
+    ("test_pattern", ("test", "spec")),
+)
+
+
+def path_has_any(path: str, terms: tuple[str, ...]) -> bool:
+    return any(term in path for term in terms)
 
 
 def category(path: Path, symbol: str) -> str:
     lower_path = path.as_posix().lower()
-    if "fixture" in lower_path or "mock" in lower_path or "testdata" in lower_path:
-        return "test_double"
-    if "hook" in lower_path or symbol.startswith("use"):
+    for name, terms in PATH_CATEGORY_RULES:
+        if path_has_any(lower_path, terms):
+            return name
+    if symbol.startswith("use"):
         return "hook"
-    if "service" in lower_path or "client" in lower_path:
-        return "service"
-    if "schema" in lower_path or "model" in lower_path:
-        return "schema"
-    if "test" in lower_path or "spec" in lower_path:
-        return "test_pattern"
     if "component" in lower_path or path.suffix in {".tsx", ".jsx"} or symbol[:1].isupper():
         return "component"
     return "utility"

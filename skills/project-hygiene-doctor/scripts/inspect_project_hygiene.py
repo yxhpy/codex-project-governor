@@ -77,39 +77,54 @@ def has_prefix(path: str, prefixes: tuple[str, ...]) -> bool:
     return any(path.startswith(prefix) for prefix in prefixes)
 
 
-def classify(project: Path, rel: str, tracked: dict[str, dict[str, Any]], plugin_repo: bool) -> Finding | None:
-    path = project / rel
-    current_hash = sha256_path(path)
-    tracked_item = tracked.get(rel, {})
-    installed_hash = tracked_item.get("installed_sha256") or tracked_item.get("template_sha256")
-    policy = tracked_item.get("upgrade_policy")
+def make_finding(
+    rel: str,
+    classification: str,
+    status: str,
+    action: str,
+    reason: str,
+    current_hash: str | None,
+    installed_hash: str | None,
+    policy: str | None,
+) -> Finding:
+    return Finding(rel, classification, status, action, reason, current_hash, installed_hash, policy)
 
-    if has_prefix(rel, NEVER_TOUCH_PREFIXES):
-        return Finding(
-            rel,
-            "project_memory_or_decision",
-            "protected",
-            "never_touch",
-            "Memory and decision files are project-owned and must not be removed by hygiene cleanup.",
-            current_hash,
-            installed_hash,
-            policy,
-        )
 
-    if rel in PROJECT_OWNED_FILES or has_prefix(rel, PROJECT_OWNED_PREFIXES):
-        return Finding(
-            rel,
-            "project_owned",
-            "ok",
-            "keep",
-            "Project-owned governance file.",
-            current_hash,
-            installed_hash,
-            policy,
-        )
+def never_touch_finding(rel: str, current_hash: str | None, installed_hash: str | None, policy: str | None) -> Finding | None:
+    if not has_prefix(rel, NEVER_TOUCH_PREFIXES):
+        return None
+    return make_finding(
+        rel,
+        "project_memory_or_decision",
+        "protected",
+        "never_touch",
+        "Memory and decision files are project-owned and must not be removed by hygiene cleanup.",
+        current_hash,
+        installed_hash,
+        policy,
+    )
 
-    if plugin_repo and has_prefix(rel, PLUGIN_SOURCE_PREFIXES):
-        return Finding(
+
+def project_owned_finding(rel: str, current_hash: str | None, installed_hash: str | None, policy: str | None) -> Finding | None:
+    if rel not in PROJECT_OWNED_FILES and not has_prefix(rel, PROJECT_OWNED_PREFIXES):
+        return None
+    return make_finding(
+        rel,
+        "project_owned",
+        "ok",
+        "keep",
+        "Project-owned governance file.",
+        current_hash,
+        installed_hash,
+        policy,
+    )
+
+
+def plugin_repo_finding(rel: str, current_hash: str | None, installed_hash: str | None, policy: str | None, plugin_repo: bool) -> Finding | None:
+    if not plugin_repo:
+        return None
+    if has_prefix(rel, PLUGIN_SOURCE_PREFIXES):
+        return make_finding(
             rel,
             "plugin_repo_source",
             "ok",
@@ -119,9 +134,8 @@ def classify(project: Path, rel: str, tracked: dict[str, dict[str, Any]], plugin
             installed_hash,
             policy,
         )
-
-    if plugin_repo and (has_prefix(rel, GLOBAL_CODEX_PREFIXES) or rel in GLOBAL_CODEX_FILES):
-        return Finding(
+    if has_prefix(rel, GLOBAL_CODEX_PREFIXES) or rel in GLOBAL_CODEX_FILES:
+        return make_finding(
             rel,
             "plugin_repo_runtime_asset",
             "ok",
@@ -131,54 +145,80 @@ def classify(project: Path, rel: str, tracked: dict[str, dict[str, Any]], plugin
             installed_hash,
             policy,
         )
+    return None
 
-    if has_prefix(rel, PLUGIN_SOURCE_PREFIXES):
-        return Finding(
+
+def plugin_source_leak_finding(rel: str, current_hash: str | None, installed_hash: str | None, policy: str | None) -> Finding | None:
+    if not has_prefix(rel, PLUGIN_SOURCE_PREFIXES):
+        return None
+    return make_finding(
+        rel,
+        "plugin_source_leak",
+        "manual_review",
+        "review_remove_or_move",
+        "Project Governor plugin source-like file found in a non-plugin target project.",
+        current_hash,
+        installed_hash,
+        policy,
+    )
+
+
+def global_codex_finding(
+    rel: str,
+    tracked_item: dict[str, Any],
+    current_hash: str | None,
+    installed_hash: str | None,
+    policy: str | None,
+) -> Finding | None:
+    if not (has_prefix(rel, GLOBAL_CODEX_PREFIXES) or rel in GLOBAL_CODEX_FILES):
+        return None
+    if installed_hash and current_hash and installed_hash == current_hash:
+        return make_finding(
             rel,
-            "plugin_source_leak",
-            "manual_review",
-            "review_remove_or_move",
-            "Project Governor plugin source-like file found in a non-plugin target project.",
+            "generated_global_codex_asset",
+            "safe_to_quarantine",
+            "quarantine",
+            "Generated global Codex asset is unchanged from install manifest; keep it in the plugin, not the project.",
             current_hash,
             installed_hash,
             policy,
         )
-
-    if has_prefix(rel, GLOBAL_CODEX_PREFIXES) or rel in GLOBAL_CODEX_FILES:
-        if installed_hash and current_hash and installed_hash == current_hash:
-            return Finding(
-                rel,
-                "generated_global_codex_asset",
-                "safe_to_quarantine",
-                "quarantine",
-                "Generated global Codex asset is unchanged from install manifest; keep it in the plugin, not the project.",
-                current_hash,
-                installed_hash,
-                policy,
-            )
-        if tracked_item and current_hash and installed_hash and current_hash != installed_hash:
-            return Finding(
-                rel,
-                "modified_global_codex_asset",
-                "manual_review",
-                "keep_and_review",
-                "Generated global Codex asset was modified; treat it as a possible project override.",
-                current_hash,
-                installed_hash,
-                policy,
-            )
-        return Finding(
+    if tracked_item and current_hash and installed_hash and current_hash != installed_hash:
+        return make_finding(
             rel,
-            "untracked_global_codex_asset",
+            "modified_global_codex_asset",
             "manual_review",
             "keep_and_review",
-            "Untracked .codex runtime asset may be a project override.",
+            "Generated global Codex asset was modified; treat it as a possible project override.",
             current_hash,
             installed_hash,
             policy,
         )
+    return make_finding(
+        rel,
+        "untracked_global_codex_asset",
+        "manual_review",
+        "keep_and_review",
+        "Untracked .codex runtime asset may be a project override.",
+        current_hash,
+        installed_hash,
+        policy,
+    )
 
-    return None
+
+def classify(project: Path, rel: str, tracked: dict[str, dict[str, Any]], plugin_repo: bool) -> Finding | None:
+    tracked_item = tracked.get(rel, {})
+    current_hash = sha256_path(project / rel)
+    installed_hash = tracked_item.get("installed_sha256") or tracked_item.get("template_sha256")
+    policy = tracked_item.get("upgrade_policy")
+    candidates = [
+        never_touch_finding(rel, current_hash, installed_hash, policy),
+        project_owned_finding(rel, current_hash, installed_hash, policy),
+        plugin_repo_finding(rel, current_hash, installed_hash, policy, plugin_repo),
+        plugin_source_leak_finding(rel, current_hash, installed_hash, policy),
+        global_codex_finding(rel, tracked_item, current_hash, installed_hash, policy),
+    ]
+    return next((finding for finding in candidates if finding), None)
 
 
 def quarantine(project: Path, rel: str, quarantine_root: Path) -> str:
@@ -198,47 +238,66 @@ def recommendation(status: str, safe: list[Finding], manual: list[Finding]) -> s
     return "Review untracked plugin/global-looking files before running migrations."
 
 
-def inspect(project: Path, plugin_root: Path | None = None, apply_changes: bool = False) -> dict[str, Any]:
-    project = project.resolve()
-    tracked = tracked_files(project)
-    plugin_repo = is_plugin_repo(project, plugin_root)
-    findings = [
+def collect_findings(project: Path, tracked: dict[str, dict[str, Any]], plugin_repo: bool) -> list[Finding]:
+    return [
         finding
         for path in iter_files(project)
         if (finding := classify(project, path.relative_to(project).as_posix(), tracked, plugin_repo))
     ]
+
+
+def group_findings(findings: list[Finding]) -> tuple[list[Finding], list[Finding], list[Finding]]:
     safe = [finding for finding in findings if finding.action == "quarantine"]
     manual = [finding for finding in findings if finding.status == "manual_review"]
     protected = [finding for finding in findings if finding.action == "never_touch"]
+    return safe, manual, protected
 
-    applied: list[dict[str, str]] = []
+
+def apply_quarantine(project: Path, safe: list[Finding]) -> list[dict[str, str]]:
     quarantine_root = project / ".project-governor" / "hygiene-quarantine" / datetime.now(timezone.utc).strftime(
         "%Y%m%dT%H%M%SZ"
     )
-    if apply_changes:
-        for finding in safe:
-            applied.append({"path": finding.path, "quarantined_to": quarantine(project, finding.path, quarantine_root)})
+    return [
+        {"path": finding.path, "quarantined_to": quarantine(project, finding.path, quarantine_root)}
+        for finding in safe
+    ]
 
-    status = "clean"
-    if manual:
-        status = "needs_manual_review"
+
+def inspection_status(safe: list[Finding], manual: list[Finding], apply_changes: bool) -> str:
+    if manual and safe and apply_changes:
+        return "needs_manual_review_after_safe_quarantine"
     if safe:
-        status = "needs_cleanup" if not apply_changes else "clean_after_quarantine"
-        if manual and apply_changes:
-            status = "needs_manual_review_after_safe_quarantine"
+        return "needs_cleanup" if not apply_changes else "clean_after_quarantine"
+    if manual:
+        return "needs_manual_review"
+    return "clean"
+
+
+def summary_for(findings: list[Finding], safe: list[Finding], manual: list[Finding], protected: list[Finding], applied: list[dict[str, str]]) -> dict[str, int]:
+    return {
+        "finding_count": len(findings),
+        "safe_to_quarantine_count": len(safe),
+        "manual_review_count": len(manual),
+        "protected_count": len(protected),
+        "applied_count": len(applied),
+    }
+
+
+def inspect(project: Path, plugin_root: Path | None = None, apply_changes: bool = False) -> dict[str, Any]:
+    project = project.resolve()
+    tracked = tracked_files(project)
+    plugin_repo = is_plugin_repo(project, plugin_root)
+    findings = collect_findings(project, tracked, plugin_repo)
+    safe, manual, protected = group_findings(findings)
+    applied = apply_quarantine(project, safe) if apply_changes else []
+    status = inspection_status(safe, manual, apply_changes)
 
     return {
         "status": status,
         "project": str(project),
         "plugin_root": str(plugin_root.resolve()) if plugin_root else None,
         "is_plugin_repo": plugin_repo,
-        "summary": {
-            "finding_count": len(findings),
-            "safe_to_quarantine_count": len(safe),
-            "manual_review_count": len(manual),
-            "protected_count": len(protected),
-            "applied_count": len(applied),
-        },
+        "summary": summary_for(findings, safe, manual, protected, applied),
         "findings": [asdict(finding) for finding in findings],
         "applied": applied,
         "recommendation": recommendation(status, safe, manual),
