@@ -142,9 +142,9 @@ python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-r
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
 ```
 
-## 5. 使用 Harness v6.0.2、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.0.3、GPT-5.5 自动编排和上下文索引
 
-v6.0.2 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
+v6.0.3 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；UI 工作额外经过 DESIGN.md gate，历史问题可通过 `context-indexer --memory-search` 查询治理记忆，插件升级会暴露 `AGENTS.md` 规则模板漂移。它不会为微补丁强制使用重模型，也不会跳过 `route-guard` 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.

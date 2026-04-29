@@ -1,5 +1,19 @@
 # Changelog
 
+## 6.0.3 - AGENTS Rule Template Drift Migration
+
+### Added
+
+- Added automatic `AGENTS.md` rule-template drift detection to `plugin-upgrade-migrator`.
+- Added `review_rule_template_drift` planning so already initialized projects can see mandatory rules added to the latest `templates/AGENTS.md`.
+- Added regression tests for unchanged installed `AGENTS.md` safe updates and user-modified `AGENTS.md` manual review.
+
+### Compatibility
+
+- No new third-party dependencies.
+- User-modified `AGENTS.md` files are not overwritten; they remain manual review or three-way merge items.
+- Existing migration JSON output remains additive.
+
 ## 6.0.2 - Governed Memory Search
 
 ### Added

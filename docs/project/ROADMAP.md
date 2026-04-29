@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Project Governor Harness v6.0.2 with initialized self-governance, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, session lifecycle state, evidence manifests, and harness doctor checks.
+Project Governor Harness v6.0.3 with initialized self-governance, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
@@ -33,6 +33,6 @@ Project Governor Harness v6.0.2 with initialized self-governance, advisory resea
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `6.0.2`.
+- `.codex-plugin/plugin.json` declares version `6.0.3`.
 - `README.md` lists 34+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.

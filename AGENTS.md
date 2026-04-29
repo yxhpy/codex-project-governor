@@ -50,6 +50,8 @@ Do not:
 
 Before upgrading dependencies, tools, SDKs, runtimes, plugin versions, or governance assets, run `upgrade-advisor` in advisory mode. Do not edit manifests or install packages until the user selects an upgrade path. Record decisions in `docs/upgrades/UPGRADE_REGISTER.md`.
 
+When adding mandatory rules or workflows to `templates/AGENTS.md`, ensure initialized projects will see them during Project Governor upgrades. Update `plugin-upgrade-migrator` planning, migration metadata, or tests so `AGENTS.md` template drift is surfaced without blindly overwriting user-modified project rules.
+
 ## Documentation Updates
 
 Update governance docs when changing:

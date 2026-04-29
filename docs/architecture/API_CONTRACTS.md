@@ -493,6 +493,8 @@ Output:
 
 Operations with `op=run_hygiene_check` or `upgrade_policy=diagnostic_only` are diagnostic steps. They must be planned as manual review operations and must not be treated as safe file-copy operations by `apply_safe_migration.py`.
 
+The planner also surfaces tracked `AGENTS.md` rule-template drift. When `.project-governor/INSTALL_MANIFEST.json` records an older `templates/AGENTS.md` hash and the current project `AGENTS.md` does not already match the latest template, `plan_migration.py` emits an operation with `op=review_rule_template_drift`, `path=AGENTS.md`, `migration_id=rule_template_drift`, and normal `three_way_merge` classification. Unmodified installed files can be `replace_from_template`; user-modified files remain `manual_review_or_three_way_merge`.
+
 ### `skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py`
 
 Input:

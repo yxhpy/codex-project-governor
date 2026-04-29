@@ -8,6 +8,8 @@ from typing import Any
 
 from _common import load_json, operation_policy, sha256_path, version_between, write_json
 
+RULE_TEMPLATE_DRIFT_PATHS = ("AGENTS.md",)
+
 
 def tracked(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {item.get("path"): item for item in manifest.get("generated_files", []) if item.get("path")}
@@ -72,6 +74,61 @@ def classify(project: Path, plugin_root: Path, operation: dict[str, Any], tracke
     }
 
 
+def rule_template_drift_operations(
+    project: Path,
+    plugin_root: Path,
+    tracked_files: dict[str, dict[str, Any]],
+    existing_operations: list[dict[str, Any]],
+    current: str,
+    target: str,
+) -> list[dict[str, Any]]:
+    existing_paths = {operation.get("path") for operation in existing_operations}
+    operations: list[dict[str, Any]] = []
+
+    for relative_path in RULE_TEMPLATE_DRIFT_PATHS:
+        if relative_path in existing_paths:
+            continue
+
+        tracked_file = tracked_files.get(relative_path)
+        if not tracked_file:
+            continue
+
+        source_path = tracked_file.get("template") or f"templates/{relative_path}"
+        source_hash = sha256_path(plugin_root / source_path)
+        if source_hash is None:
+            continue
+
+        current_hash = sha256_path(project / relative_path)
+        if current_hash == source_hash:
+            continue
+
+        installed_template_hash = tracked_file.get("template_sha256") or tracked_file.get("installed_sha256")
+        if installed_template_hash == source_hash:
+            continue
+
+        operations.append(
+            {
+                **classify(
+                    project,
+                    plugin_root,
+                    {
+                        "op": "review_rule_template_drift",
+                        "path": relative_path,
+                        "source": source_path,
+                        "upgrade_policy": "three_way_merge",
+                        "reason": "Review updated mandatory Project Governor rules from the latest AGENTS.md template without overwriting local project rules.",
+                    },
+                    tracked_files,
+                ),
+                "migration_id": "rule_template_drift",
+                "from": current,
+                "to": target,
+            }
+        )
+
+    return operations
+
+
 def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[str, Any]:
     install_manifest = load_json(project / ".project-governor" / "INSTALL_MANIFEST.json", {}) or {}
     tracked_files = tracked(install_manifest)
@@ -87,6 +144,8 @@ def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[st
                     "to": migration.get("to"),
                 }
             )
+
+    operations.extend(rule_template_drift_operations(project, plugin_root, tracked_files, operations, current, target))
 
     safe = [operation for operation in operations if operation["action"] in {"add_if_missing", "replace_from_template"}]
     manual = [operation for operation in operations if operation["action"] in {"manual_review", "manual_review_or_three_way_merge"}]

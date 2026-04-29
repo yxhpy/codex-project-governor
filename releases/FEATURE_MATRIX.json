@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.0.2",
+  "current_latest": "6.0.3",
   "versions": [
     {
       "version": "0.4.1",
@@ -281,6 +281,20 @@
           "summary": "Adds task_history and governance_history roles to context-index v2 entries.",
           "user_value": "Task plans, release notes, upgrade records, and research docs become first-class retrieval targets for future sessions.",
           "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.0.3",
+      "title": "AGENTS Rule Template Drift Migration",
+      "features": [
+        {
+          "id": "agents_rule_template_drift",
+          "name": "AGENTS.md rule-template drift",
+          "summary": "Surfaces tracked AGENTS.md template hash drift during plugin upgrade planning even when no explicit release migration names AGENTS.md.",
+          "user_value": "Already initialized projects can see new mandatory Project Governor rules without overwriting local AGENTS.md customizations.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
         }
       ]
     }

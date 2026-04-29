@@ -59,6 +59,10 @@ python3 skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py --plan .p
 | `.codex/prompts/*.md` | add-if-missing or three-way merge |
 | `tasks/_template/*.md` | add-if-missing or three-way merge |
 
+## Rule-template drift
+
+`AGENTS.md` is a rule-bearing template. If the latest plugin template differs from the template hash recorded in `.project-governor/INSTALL_MANIFEST.json`, the migration plan must surface `AGENTS.md` even when no release migration explicitly names it. Unmodified installed `AGENTS.md` files may be replaced from the latest template; user-modified files stay manual review or three-way merge items.
+
 ## Output
 
 Return an upgrade panel with feature diff, migration plan, safe operations, manual-review items, and next choices.

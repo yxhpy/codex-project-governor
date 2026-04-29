@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.0.2`
+当前版本：`6.0.3`
 
 ## 它解决什么问题
 
@@ -37,7 +37,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.0.2、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.0.3、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、治理记忆搜索、会话状态、证据清单、自动 subagent 激活、插件升级迁移器、AGENTS.md 规则模板漂移检测、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -204,12 +204,12 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `repair-loop` 只在质量门失败时做有边界修复。
 - `merge-readiness` 检查是否可以进入 PR 或 merge。
 
-### 使用 Harness v6.0.2
+### 使用 Harness v6.0.3
 
-Harness v6.0.2 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.0.3 让 `task-router` 成为唯一 route 真源，并让运行时规划、上下文索引、治理记忆搜索、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.0.2 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.3 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -260,6 +260,18 @@ Request:
 Advisory only. Do not edit manifests or install packages.
 Show which upgrades are relevant, risky, optional, deferred, or should be pinned.
 ```
+
+### 升级已初始化的 Project Governor 项目
+
+```text
+Use @project-governor plugin-upgrade-migrator.
+
+Show what is new, plan a safe migration, and do not overwrite my project customizations.
+```
+
+迁移器会读取 `CHANGELOG.md`、`releases/FEATURE_MATRIX.json`、`releases/MIGRATIONS.json` 和目标项目里的 `.project-governor/INSTALL_MANIFEST.json`。它只会自动应用安全的新增文件或未被用户修改的模板替换；用户改过的治理文件仍然进入手工审查或三方合并。
+
+因为 `AGENTS.md` 承载强制项目行为，迁移器还会在最新插件模板和安装清单里的模板哈希不一致时暴露 `AGENTS.md` 模板漂移。未修改过的项目可以自动获得新规则，本地编辑过的 `AGENTS.md` 会保留为手工审查项。
 
 ### 检查项目卫生
 

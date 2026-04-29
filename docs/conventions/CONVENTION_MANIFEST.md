@@ -24,7 +24,7 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.0.2.md`
+- Versioned release notes: `releases/6.0.3.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - Research brief: `docs/research/V0.3_RESEARCH_BRIEF.md`

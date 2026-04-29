@@ -118,6 +118,87 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertEqual(operations["run_hygiene_check"]["action"], "manual_review")
             self.assertEqual(data["summary"]["manual_review_count"], 1)
 
+    def test_plan_migration_surfaces_agents_template_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            (project / ".project-governor").mkdir()
+            installed = "# AGENTS.md\n\n## Project Governor\n\nOld mandatory rule.\n"
+            (project / "AGENTS.md").write_text(installed, encoding="utf-8")
+            manifest = {
+                "plugin": {"installed_version": "6.0.2"},
+                "generated_files": [
+                    {
+                        "path": "AGENTS.md",
+                        "template": "templates/AGENTS.md",
+                        "template_sha256": sha(installed),
+                        "installed_sha256": sha(installed),
+                        "upgrade_policy": "three_way_merge",
+                    }
+                ],
+            }
+            (project / ".project-governor" / "INSTALL_MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.0.2",
+                    "--target-version",
+                    "6.0.2",
+                ]
+            )
+            operation = data["operations"][0]
+            self.assertEqual(operation["op"], "review_rule_template_drift")
+            self.assertEqual(operation["path"], "AGENTS.md")
+            self.assertEqual(operation["action"], "replace_from_template")
+            self.assertEqual(operation["status"], "safe_update_unchanged_from_install")
+            self.assertEqual(operation["migration_id"], "rule_template_drift")
+
+    def test_plan_migration_keeps_modified_agents_template_drift_manual(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            (project / ".project-governor").mkdir()
+            installed = "# AGENTS.md\n\n## Project Governor\n\nOld mandatory rule.\n"
+            modified = installed + "\n## Local Rule\n\nKeep this.\n"
+            (project / "AGENTS.md").write_text(modified, encoding="utf-8")
+            manifest = {
+                "plugin": {"installed_version": "6.0.2"},
+                "generated_files": [
+                    {
+                        "path": "AGENTS.md",
+                        "template": "templates/AGENTS.md",
+                        "template_sha256": sha(installed),
+                        "installed_sha256": sha(installed),
+                        "upgrade_policy": "three_way_merge",
+                    }
+                ],
+            }
+            (project / ".project-governor" / "INSTALL_MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.0.2",
+                    "--target-version",
+                    "6.0.2",
+                ]
+            )
+            operation = data["operations"][0]
+            self.assertEqual(operation["op"], "review_rule_template_drift")
+            self.assertEqual(operation["path"], "AGENTS.md")
+            self.assertEqual(operation["action"], "manual_review_or_three_way_merge")
+            self.assertEqual(operation["status"], "user_modified")
+            self.assertEqual(data["summary"]["manual_review_count"], 1)
+
     def test_apply_safe_migration_adds_only_safe_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir) / "project"

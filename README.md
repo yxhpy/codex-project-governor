@@ -2,7 +2,7 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.2 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.0.3 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with governed memory search, records session state and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
 
@@ -106,12 +106,12 @@ Restart Codex, open `/plugins`, choose the repository marketplace, and install *
 
 ## Use
 
-### Use Harness v6.0.2
+### Use Harness v6.0.3
 
-Harness v6.0.2 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.0.3 makes `task-router` the single route source of truth and lets the runtime planner, context index, governed memory search, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.0.2 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.0.3 to plan this change with context index, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -257,6 +257,8 @@ Show what is new, plan a safe migration, and do not overwrite my project customi
 ```
 
 The migrator uses `CHANGELOG.md`, `releases/FEATURE_MATRIX.json`, `releases/MIGRATIONS.json`, and `.project-governor/INSTALL_MANIFEST.json` when present. It applies only safe add-if-missing or unchanged-file operations automatically; user-modified governance files remain manual review or three-way merge work.
+
+Because `AGENTS.md` carries mandatory project behavior, the migrator also surfaces `AGENTS.md` template drift when the latest plugin template differs from the installed template hash. This lets unchanged projects receive new rules automatically while keeping locally edited `AGENTS.md` files in manual review.
 
 ### Inspect project hygiene
 

@@ -83,6 +83,8 @@ Do not spawn subagents for `micro_patch` unless route-guard fails, confidence is
 
 When upgrading Project Governor, use `plugin-upgrade-migrator` behavior. Do not overwrite initialized project governance files blindly. Show new features, inspect `.project-governor/INSTALL_MANIFEST.json`, generate an upgrade plan, apply only safe operations, and leave user-modified files for manual review or three-way merge. Memory files are append-only and decision records must not be overwritten.
 
+When a new Project Governor version adds mandatory rules or workflows to the `AGENTS.md` template, the upgrade plan must surface that `AGENTS.md` template drift. Unmodified installed files may be replaced from the latest template; user-modified files must remain manual review or three-way merge items.
+
 ## Documentation updates
 
 Update docs when changing:
