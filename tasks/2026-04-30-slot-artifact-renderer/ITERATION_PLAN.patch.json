@@ -1,0 +1,40 @@
+{
+  "artifact": "ITERATION_PLAN",
+  "base_revision": 1,
+  "reason": "Final verification added quality-gate evidence artifacts.",
+  "ops": [
+    {
+      "op": "append_item",
+      "path": "/expected_changes",
+      "value": "tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json"
+    },
+    {
+      "op": "append_item",
+      "path": "/expected_changes",
+      "value": "tasks/2026-04-30-slot-artifact-renderer/QUALITY_REPORT.md"
+    },
+    {
+      "op": "append_item",
+      "path": "/new_files",
+      "id": "file-quality-gate-input",
+      "value": {
+        "file": "tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json",
+        "why": "Quality gate needs a durable task-local evidence input."
+      }
+    },
+    {
+      "op": "append_item",
+      "path": "/new_files",
+      "id": "file-quality-report",
+      "value": {
+        "file": "tasks/2026-04-30-slot-artifact-renderer/QUALITY_REPORT.md",
+        "why": "Quality gate result should be reviewable with the task evidence."
+      }
+    },
+    {
+      "op": "append_item",
+      "path": "/tests",
+      "value": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json"
+    }
+  ]
+}

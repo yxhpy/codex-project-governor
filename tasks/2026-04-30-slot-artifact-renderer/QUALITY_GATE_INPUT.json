@@ -1,0 +1,112 @@
+{
+  "level": "standard",
+  "route": "standard_feature",
+  "change_budget": {
+    "max_files_changed": 30,
+    "max_new_files": 10,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": true
+  },
+  "actual": {
+    "files_changed": 24,
+    "new_files": 10,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 1
+  },
+  "commands": [
+    "python3 tests/test_governance_artifact_renderer.py",
+    "python3 tests/test_harness_v6.py",
+    "python3 -m compileall tools skills tests",
+    "python3 tests/selftest.py",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base origin/main --format text",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json"
+  ],
+  "checks": {
+    "governance_artifact_renderer_tests": "pass",
+    "harness_v6_tests": "pass",
+    "compileall": "pass",
+    "selftest": "pass",
+    "engineering_standards": "pass"
+  },
+  "engineering_standards": {
+    "schema": "project-governor-engineering-standards-v1",
+    "status": "pass",
+    "project": "/Users/yxhpy/Desktop/project/codex-project-governor",
+    "scope": "diff",
+    "diff_base": "origin/main",
+    "summary": {
+      "files_scanned": 6,
+      "blocker_count": 0,
+      "warning_count": 0,
+      "mock_inventory_count": 0,
+      "test_like_files": 3,
+      "suppressed_baseline_count": 1
+    },
+    "blockers": [],
+    "warnings": []
+  },
+  "evidence": {
+    "acceptance_criteria": [
+      {
+        "criterion": "Fixed Markdown template content is rendered deterministically from variable slots.",
+        "proof": "tools/render_governance_artifact.py renders iteration_plan_v1 from ITERATION_PLAN.slots.json and tests cover rendered output."
+      },
+      {
+        "criterion": "Plans can be updated during execution without rewriting full Markdown.",
+        "proof": "tools/update_governance_artifact.py applies revision-checked domain patches and re-renders Markdown; tests cover revision bump and change log output."
+      },
+      {
+        "criterion": "Read-side token waste is reduced for generated plans.",
+        "proof": "skills/context-indexer/scripts/build_context_index.py indexes source slots for generated Markdown when slots exist; tests/test_harness_v6.py covers the fallback path."
+      }
+    ],
+    "tests": [
+      {
+        "command": "python3 tests/test_governance_artifact_renderer.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/test_harness_v6.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m compileall tools skills tests",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/selftest.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base origin/main --format text",
+        "status": "passed"
+      },
+      {
+        "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json",
+        "status": "passed"
+      }
+    ],
+    "docs_refresh": {
+      "needed": true,
+      "files_updated": [
+        "AGENTS.md",
+        "templates/AGENTS.md",
+        "README.md",
+        "README.zh-CN.md",
+        "docs/architecture/API_CONTRACTS.md",
+        "docs/architecture/ARCHITECTURE.md",
+        "docs/conventions/ITERATION_CONTRACT.md",
+        "templates/docs/conventions/ITERATION_CONTRACT.md",
+        "skills/iteration-planner/SKILL.md",
+        "docs/memory/PROJECT_MEMORY.md",
+        "docs/memory/RISK_REGISTER.md",
+        "tasks/2026-04-30-slot-artifact-renderer/ITERATION_PLAN.md",
+        "tasks/2026-04-30-slot-artifact-renderer/ITERATION_PLAN.slots.json",
+        "tasks/2026-04-30-slot-artifact-renderer/QUALITY_GATE_INPUT.json",
+        "tasks/2026-04-30-slot-artifact-renderer/QUALITY_REPORT.md"
+      ]
+    }
+  }
+}

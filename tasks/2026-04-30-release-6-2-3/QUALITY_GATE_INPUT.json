@@ -1,0 +1,132 @@
+{
+  "level": "standard",
+  "route": "standard_feature",
+  "change_budget": {
+    "max_files_changed": 50,
+    "max_new_files": 20,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": true
+  },
+  "actual": {
+    "files_changed": 38,
+    "new_files": 16,
+    "dependencies_added": 0,
+    "public_contract_changes": 2,
+    "schema_changes": 1
+  },
+  "commands": [
+    "python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py tasks/2026-04-30-release-6-2-3/UPGRADE_ADVISORY_INPUT.json",
+    "python3 tests/test_governance_artifact_renderer.py",
+    "python3 tests/test_harness_v6.py",
+    "python3 tests/test_claude_code_compat.py",
+    "python3 tests/selftest.py",
+    "python3 -m compileall tools skills tests claude",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base origin/main --format text",
+    "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "git diff --check",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-release-6-2-3/QUALITY_GATE_INPUT.json"
+  ],
+  "checks": {
+    "upgrade_advisor": "pass",
+    "governance_artifact_renderer_tests": "pass",
+    "harness_v6_tests": "pass",
+    "claude_code_compat_tests": "pass",
+    "selftest": "pass",
+    "compileall": "pass",
+    "engineering_standards": "pass",
+    "unittest_discover": "pass",
+    "diff_check": "pass"
+  },
+  "engineering_standards": {
+    "schema": "project-governor-engineering-standards-v1",
+    "status": "pass",
+    "project": "/Users/yxhpy/Desktop/project/codex-project-governor",
+    "scope": "diff",
+    "diff_base": "origin/main",
+    "summary": {
+      "files_scanned": 8,
+      "blocker_count": 0,
+      "warning_count": 0
+    },
+    "blockers": [],
+    "warnings": []
+  },
+  "evidence": {
+    "acceptance_criteria": [
+      {
+        "criterion": "The completed slot-based governance artifact workflow is published as version 6.2.3.",
+        "proof": ".codex-plugin/plugin.json, .claude-plugin/plugin.json, README.md, README.zh-CN.md, releases/6.2.3.md, and releases/FEATURE_MATRIX.json point at 6.2.3."
+      },
+      {
+        "criterion": "Codex and Claude plugin version surfaces stay aligned.",
+        "proof": "tests/selftest.py, tests/test_harness_v6.py, and tests/test_claude_code_compat.py pass after version assertion updates."
+      },
+      {
+        "criterion": "Release evidence records upgrade-advisor and quality-gate validation.",
+        "proof": "tasks/2026-04-30-release-6-2-3/UPGRADE_ADVISORY_INPUT.json, QUALITY_GATE_INPUT.json, and QUALITY_REPORT.md are present."
+      }
+    ],
+    "tests": [
+      {
+        "command": "python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py tasks/2026-04-30-release-6-2-3/UPGRADE_ADVISORY_INPUT.json",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/test_governance_artifact_renderer.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/test_harness_v6.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/test_claude_code_compat.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/selftest.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m compileall tools skills tests claude",
+        "status": "passed"
+      },
+      {
+        "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base origin/main --format text",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m unittest discover -s tests -p 'test_*.py'",
+        "status": "passed"
+      },
+      {
+        "command": "git diff --check",
+        "status": "passed"
+      },
+      {
+        "command": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-release-6-2-3/QUALITY_GATE_INPUT.json",
+        "status": "passed"
+      }
+    ],
+    "docs_refresh": {
+      "needed": true,
+      "files_updated": [
+        ".codex-plugin/plugin.json",
+        ".claude-plugin/plugin.json",
+        "examples/claude-marketplace/.claude-plugin/marketplace.json",
+        "README.md",
+        "README.zh-CN.md",
+        "CHANGELOG.md",
+        "releases/6.2.3.md",
+        "releases/FEATURE_MATRIX.json",
+        "docs/upgrades/UPGRADE_REGISTER.md",
+        "docs/memory/PROJECT_MEMORY.md",
+        "tasks/2026-04-30-release-6-2-3/ITERATION_PLAN.md",
+        "tasks/2026-04-30-release-6-2-3/UPGRADE_ADVISORY_INPUT.json",
+        "tasks/2026-04-30-release-6-2-3/QUALITY_GATE_INPUT.json",
+        "tasks/2026-04-30-release-6-2-3/QUALITY_REPORT.md"
+      ]
+    }
+  }
+}

@@ -68,6 +68,8 @@ This repository is a Codex and Claude Code plugin plus governance-template bundl
 ## Generated Output
 
 - `tools/init_project.py` writes `reports/project-governor/init-report.json` in the target repository.
+- `tools/render_governance_artifact.py` renders generated governance Markdown such as `ITERATION_PLAN.md` from structured `*.slots.json` files.
+- `tools/update_governance_artifact.py` applies small revision-checked updates to generated artifact slot files and can re-render the Markdown artifact.
 - `skills/context-indexer/scripts/build_context_index.py --write` writes schema-v2 `.project-governor/context/CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
 - `skills/session-lifecycle/scripts/session_lifecycle.py start|end` writes `.project-governor/state/**` in the target repository.
 - `skills/evidence-manifest/scripts/write_evidence_manifest.py` writes `.project-governor/evidence/<task-id>/EVIDENCE.json` unless `--validate` is used.

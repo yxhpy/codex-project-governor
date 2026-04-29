@@ -9,7 +9,7 @@ Before implementation, the agent must:
 1. Identify existing adjacent code.
 2. Identify existing patterns to reuse.
 3. Identify existing components, utilities, services, hooks, schemas, tests, and styles.
-4. Write or update `tasks/<date>-<slug>/ITERATION_PLAN.md`.
+4. Write or update the task iteration plan. Prefer `ITERATION_PLAN.slots.json` plus deterministic render/update scripts for generated Markdown, and patch slots when plans change during execution.
 5. Explain why each new file is necessary.
 6. Explain why each new dependency is necessary.
 7. Keep public API behavior stable unless explicitly asked.
@@ -52,3 +52,12 @@ Every non-trivial change must include:
 - style constraints
 - risks
 - rollback path
+
+## Generated artifact updates
+
+Generated governance artifacts should keep model-authored content in structured slots and let deterministic scripts render fixed headings, tables, and default text.
+
+- `ITERATION_PLAN.slots.json` is the source of truth when present.
+- `ITERATION_PLAN.md` is the human-readable render output and should include a `generated_from` marker.
+- Mid-task plan changes should be expressed as small update patches against the slot file, with revision checks and a change-log entry.
+- Agents should not ask the model to regenerate full Markdown templates when only variable fields changed.

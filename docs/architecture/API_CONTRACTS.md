@@ -162,6 +162,79 @@ Compatibility wrapper accepting:
 
 It forwards to `copy_templates(...)` and prints a one-line summary.
 
+### `tools/render_governance_artifact.py`
+
+Input:
+
+- required `--input <json-path>`
+- optional `--template <template-id>`; defaults to `template_id` in the slot input
+- optional `--output <markdown-path>`
+
+Behavior:
+
+- Reads `templates/artifacts/ARTIFACT_TEMPLATES.json` to validate the requested artifact template.
+- Renders fixed governance Markdown from variable slot JSON so agents do not need to regenerate repeated headings, tables, or default text.
+- Supports `iteration_plan_v1`, which renders an `ITERATION_PLAN.md` from `ITERATION_PLAN.slots.json`.
+- Writes a generated-artifact marker at the top of rendered Markdown: `generated_from`, `source`, and `revision`.
+- Requires `user_request` for `iteration_plan_v1`.
+
+JSON output fields:
+
+- `status`
+- `schema`
+- `template_id`
+- `input`
+- `output`
+- `revision`
+
+The current schema is `project-governor-artifact-render-result-v1`.
+
+### `tools/update_governance_artifact.py`
+
+Input:
+
+- required `--input <json-path>`
+- required `--patch <json-path>`
+- optional `--output <json-path>`; defaults to overwriting `--input`
+- optional `--render-output <markdown-path>`
+- optional `--change-log <jsonl-path>`
+- optional `--now <timestamp>` for deterministic tests
+
+Patch JSON fields:
+
+- `artifact`
+- `base_revision`
+- `reason`
+- `ops[]`
+
+Supported `ops[]` values:
+
+- `set`
+- `append_item`
+- `replace_item`
+- `replace_item_field`
+- `remove_item`
+
+Behavior:
+
+- Applies small domain updates to a slot JSON file instead of rewriting the full rendered Markdown artifact.
+- Rejects updates when `base_revision` does not match the current slot-file `revision`.
+- Increments `revision`, appends `revision_history`, and optionally writes a JSONL change log.
+- When `--render-output` is provided, re-renders Markdown from the updated slots.
+
+JSON output fields:
+
+- `status`
+- `schema`
+- `input`
+- `output`
+- `render_output`
+- `from_revision`
+- `to_revision`
+- `changed_paths`
+
+The current schema is `project-governor-artifact-update-result-v1`.
+
 ### `tools/install_or_update_user_plugin.py`
 
 Input:
@@ -867,6 +940,14 @@ Output with `--write`:
 With `--write`, the script writes `.project-governor/context/CONTEXT_INDEX.json`, `.project-governor/context/DOCS_MANIFEST.json`, `.project-governor/context/SESSION_BRIEF.md`, and `.project-governor/context/INDEX_REPORT.json`.
 
 Harness v6 writes `schema` as `project-governor-context-index-v2`. Entries include path, size, mtime, hash, language, roles, symbols, imports, headings, sections, tokens, summary, token estimate, doc status, sensitivity, and stale reason. Secret-like content is redacted from summaries.
+
+Generated governance Markdown that starts with the marker written by `tools/render_governance_artifact.py` is indexed from its source slot JSON when the source exists beside the Markdown file. This keeps fixed template headings and default text out of read-side context. Generated entries may include:
+
+- `generated_from`
+- `source_slots`
+- `source_slots_sha256`
+- `artifact_revision`
+- `template_content_indexed`
 
 `DOCS_MANIFEST.json` uses `schema=project-governor-docs-manifest-v1` and summarizes documentation paths, statuses, roles, headings, section counts, token estimates, hashes, and the progressive read policy. It is generated runtime state, not a template copied into projects.
 

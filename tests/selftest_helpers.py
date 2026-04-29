@@ -126,6 +126,8 @@ REQUIRED_TEMPLATE_PATHS = [
     "tasks/_template/MERGE_READINESS.md",
     "tasks/_template/VELOCITY_REPORT.md",
     "tasks/_template/ROUTE_GUARD_REPORT.md",
+    "artifacts/ARTIFACT_TEMPLATES.json",
+    "artifacts/schemas/iteration_plan_v1.schema.json",
     ".codex/prompts/research-radar.md",
     ".codex/prompts/version-researcher.md",
     ".codex/prompts/task-router.md",

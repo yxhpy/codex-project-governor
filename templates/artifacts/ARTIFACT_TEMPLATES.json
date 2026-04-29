@@ -1,0 +1,12 @@
+{
+  "schema": "project-governor-artifact-templates-v1",
+  "templates": {
+    "iteration_plan_v1": {
+      "artifact": "ITERATION_PLAN",
+      "output_filename": "ITERATION_PLAN.md",
+      "slot_schema": "templates/artifacts/schemas/iteration_plan_v1.schema.json",
+      "source_slot_filename": "ITERATION_PLAN.slots.json",
+      "description": "Renders the standard Project Governor iteration plan from variable slots."
+    }
+  }
+}

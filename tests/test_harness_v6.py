@@ -20,8 +20,8 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.2.2')
-        self.assertIn('Harness v6.2.2', manifest['description'])
+        self.assertEqual(manifest['version'], '6.2.3')
+        self.assertIn('Harness v6.2.3', manifest['description'])
 
     def test_harness_doctor_uses_feature_matrix_current_latest(self):
         data = self.run_json([PY, str(HARNESS_DOCTOR), '--project', str(ROOT), '--execution-readiness'])
@@ -104,6 +104,33 @@ class HarnessV6Test(unittest.TestCase):
             self.assertNotIn('docs/old.md', paths)
             self.assertIn('docs/old.md', avoided)
             self.assertTrue(queried['context_compression']['full_documents_deferred'])
+
+    def test_context_index_prefers_slots_for_generated_markdown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            (project / '.project-governor').mkdir()
+            task = project / 'tasks/demo'
+            task.mkdir(parents=True)
+            (task / 'ITERATION_PLAN.slots.json').write_text(json.dumps({
+                'template_id': 'iteration_plan_v1',
+                'revision': 1,
+                'user_request': 'Slot-only behavior should be indexed.',
+                'existing_behavior': ['Variable slot content only.'],
+            }), encoding='utf-8')
+            (task / 'ITERATION_PLAN.md').write_text(
+                '<!-- generated_from: iteration_plan_v1; source: ITERATION_PLAN.slots.json; revision: 1 -->\n'
+                '# Iteration Plan\n\n'
+                'Fixed template noise that should not drive summary.\n',
+                encoding='utf-8',
+            )
+            self.run_json([PY, str(ROOT / 'skills/context-indexer/scripts/build_context_index.py'), '--project', str(project), '--write'])
+            index = json.loads((project / '.project-governor/context/CONTEXT_INDEX.json').read_text(encoding='utf-8'))
+            entry = next(e for e in index['entries'] if e['path'] == 'tasks/demo/ITERATION_PLAN.md')
+            self.assertEqual(entry['generated_from'], 'iteration_plan_v1')
+            self.assertEqual(entry['source_slots'], 'ITERATION_PLAN.slots.json')
+            self.assertFalse(entry['template_content_indexed'])
+            self.assertIn('Slot-only behavior should be indexed', entry['summary'])
+            self.assertNotIn('Fixed template noise', entry['summary'])
 
     def test_quality_gate_requires_evidence_when_strict(self):
         payload = {

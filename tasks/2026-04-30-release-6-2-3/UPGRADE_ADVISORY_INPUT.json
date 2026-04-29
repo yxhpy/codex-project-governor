@@ -1,0 +1,24 @@
+{
+  "project_requirements": [
+    "Publish the completed slot-based governance artifact workflow as a Project Governor patch release.",
+    "Keep Codex and Claude Code plugin metadata, release notes, feature matrix, tests, and install instructions in sync."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance-plugin",
+      "current": "6.2.2",
+      "latest": "6.2.3",
+      "safe_target": "6.2.3",
+      "available_versions": ["6.2.2", "6.2.3"],
+      "wanted_by": ["publish new version"],
+      "required_by": [],
+      "requirement_matches": ["slot-based governance artifacts", "generated artifact update patches", "read-side token optimization"],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release for deterministic artifact rendering, revision-checked slot updates, context-indexer generated Markdown slot indexing, docs, memory, and tests. No dependency or runtime service change is required."
+    }
+  ]
+}

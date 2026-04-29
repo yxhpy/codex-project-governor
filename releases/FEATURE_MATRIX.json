@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.2",
+  "current_latest": "6.2.3",
   "versions": [
     {
       "version": "0.4.1",
@@ -494,6 +494,41 @@
           "summary": "Records diagnostics cleanup evidence, expanded regression checks, and context-index refresh coverage in the task quality report.",
           "user_value": "The release has auditable verification for helper refactors, version consistency, and context retrieval behavior.",
           "requires_project_migration": false
+        }
+      ]
+    },
+    {
+      "version": "6.2.3",
+      "title": "Slot-Based Governance Artifacts",
+      "features": [
+        {
+          "id": "slot_artifact_renderer",
+          "name": "Slot-based governance artifact renderer",
+          "summary": "Renders generated governance Markdown from structured variable slots so agents do not regenerate fixed template headings, tables, and defaults.",
+          "user_value": "Plans and task artifacts use fewer output tokens while preserving a readable Markdown artifact for humans.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "generated_artifact_update_patches",
+          "name": "Generated artifact update patches",
+          "summary": "Applies revision-checked domain patches to slot files and can re-render the Markdown artifact during execution.",
+          "user_value": "Plans can change mid-task without asking the model to rewrite the whole template.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "generated_markdown_slot_indexing",
+          "name": "Generated Markdown slot indexing",
+          "summary": "Indexes generated Markdown from its source slot JSON when a generated_from marker points to an adjacent slot file.",
+          "user_value": "Context retrieval reads variable task content instead of repeated template text.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "generated_artifact_rules",
+          "name": "Generated artifact workflow rules",
+          "summary": "Updates iteration-planner, AGENTS.md, and iteration contracts to prefer slots plus deterministic render/update scripts.",
+          "user_value": "Future sessions follow the lower-token artifact workflow consistently.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
         }
       ]
     }

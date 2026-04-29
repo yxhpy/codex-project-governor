@@ -4,7 +4,7 @@
 
 `codex-project-governor` 是一个 Codex 和 Claude Code 插件，用来把仓库变成可自我治理的 Agent 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 或 Claude Code 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.2.2`
+当前版本：`6.2.3`
 
 ## 它解决什么问题
 
@@ -39,7 +39,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.2.2、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md/CLAUDE.md 规则模板漂移检测、Claude Code commands/agents/hooks、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.2.3、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、结构化 slots 生成治理产物、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、生成产物 slot 索引、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md/CLAUDE.md 规则模板漂移检测、Claude Code commands/agents/hooks、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -83,7 +83,7 @@ python3 tools/analyze_skill_catalog.py --project . --format text
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.2 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.3 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -120,13 +120,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.2.2 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.2 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.3 --apply
 ```
 
-安装到 v6.2.2 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.2.3 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.2 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.3 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -134,7 +134,7 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.2.2
+git -C "$PLUGIN_DIR" checkout --detach v6.2.3
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -232,9 +232,18 @@ Request:
 
 Treat this as an iteration, not a rewrite.
 Find existing adjacent code and patterns first.
-Create an ITERATION_PLAN.md.
+Create an ITERATION_PLAN.slots.json and render ITERATION_PLAN.md with the deterministic artifact renderer when available.
 Do not implement until the plan is complete.
 ```
+
+生成型任务产物应把大模型输出限制在结构化 slots 中，由确定性脚本渲染固定 Markdown 标题、表格和默认文案：
+
+```bash
+python3 tools/render_governance_artifact.py --input tasks/<task-id>/ITERATION_PLAN.slots.json --output tasks/<task-id>/ITERATION_PLAN.md
+python3 tools/update_governance_artifact.py --input tasks/<task-id>/ITERATION_PLAN.slots.json --patch tasks/<task-id>/ITERATION_PLAN.patch.json --render-output tasks/<task-id>/ITERATION_PLAN.md --change-log tasks/<task-id>/ARTIFACT_CHANGES.jsonl
+```
+
+当执行过程中计划变化时，用小 patch 更新 slot 文件并重新渲染 Markdown，不让大模型重写完整模板。
 
 ### 用质量门加速开发
 
@@ -278,12 +287,12 @@ python3 skills/engineering-standards-governor/scripts/check_engineering_standard
 python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
 ```
 
-### 使用 Harness v6.2.2
+### 使用 Harness v6.2.3
 
-Harness v6.2.2 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.2.3 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.2.2 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.3 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -381,13 +390,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.2 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.3 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.2
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.3
 ```
 
 从项目外发现已治理仓库：
@@ -487,7 +496,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.2
+python3 tools/install_or_update_user_plugin.py --ref v6.2.3
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

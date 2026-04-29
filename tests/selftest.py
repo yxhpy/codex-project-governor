@@ -25,8 +25,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.2.2")
-        self.assertIn("Harness v6.2.2", manifest["description"])
+        self.assertEqual(manifest["version"], "6.2.3")
+        self.assertIn("Harness v6.2.3", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
@@ -49,10 +49,10 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         }:
             self.assertNotIn(internal_skill, joined_prompts)
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.2.2")
+        self.assertEqual(feature_matrix["current_latest"], "6.2.3")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.2.2", versions)
-        self.assertTrue((ROOT / "releases" / "6.2.2.md").exists())
+        self.assertIn("6.2.3", versions)
+        self.assertTrue((ROOT / "releases" / "6.2.3.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -101,7 +101,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.2.2", readme)
+        self.assertIn("6.2.3", readme)
         self.assertIn("Claude Code", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)

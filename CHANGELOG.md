@@ -1,5 +1,24 @@
 # Changelog
 
+## 6.2.3 - Slot-Based Governance Artifacts
+
+### Added
+
+- Added deterministic governance artifact rendering from structured `*.slots.json` files, starting with `ITERATION_PLAN.md`.
+- Added revision-checked generated artifact update patches so plans can change during execution without rewriting fixed Markdown templates.
+- Added machine-readable artifact template metadata and a slot schema for `iteration_plan_v1`.
+
+### Changed
+
+- Updated `iteration-planner`, `AGENTS.md`, and iteration contracts to prefer slot files plus deterministic render/update scripts for generated governance artifacts.
+- Updated context indexing so generated Markdown with a `generated_from` marker is indexed from its source slots when available, reducing read-side template noise.
+
+### Compatibility
+
+- Existing CLI entry points, skill names, and initialized-project behavior remain compatible.
+- No new third-party dependencies.
+- Existing generated Markdown still indexes normally when a source slot file is missing.
+
 ## 6.2.2 - Diagnostics Baseline Cleanup
 
 ### Added

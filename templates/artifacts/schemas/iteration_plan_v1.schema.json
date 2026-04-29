@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project Governor Iteration Plan Slots",
+  "type": "object",
+  "required": ["template_id", "user_request"],
+  "properties": {
+    "template_id": { "const": "iteration_plan_v1" },
+    "task_id": { "type": "string" },
+    "title": { "type": "string" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "user_request": { "type": "string" },
+    "existing_behavior": { "type": "array", "items": { "type": "string" } },
+    "reuse_patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pattern", "source", "reuse"],
+        "properties": {
+          "id": { "type": "string" },
+          "pattern": { "type": "string" },
+          "source": { "type": "string" },
+          "reuse": { "type": "string" }
+        }
+      }
+    },
+    "expected_changes": { "type": "array", "items": { "type": ["string", "object"] } },
+    "files_not_to_change": { "type": "array", "items": { "type": "string" } },
+    "new_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "why"],
+        "properties": {
+          "id": { "type": "string" },
+          "file": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "dependencies": { "type": ["string", "array"] },
+    "tests": { "type": "array", "items": { "type": ["string", "object"] } },
+    "risks": { "type": "array", "items": { "type": ["string", "object"] } },
+    "rollback": { "type": "string" },
+    "revision_history": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": true
+}

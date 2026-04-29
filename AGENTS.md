@@ -31,6 +31,7 @@ When `.project-governor/context/DOCS_MANIFEST.json` and `CONTEXT_INDEX.json` are
 
 - Prefer narrow patches that preserve existing plugin, template, and script boundaries.
 - Create or update `tasks/<date>-<slug>/ITERATION_PLAN.md` for non-trivial implementation.
+- For generated governance artifacts, prefer structured `*.slots.json` plus deterministic render/update scripts over asking the model to rewrite fixed Markdown template content. When a plan changes during execution, update the slots with a small patch and re-render the Markdown artifact.
 - Keep deterministic scripts dependency-free unless a decision record approves otherwise.
 - Preserve CLI JSON output shapes unless an API contract update explains the change.
 - Preserve template paths because `tools/init_project.py` copies them into target repositories.

@@ -29,6 +29,10 @@ SECRET_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9_-]{16,}"),
     re.compile(r"gh[pousr]_[A-Za-z0-9_]{20,}"),
 ]
+GENERATED_ARTIFACT_RE = re.compile(
+    r"<!--\s*generated_from:\s*([^;]+);\s*source:\s*([^;]+);\s*revision:\s*([^>\s]+)\s*-->",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> str:
@@ -75,6 +79,31 @@ def read_text(path: Path, limit: int = 32_000) -> str:
         return path.read_text(encoding="utf-8", errors="ignore")[:limit]
     except Exception:
         return ""
+
+
+def generated_artifact_info(path: Path, text: str) -> dict[str, object]:
+    if path.suffix.lower() != ".md":
+        return {}
+    match = GENERATED_ARTIFACT_RE.search(text[:1_000])
+    if not match:
+        return {}
+    template_id = match.group(1).strip()
+    source_name = match.group(2).strip()
+    revision = match.group(3).strip()
+    source_path = path.parent / source_name
+    info: dict[str, object] = {
+        "generated_from": template_id,
+        "source_slots": source_name,
+        "source_slots_exists": source_path.exists(),
+        "artifact_revision": revision,
+        "template_content_indexed": True,
+    }
+    if source_path.exists() and source_path.is_file():
+        source_text = read_text(source_path)
+        info["source_slots_sha256"] = sha(source_path)
+        info["source_slots_text"] = source_text
+        info["template_content_indexed"] = False
+    return info
 
 
 def sha(path: Path) -> str:
@@ -274,7 +303,7 @@ def docs_manifest(index: dict) -> dict[str, object]:
             continue
         status = str(entry.get("doc_status", "active"))
         status_counts[status] = status_counts.get(status, 0) + 1
-        docs.append({
+        doc = {
             "path": entry["path"],
             "status": status,
             "roles": entry.get("roles", []),
@@ -284,7 +313,12 @@ def docs_manifest(index: dict) -> dict[str, object]:
             "summary": entry.get("summary", ""),
             "sha256": entry.get("sha256", ""),
             "mtime": entry.get("mtime", 0),
-        })
+        }
+        if entry.get("generated_from"):
+            doc["generated_from"] = entry.get("generated_from")
+            doc["source_slots"] = entry.get("source_slots")
+            doc["template_content_indexed"] = entry.get("template_content_indexed", True)
+        docs.append(doc)
     return {
         "schema": "project-governor-docs-manifest-v1",
         "built_at": index["built_at"],
@@ -313,29 +347,40 @@ def build(project: Path) -> dict:
     for path in iter_files(project):
         rel = path.relative_to(project).as_posix()
         text = read_text(path)
+        generated_info = generated_artifact_info(path, text)
+        index_text = str(generated_info.get("source_slots_text") or text)
         language = language_for(path)
         stat = path.stat()
-        sensitive = contains_secret(text)
-        roles = role_for(rel, text, sensitive)
-        doc_status = doc_status_for(rel, text)
-        entries.append({
+        sensitive = contains_secret(index_text)
+        roles = role_for(rel, index_text, sensitive)
+        doc_status = doc_status_for(rel, index_text)
+        entry = {
             "path": rel,
             "size": stat.st_size,
             "mtime": int(stat.st_mtime),
             "sha256": sha(path),
             "language": language,
             "roles": roles,
-            "symbols": [] if sensitive else extract_symbols(language, text),
-            "imports": [] if sensitive else extract_imports(language, text),
-            "headings": extract_headings(redact(text)),
-            "sections": [] if sensitive else extract_sections(rel, redact(text), doc_status),
-            "tokens": tokens(rel + "\n" + text),
-            "summary": summarize(text),
-            "token_estimate": approx_tokens(text),
+            "symbols": [] if sensitive else extract_symbols(language, index_text),
+            "imports": [] if sensitive else extract_imports(language, index_text),
+            "headings": extract_headings(redact(index_text)),
+            "sections": [] if sensitive else extract_sections(rel, redact(index_text), doc_status),
+            "tokens": tokens(rel + "\n" + index_text),
+            "summary": summarize(index_text),
+            "token_estimate": approx_tokens(index_text),
             "doc_status": doc_status,
             "sensitive": sensitive,
             "stale_reason": None,
-        })
+        }
+        if generated_info:
+            entry.update({
+                "generated_from": generated_info.get("generated_from"),
+                "source_slots": generated_info.get("source_slots"),
+                "source_slots_sha256": generated_info.get("source_slots_sha256"),
+                "artifact_revision": generated_info.get("artifact_revision"),
+                "template_content_indexed": generated_info.get("template_content_indexed", True),
+            })
+        entries.append(entry)
     entries.sort(key=lambda item: ("agent_instructions" not in item["roles"], item["path"]))
     return {
         "schema": "project-governor-context-index-v2",

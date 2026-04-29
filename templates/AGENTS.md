@@ -25,6 +25,7 @@ Before implementation:
 - inspect existing adjacent code
 - identify reusable patterns
 - create or update `tasks/<date>-<slug>/ITERATION_PLAN.md`
+- prefer `*.slots.json` plus deterministic render/update scripts for generated governance artifacts; when plans change, patch the slots and re-render Markdown instead of rewriting fixed template text
 - avoid new files unless justified in the iteration plan
 - avoid new dependencies unless approved in a decision record
 - preserve API, UI, data, and architecture conventions
