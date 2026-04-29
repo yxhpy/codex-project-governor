@@ -322,6 +322,28 @@
           "reason": "Surface that coding routes should run engineering standards before quality gate in project-owned runtime mode."
         }
       ]
+    },
+    {
+      "id": "migration_6_2_0_claude_code_compat",
+      "from": "6.1.0",
+      "to": "6.2.0",
+      "title": "Claude Code compatibility project entry point",
+      "operations": [
+        {
+          "op": "add_if_missing",
+          "path": "CLAUDE.md",
+          "source": "templates/CLAUDE.md",
+          "upgrade_policy": "add_if_missing",
+          "reason": "Add a short Claude Code project entry point that imports AGENTS.md instead of duplicating governance rules."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "AGENTS.md",
+          "source": "templates/AGENTS.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Surface cross-agent Project Governor wording so Claude Code can import AGENTS.md through CLAUDE.md without duplicating rules."
+        }
+      ]
     }
   ]
 }

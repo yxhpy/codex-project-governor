@@ -59,7 +59,7 @@ Always provide a safe install/update or reinstall plan. Do not execute destructi
 For the common local marketplace case, update the Git checkout and ensure the marketplace entry exists:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 This keeps the marketplace source as `local`; it updates the Git checkout that the local entry points at. Built-in Git marketplace upgrade commands do not fetch this local checkout.
@@ -67,7 +67,7 @@ This keeps the marketplace source as `local`; it updates the Git checkout that t
 For full replacement instructions, use:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
 ```
 
 ### 2. If not in a Project Governor project

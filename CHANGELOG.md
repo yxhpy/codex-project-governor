@@ -1,5 +1,25 @@
 # Changelog
 
+## 6.2.0 - Claude Code Compatibility Adapter
+
+### Added
+
+- Added Claude Code plugin metadata, `pg-*` commands, Claude subagents, plugin hooks, and marketplace metadata.
+- Added `templates/CLAUDE.md` so initialized projects can expose Claude Code project memory while importing shared `AGENTS.md` rules.
+- Added `docs/compat/CLAUDE_CODE.md` with component mapping and validation guidance.
+
+### Changed
+
+- `tools/init_project.py` now copies `CLAUDE.md` in the clean profile.
+- `templates/AGENTS.md` now uses cross-agent wording where Claude Code imports the same rules.
+- Public docs now describe Codex and Claude Code plugin surfaces.
+
+### Compatibility
+
+- Existing Codex plugin behavior remains unchanged.
+- No new third-party dependencies.
+- Claude adapter validation is covered by self-tests and `claude plugin validate .`.
+
 ## 6.1.0 - Engineering Standards Governance
 
 ### Added

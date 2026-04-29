@@ -146,9 +146,9 @@ python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/
 python3 skills/memory-compact/scripts/record_session_learning.py --project . --input /path/to/session-learning.json
 ```
 
-## 5. 使用 Harness v6.1.0、GPT-5.5 自动编排和上下文索引
+## 5. 使用 Harness v6.2.0、GPT-5.5 自动编排和上下文索引
 
-v6.1.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
+v6.2.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.
@@ -352,7 +352,7 @@ python3 tools/init_project.py --mode existing --profile legacy-full --target /pa
 
 ## 12. 干净重装或刷新治理项目
 
-v6.1.0 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
+v6.2.0 起，`tools/install_or_update_user_plugin.py` 可以安装或更新用户级插件 checkout，并确保本地 marketplace entry 指向该 checkout。`clean-reinstall-manager` 仍负责生成用户级重装命令、从项目外发现已治理仓库，并在项目内刷新缺失的项目治理模板。它默认把插件全局噪音隔离到 `.project-governor/trash/<timestamp>/`，不会直接删除。
 
 ```text
 Use @project-governor clean-reinstall-manager.
@@ -363,8 +363,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor

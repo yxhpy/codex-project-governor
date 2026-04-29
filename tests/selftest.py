@@ -18,16 +18,16 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.1.0")
-        self.assertIn("Harness v6.1.0", manifest["description"])
+        self.assertEqual(manifest["version"], "6.2.0")
+        self.assertIn("Harness v6.2.0", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.1.0")
+        self.assertEqual(feature_matrix["current_latest"], "6.2.0")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.1.0", versions)
-        self.assertTrue((ROOT / "releases" / "6.1.0.md").exists())
+        self.assertIn("6.2.0", versions)
+        self.assertTrue((ROOT / "releases" / "6.2.0.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -71,6 +71,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_required_templates_exist(self) -> None:
         required = [
             "AGENTS.md",
+            "CLAUDE.md",
             "docs/project/CHARTER.md",
             "docs/conventions/ITERATION_CONTRACT.md",
             "docs/conventions/CONVENTION_MANIFEST.md",
@@ -176,7 +177,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.1.0", readme)
+        self.assertIn("6.2.0", readme)
+        self.assertIn("Claude Code", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
         self.assertIn("subagent-activation", readme)
@@ -230,6 +232,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             self.assertIn("skipped_application", result)
             self.assertIn("skipped_global", result)
             self.assertTrue((repo / "AGENTS.md").exists())
+            self.assertTrue((repo / "CLAUDE.md").exists())
             self.assertTrue((repo / "docs" / "conventions" / "ITERATION_CONTRACT.md").exists())
             self.assertTrue((repo / ".codex" / "rules" / "project.rules").exists())
             self.assertTrue((repo / ".codex" / "hooks" / "check_iteration_compliance.py").exists())

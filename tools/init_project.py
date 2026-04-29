@@ -35,7 +35,7 @@ PACKAGE_FILES = {
 GLOBAL_TEMPLATE_PREFIXES = (".codex/agents/", ".codex/prompts/")
 GLOBAL_TEMPLATE_FILES = {".codex/config.toml"}
 PROJECT_LOCAL_PREFIXES = ("docs/", "tasks/_template/", ".project-governor/", ".codex/rules/", ".codex/hooks/")
-PROJECT_LOCAL_FILES = {"AGENTS.md", ".codex/hooks.json"}
+PROJECT_LOCAL_FILES = {"AGENTS.md", "CLAUDE.md", ".codex/hooks.json"}
 
 
 @dataclass

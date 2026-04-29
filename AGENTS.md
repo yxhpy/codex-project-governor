@@ -2,7 +2,7 @@
 
 ## Project Operating Mode
 
-This repository is `codex-project-governor`, a Codex plugin and governance-template bundle. Work as an iterative maintainer. Do not treat it as an application repo or a greenfield framework.
+This repository is `codex-project-governor`, a Codex and Claude Code plugin/governance-template bundle. Work as an iterative maintainer. Do not treat it as an application repo or a greenfield framework.
 
 ## Required Reading
 

@@ -5,6 +5,7 @@
 - Product identity: `docs/project/CHARTER.md`
 - Architecture: `docs/architecture/ARCHITECTURE.md`
 - API contracts: `docs/architecture/API_CONTRACTS.md`
+- Claude Code compatibility: `docs/compat/CLAUDE_CODE.md`
 - Code style: `docs/conventions/CODE_STYLE.md`
 - UI style: `docs/conventions/UI_STYLE.md`
 - Component registry: `docs/conventions/COMPONENT_REGISTRY.md`
@@ -25,7 +26,7 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Versioned release notes: `releases/6.1.0.md`
+- Versioned release notes: `releases/6.2.0.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
 - User plugin install/update helper: `tools/install_or_update_user_plugin.py`
@@ -48,6 +49,7 @@ If implementation conflicts with these files, create or update a decision record
 
 - This is a plugin/template repository, not an application repository.
 - Public plugin metadata starts in `.codex-plugin/plugin.json`.
+- Claude Code plugin metadata starts in `.claude-plugin/plugin.json`; Claude-specific commands, agents, skills, and hooks live under `claude/`.
 - Skill workflows are documented in `skills/<skill>/SKILL.md`.
 - Deterministic script helpers are CLI modules under `tools/` and `skills/*/scripts/`.
 - Governance files copied into downstream repositories come from `templates/`.
@@ -62,6 +64,7 @@ If implementation conflicts with these files, create or update a decision record
 
 - `README.md`
 - `.codex-plugin/plugin.json`
+- `.claude-plugin/plugin.json`
 - `tests/selftest.py`
 - `tools/init_project.py`
 - `skills/*/SKILL.md`

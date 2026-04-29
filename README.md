@@ -2,18 +2,21 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex plugin for making projects self-governing across Codex sessions. Harness v6.1.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md rule-template drift detection, clean user-level Git install/update for local marketplaces, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex and Claude Code plugin for making projects self-governing across agent sessions. Harness v6.2.0 initializes governance files, mines conventions from existing repositories, forces iteration-first development, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, governed memory search, session state, session-learning ledgers, and evidence manifests, activates project-scoped subagents, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md/CLAUDE.md rule-template drift detection, clean user-level Git install/update for local marketplaces, Claude Code commands/agents/hooks, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
-The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex acts as an executor, reviewer, and compactor.
+The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex or Claude Code acts as an executor, reviewer, and compactor.
 
 ## What it provides
 
 - Codex plugin manifest at `.codex-plugin/plugin.json`.
+- Claude Code plugin manifest at `.claude-plugin/plugin.json`.
+- Claude Code adapter under `claude/` with `pg-*` slash commands, subagents, hooks, and a plugin skill wrapper.
 - 35+ bundled Codex skills under `skills/`.
 - Governance templates under `templates/`.
 - Plugin-owned managed assets under `managed-assets/`.
 - Deterministic helper scripts for user-level plugin install/update, initialization, task routing, GPT-5.5 runtime planning, context-index v2, docs manifest generation, section-level context queries, session lifecycle state, session learning capture, evidence manifests, git diff fact collection, project hygiene inspection, clean reinstall management, DESIGN.md linting/summarization/diffing, DESIGN.md UI read-proof gates, iteration checks, style drift checks, engineering standards checks, convention mining, upgrade advisory analysis, release research, research scoring, route guard checks, subagent activation, plugin upgrade migration planning, context pack construction, pattern reuse discovery, quality gates, merge readiness checks, velocity reporting, and memory classification.
-- Local marketplace examples for repo-scoped and personal plugin installation.
+- Local marketplace examples for Codex repo-scoped and personal plugin installation.
+- Claude Code marketplace example under `examples/claude-marketplace/`.
 - Cron, launchd, and GitHub Actions examples for scheduled memory compaction.
 - Self-tests that validate plugin structure and core deterministic scripts.
 
@@ -64,7 +67,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -101,13 +104,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
-After v6.1.0 is installed, the same helper is available from the plugin checkout:
+After v6.2.0 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -115,11 +118,42 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.1.0
+git -C "$PLUGIN_DIR" checkout --detach v6.2.0
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
 After updating the plugin itself, use `plugin-upgrade-migrator` inside initialized projects when project governance files need migration.
+
+## Install for Claude Code
+
+Validate the plugin from a local checkout:
+
+```bash
+claude plugin validate .
+```
+
+Load this checkout directly during development:
+
+```bash
+claude --plugin-dir .
+```
+
+For distribution, publish a marketplace repository using `examples/claude-marketplace/.claude-plugin/marketplace.json`, then users can add that marketplace and install:
+
+```text
+/plugin marketplace add <your-marketplace-repo-or-path>
+/plugin install codex-project-governor@project-governor-claude-marketplace
+```
+
+The Claude adapter exposes:
+
+- `/pg-init` to initialize governance files.
+- `/pg-route` and `/pg-context` for route and context retrieval.
+- `/pg-quality` for engineering standards and readiness checks.
+- `/pg-memory` for governed memory search and session learning.
+- `/pg-upgrade`, `/pg-design`, and `/pg-doctor` for upgrade, UI, and diagnostics workflows.
+
+See `docs/compat/CLAUDE_CODE.md` for the component mapping and maintenance rules.
 
 ## Install repo-scoped for a project team
 
@@ -137,12 +171,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.1.0
+### Use Harness v6.2.0
 
-Harness v6.1.0 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.2.0 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.1.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 Core validation commands:
@@ -340,13 +374,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
 ```
 
 Discover governed projects from outside a project:
@@ -449,7 +483,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

@@ -2,47 +2,55 @@
 
 ## Overview
 
-This repository is a Codex plugin and governance-template bundle. It has no service backend, frontend app, database, or long-running runtime.
+This repository is a Codex and Claude Code plugin plus governance-template bundle. It has no service backend, frontend app, database, or long-running runtime.
 
 ## Layers
 
 1. Plugin metadata
    - `.codex-plugin/plugin.json`
+   - `.claude-plugin/plugin.json`
    - `.mcp.json`
-2. Project-scoped Codex configuration
+2. Claude Code adapter
+   - `claude/skills/**`
+   - `claude/commands/**`
+   - `claude/agents/**`
+   - `claude/hooks/**`
+3. Project-scoped Codex configuration
    - `.codex/config.toml`
    - `.codex/agents/*.toml`
    - `.codex/prompts/*.md`
    - `.codex/rules/project.rules`
    - `.codex/hooks/**`
-3. Skill workflows
+4. Skill workflows
    - `skills/<skill>/SKILL.md`
    - Optional deterministic scripts under `skills/<skill>/scripts/`
-4. Template payload
+5. Template payload
    - `templates/AGENTS.md`
+   - `templates/CLAUDE.md`
    - `templates/docs/**`
    - `templates/.codex/**`
    - `templates/tasks/_template/**`
-5. Plugin-owned managed assets
+6. Plugin-owned managed assets
    - `managed-assets/design-md/**`
    - `managed-assets/runtime/**`
-6. Project-owned runtime and context templates
+7. Project-owned runtime and context templates
    - `templates/.project-governor/runtime/**`
    - `templates/.project-governor/state/**`
    - `templates/.project-governor/evidence/**`
    - generated target-project context under `.project-governor/context/**`
-7. Harness documentation and release evidence
+8. Harness documentation and release evidence
    - `docs/harness/**`
    - `releases/**`
-8. Initializer and compatibility tools
+9. Initializer and compatibility tools
    - `tools/init_project.py`
    - `tools/init_existing_project.py`
-9. Examples and fixtures
+10. Examples and fixtures
    - `examples/*.json`
+   - `examples/claude-marketplace/**`
    - `examples/cron/**`
    - `examples/launchd/**`
    - `examples/github-actions/**`
-10. Validation
+11. Validation
    - `tests/selftest.py`
    - `.github/workflows/selftest.yml`
 
@@ -51,6 +59,7 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 - Tests may call tools and skill scripts.
 - Tools may read from `templates/`.
 - Skill scripts should remain standalone and should not depend on each other unless explicitly documented.
+- Claude adapter files may reference existing plugin scripts through `${CLAUDE_PLUGIN_ROOT}` but should not duplicate deterministic helper logic.
 - Templates should not depend on generated output under `reports/`.
 - Managed assets are plugin-owned source material. They are not target-project files unless a user explicitly opts in and creates project-owned copies.
 - GPT-5.5 runtime mode, Harness v6 state, and evidence templates under `templates/.project-governor/` are project-owned governance state; context indexes are generated in target projects by `context-indexer`.
@@ -72,6 +81,7 @@ This repository is a Codex plugin and governance-template bundle. It has no serv
 ## Evidence
 
 - `.codex-plugin/plugin.json`
+- `.claude-plugin/plugin.json`
 - `.mcp.json`
 - `README.md`
 - `tools/init_project.py`

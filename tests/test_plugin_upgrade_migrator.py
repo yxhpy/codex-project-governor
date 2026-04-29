@@ -192,6 +192,29 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertIn("AGENTS.md", operations)
             self.assertGreaterEqual(data["summary"]["safe_operation_count"], 3)
 
+    def test_plan_migration_adds_claude_md_template(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.1.0",
+                    "--target-version",
+                    "6.2.0",
+                ]
+            )
+            operations = {operation["path"]: operation for operation in data["operations"]}
+            self.assertEqual(operations["CLAUDE.md"]["action"], "add_if_missing")
+            self.assertEqual(operations["CLAUDE.md"]["status"], "safe_add")
+            self.assertEqual(operations["CLAUDE.md"]["source"], "templates/CLAUDE.md")
+            self.assertEqual(operations["AGENTS.md"]["action"], "add_if_missing")
+
     def test_plan_migration_surfaces_agents_template_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)

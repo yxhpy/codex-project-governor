@@ -19,6 +19,25 @@ This repository has no HTTP API routes.
 
 Changes to these fields affect plugin discovery and user-facing positioning.
 
+## Claude Code Plugin Manifest Contract
+
+`.claude-plugin/plugin.json` declares:
+
+- plugin `name`
+- semantic `version`
+- `description`
+- `homepage`
+- `repository`
+- `license`
+- `keywords`
+- `skills`
+- `commands`
+- `agents`
+- `hooks`
+- `mcpServers`
+
+Changes to these fields affect Claude Code plugin discovery, component registration, hook behavior, marketplace updates, and user-facing positioning.
+
 ## CLI Contracts
 
 ### `tools/init_project.py`
@@ -34,7 +53,7 @@ Inputs:
 Behavior:
 
 - Copies files from `templates/`.
-- Defaults to the `clean` profile, which copies project-owned governance files, project `.codex/rules`, project `.codex/hooks`, and `.codex/hooks.json` while skipping plugin-global `.codex` runtime assets.
+- Defaults to the `clean` profile, which copies project-owned governance files, `AGENTS.md`, `CLAUDE.md`, project `.codex/rules`, project `.codex/hooks`, and `.codex/hooks.json` while skipping plugin-global `.codex` runtime assets.
 - `--profile legacy-full` copies bundled `.codex` runtime assets for projects that explicitly need the old behavior.
 - Preserves existing files unless `--overwrite` is used.
 - Skips known application/package paths.

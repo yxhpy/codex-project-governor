@@ -1,0 +1,25 @@
+{
+  "name": "project-governor-claude-marketplace",
+  "metadata": {
+    "description": "Marketplace entry for the Project Governor Claude Code plugin."
+  },
+  "owner": {
+    "name": "yxhpy"
+  },
+  "plugins": [
+    {
+      "name": "codex-project-governor",
+      "source": {
+        "source": "github",
+        "repo": "yxhpy/codex-project-governor",
+        "ref": "v6.2.0"
+      },
+      "description": "Project Governor Harness for Claude Code and Codex.",
+      "version": "6.2.0",
+      "homepage": "https://github.com/yxhpy/codex-project-governor",
+      "repository": "https://github.com/yxhpy/codex-project-governor",
+      "license": "MIT",
+      "keywords": ["claude-code", "codex", "governance", "harness"]
+    }
+  ]
+}

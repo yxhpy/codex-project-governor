@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/project_governor_claude_hook.py\"",
+            "timeout": 30,
+            "statusMessage": "Project Governor: checking prompt context"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/project_governor_claude_hook.py\"",
+            "timeout": 30,
+            "statusMessage": "Project Governor: checking pre-tool governance"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/project_governor_claude_hook.py\"",
+            "timeout": 60,
+            "statusMessage": "Project Governor: checking final governance hints"
+          }
+        ]
+      }
+    ]
+  }
+}

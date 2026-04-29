@@ -2,9 +2,9 @@
 
 中文 | [English](README.md)
 
-`codex-project-governor` 是一个 Codex 插件，用来把仓库变成可自我治理的 Codex 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 会话能按同一套规则继续工作，而不是每次重新摸索。
+`codex-project-governor` 是一个 Codex 和 Claude Code 插件，用来把仓库变成可自我治理的 Agent 项目。它会把项目规则、约定、决策、风险、记忆、迭代计划和检查入口放进版本控制，让后续 Codex 或 Claude Code 会话能按同一套规则继续工作，而不是每次重新摸索。
 
-当前版本：`6.1.0`
+当前版本：`6.2.0`
 
 ## 它解决什么问题
 
@@ -19,6 +19,7 @@
 Project Governor 的做法是把治理资产放在仓库内：
 
 - `AGENTS.md`：项目级行为规则。
+- `CLAUDE.md`：Claude Code 项目入口，默认导入 `AGENTS.md`。
 - `docs/conventions/`：代码、架构、UI、组件、迭代约定。
 - `docs/memory/`：可追溯的项目记忆、风险和常见错误。
 - `docs/decisions/`：ADR/PDR 决策记录。
@@ -26,6 +27,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - `docs/research/`：候选能力研究、证据质量和采纳建议。
 - `tasks/`：每次迭代的计划、日志和复盘。
 - `skills/`：可复用的 Codex 工作流。
+- `claude/`：Claude Code 的 skill、slash command、subagent 和 hook 适配层。
 - `templates/`：初始化目标仓库时复制的治理模板。
 - `managed-assets/`：插件自有的可选资产，不默认复制到目标项目。
 
@@ -37,7 +39,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 - 检查实现风险、样式漂移、架构漂移和 PR 治理问题。
 - 在升级前进行版本距离、跳过版本、风险和需求相关性分析。
 - 在实现新能力前做研究雷达，判断 `adopt_now`、`spike`、`watch` 或 `reject`。
-- 用 Harness v6.1.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md 规则模板漂移检测、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
+- 用 Harness v6.2.0、任务路由、微补丁路由、route guard、GPT-5.5 运行时规划、上下文索引 v2、`DOCS_MANIFEST.json`、章节级检索、路线级文档包、治理记忆搜索、会话学习 ledger、会话状态、证据清单、自动 subagent 激活、工程规范扫描、插件升级迁移器、AGENTS.md/CLAUDE.md 规则模板漂移检测、Claude Code commands/agents/hooks、本地 marketplace 的用户级 Git 安装/更新、项目卫生检查、干净重装管理、DESIGN.md 治理、DESIGN.md UI 编码门、上下文包、模式复用、并行实现、质量门、修复循环和合并就绪检查，把提速约束在质量边界内。
 - 把近期任务、复盘和重复错误压缩成可审计的项目记忆。
 - 提供无第三方依赖的 Python helper 脚本和 self-test。
 
@@ -88,7 +90,7 @@ Project Governor 的做法是把治理资产放在仓库内：
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 生成的 `~/.agents/plugins/marketplace.json` 仍然是本地 marketplace 指针：
@@ -125,13 +127,13 @@ python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
-安装到 v6.1.0 后，同一个 helper 也可以直接从插件 checkout 运行：
+安装到 v6.2.0 后，同一个 helper 也可以直接从插件 checkout 运行：
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 当旧版本还没有这个 helper 时，也可以用等价的手工命令：
@@ -139,11 +141,42 @@ python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plu
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.1.0
+git -C "$PLUGIN_DIR" checkout --detach v6.2.0
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
 更新插件本体后，再在已初始化项目里使用 `plugin-upgrade-migrator` 迁移项目治理文件。
+
+## 安装到 Claude Code
+
+本地 checkout 先校验：
+
+```bash
+claude plugin validate .
+```
+
+开发时可以直接加载当前 checkout：
+
+```bash
+claude --plugin-dir .
+```
+
+分发时，用 `examples/claude-marketplace/.claude-plugin/marketplace.json` 创建 marketplace 仓库，然后用户添加 marketplace 并安装：
+
+```text
+/plugin marketplace add <your-marketplace-repo-or-path>
+/plugin install codex-project-governor@project-governor-claude-marketplace
+```
+
+Claude 适配层提供：
+
+- `/pg-init` 初始化治理文件。
+- `/pg-route` 和 `/pg-context` 做任务路由与上下文检索。
+- `/pg-quality` 做工程规范和就绪检查。
+- `/pg-memory` 搜索治理记忆并记录 session learning。
+- `/pg-upgrade`、`/pg-design`、`/pg-doctor` 处理升级、UI 门禁和诊断。
+
+组件映射和维护规则见 `docs/compat/CLAUDE_CODE.md`。
 
 ## 安装到团队仓库
 
@@ -251,12 +284,12 @@ python3 skills/engineering-standards-governor/scripts/check_engineering_standard
 python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base main
 ```
 
-### 使用 Harness v6.1.0
+### 使用 Harness v6.2.0
 
-Harness v6.1.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
+Harness v6.2.0 让 `task-router` 成为唯一 route 真源，并让运行时规划、docs manifest、章节级上下文索引、治理记忆搜索、session-learning ledger、会话状态、route guard、质量门、证据清单、DESIGN.md UI gate 和 merge-readiness 共用同一套契约。
 
 ```text
-Use Project Governor Harness v6.1.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.0 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 ```
 
 核心验证命令：
@@ -354,13 +387,13 @@ python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --proje
 安装或更新用户级插件 checkout 和本地 marketplace entry：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0 --apply
 ```
 
 生成用户级重装命令：
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.1.0
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.0
 ```
 
 从项目外发现已治理仓库：
@@ -460,7 +493,7 @@ Do not modify application code.
 这些脚本只依赖 Python 标准库。
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.1.0
+python3 tools/install_or_update_user_plugin.py --ref v6.2.0
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

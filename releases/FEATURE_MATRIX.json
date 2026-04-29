@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.1.0",
+  "current_latest": "6.2.0",
   "versions": [
     {
       "version": "0.4.1",
@@ -398,6 +398,34 @@
           "user_value": "Mocks stay in tests and fixtures instead of leaking into production code as projects grow.",
           "requires_project_migration": true,
           "migration_id": "migration_6_1_0_engineering_standards"
+        }
+      ]
+    },
+    {
+      "version": "6.2.0",
+      "title": "Claude Code Compatibility Adapter",
+      "features": [
+        {
+          "id": "claude_code_plugin_manifest",
+          "name": "Claude Code plugin manifest",
+          "summary": "Adds .claude-plugin metadata that exposes Project Governor as a Claude Code plugin alongside the existing Codex manifest.",
+          "user_value": "Claude Code users can install and validate Project Governor through Claude Code's plugin system.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "claude_code_commands_agents_hooks",
+          "name": "Claude Code commands, agents, and hooks",
+          "summary": "Adds pg-* slash commands, Claude subagents, and plugin hooks that wrap existing Project Governor workflows and deterministic scripts.",
+          "user_value": "Claude Code sessions get the same governance entry points, context discipline, and UI preflight reminders without manual prompt copying.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "claude_md_template",
+          "name": "CLAUDE.md template",
+          "summary": "Adds a target-project CLAUDE.md template that imports AGENTS.md so Claude Code reads the same project rules.",
+          "user_value": "Initialized projects can share one governance rule source across Codex and Claude Code.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_2_0_claude_code_compat"
         }
       ]
     }

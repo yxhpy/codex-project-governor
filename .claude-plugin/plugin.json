@@ -1,0 +1,41 @@
+{
+  "name": "codex-project-governor",
+  "version": "6.2.0",
+  "description": "Project Governor Harness v6.2.0 for Claude Code and Codex: governance skills, commands, subagents, hooks, MCP config, context indexing, memory search, route guards, evidence gates, engineering standards, and DESIGN.md UI workflows.",
+  "author": { "name": "yxhpy" },
+  "homepage": "https://github.com/yxhpy/codex-project-governor",
+  "repository": "https://github.com/yxhpy/codex-project-governor",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "governance",
+    "harness",
+    "session-state",
+    "evidence",
+    "memory",
+    "skills",
+    "plugin",
+    "project-template",
+    "code-review"
+  ],
+  "skills": "./claude/skills/",
+  "commands": "./claude/commands/",
+  "agents": [
+    "./claude/agents/architecture-drift-reviewer.md",
+    "./claude/agents/context-scout.md",
+    "./claude/agents/dependency-risk-reviewer.md",
+    "./claude/agents/docs-memory-reviewer.md",
+    "./claude/agents/implementation-writer.md",
+    "./claude/agents/iteration-compliance-reviewer.md",
+    "./claude/agents/pattern-reuse-scout.md",
+    "./claude/agents/quality-reviewer.md",
+    "./claude/agents/repair-agent.md",
+    "./claude/agents/risk-scout.md",
+    "./claude/agents/style-drift-reviewer.md",
+    "./claude/agents/test-planner.md",
+    "./claude/agents/test-writer.md"
+  ],
+  "hooks": "./claude/hooks/hooks.json",
+  "mcpServers": "./.mcp.json"
+}

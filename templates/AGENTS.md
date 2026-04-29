@@ -3,7 +3,7 @@
 ## Project operating mode
 
 This repository is governed by Project Governor.
-Codex must work as an iterative maintainer, not as a greenfield developer.
+The active coding agent must work as an iterative maintainer, not as a greenfield developer.
 
 ## Required reading before non-trivial changes
 
@@ -82,11 +82,11 @@ Do not leave partial mock implementations in production paths. If a mock is used
 
 The user should not need to manually list subagents or pick models after Project Governor initialization.
 
-When a task is non-trivial, the main Codex agent must automatically:
+When a task is non-trivial, the main coding agent must automatically:
 
 1. Run `task-router` or infer the current route if a route already exists.
 2. Run `subagent-activation` when the route or downstream skill has `subagent_mode` of `optional` or `required`.
-3. Use project-scoped agents from `.codex/agents/` when present.
+3. Use project-scoped agents from `.codex/agents/` or Claude Code plugin agents when present.
 4. Use `gpt-5.4-mini` for read-heavy scouting and low-risk support work.
 5. Use `gpt-5.4` with medium/high reasoning for implementation, risk review, architecture review, security-sensitive work, and final quality review.
 6. Explicitly spawn the selected subagents, wait for all read-only subagents, consolidate their findings, and only then write code.

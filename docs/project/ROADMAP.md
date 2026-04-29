@@ -2,11 +2,12 @@
 
 ## Current Phase
 
-Project Governor Harness v6.1.0 with initialized self-governance, engineering standards governance, token-efficient docs navigation through `DOCS_MANIFEST.json`, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
+Project Governor Harness v6.2.0 with Claude Code plugin compatibility, initialized self-governance, engineering standards governance, token-efficient docs navigation through `DOCS_MANIFEST.json`, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md/CLAUDE.md rule-template drift migration, session lifecycle state, evidence manifests, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
 - Plugin metadata and public README.
+- Claude Code plugin metadata and adapter files.
 - Skill documentation under `skills/`.
 - Deterministic helper scripts under `tools/` and `skills/*/scripts/`.
 - Governance templates under `templates/`.
@@ -34,6 +35,6 @@ Project Governor Harness v6.1.0 with initialized self-governance, engineering st
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `6.1.0`.
+- `.codex-plugin/plugin.json` declares version `6.2.0`.
 - `README.md` lists 35+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.
