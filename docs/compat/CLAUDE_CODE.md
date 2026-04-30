@@ -6,7 +6,7 @@ Project Governor v6.2.0 ships a Claude Code adapter alongside the existing Codex
 
 - Claude plugin manifest: `.claude-plugin/plugin.json`
 - Claude skill entry: `claude/skills/project-governor/SKILL.md`
-- Manual slash-command entries: `claude/commands/pg-*.md`
+- Optional slash-command entries: `claude/commands/pg-*.md`
 - Claude subagents: `claude/agents/*.md`
 - Claude hook config and script: `claude/hooks/`
 - Claude marketplace example: `examples/claude-marketplace/.claude-plugin/marketplace.json`
@@ -39,7 +39,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/init_project.py" --mode existing --target .
 Initialized projects receive both:
 
 - `AGENTS.md` as the cross-agent governance source of truth.
-- `CLAUDE.md` as the Claude Code entry point, importing `AGENTS.md` with `@AGENTS.md`.
+- `CLAUDE.md` as the Claude Code entry point, importing `AGENTS.md` with `@AGENTS.md` and telling Claude Code to apply Project Governor automatically for natural project work.
+
+## Automatic Activation
+
+Normal Claude Code users should not need to type `/pg-*` commands before governed work. The plugin skill and `UserPromptSubmit` hook add Project Governor context for natural coding, testing, review, docs, upgrade, initialization, compatibility, quality, memory, and UI requests.
+
+The bundled `/pg-*` commands remain available as optional shortcuts and diagnostics when a user wants to inspect one workflow stage directly.
 
 ## Surface Mapping
 

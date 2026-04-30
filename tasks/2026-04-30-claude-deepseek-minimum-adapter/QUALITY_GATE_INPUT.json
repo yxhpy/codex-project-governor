@@ -1,0 +1,243 @@
+{
+  "quality_level": "standard",
+  "route": "standard_feature",
+  "change_budget": {
+    "max_files_changed": 16,
+    "max_new_files": 6,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 11,
+    "new_files": 5,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 0
+  },
+  "route_guard": {
+    "route": "standard_feature",
+    "route_guard_requirements": {
+      "route": "standard_feature",
+      "max_modified_files": 13,
+      "max_added_files": 6,
+      "allow_dependencies": false,
+      "allow_api_changes": true,
+      "allow_schema_changes": false,
+      "allow_new_components": false,
+      "allow_global_style_changes": false,
+      "allow_shared_component_changes": false,
+      "allow_rewrite": false
+    },
+    "changes": {
+      "modified_files": [
+        "README.md",
+        "README.zh-CN.md",
+        "claude/hooks/project_governor_claude_hook.py",
+        "claude/skills/project-governor/SKILL.md",
+        "docs/compat/CLAUDE_CODE.md",
+        "docs/memory/PROJECT_MEMORY.md",
+        "skills/plugin-upgrade-migrator/scripts/plan_migration.py",
+        "templates/CLAUDE.md",
+        "tests/selftest.py",
+        "tests/test_claude_code_compat.py",
+        "tests/test_plugin_upgrade_migrator.py"
+      ],
+      "added_files": [
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/ITERATION_PLAN.md",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/ITERATION_PLAN.slots.json",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/QUALITY_REPORT.md",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/SESSION_LEARNING_INPUT.json",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/TEST_PLAN.md"
+      ],
+      "dependencies_added": false,
+      "api_contract_changed": true,
+      "schema_changed": false,
+      "global_style_changed": false,
+      "shared_component_changed": false,
+      "new_components_added": false,
+      "rewrite_detected": false,
+      "tests_deleted": false,
+      "assertions_weakened": false,
+      "tests_skipped": false,
+      "shared_components_changed": [],
+      "global_style_files_changed": []
+    }
+  },
+  "checks": [
+    {
+      "name": "codex_unittest_discover",
+      "status": "pass"
+    },
+    {
+      "name": "codex_selftest",
+      "status": "pass"
+    },
+    {
+      "name": "skill_catalog_analysis",
+      "status": "pass"
+    },
+    {
+      "name": "codex_cli_plugin_repo_natural_prompt",
+      "status": "pass"
+    },
+    {
+      "name": "codex_cli_ai_tryon_natural_prompt",
+      "status": "pass"
+    },
+    {
+      "name": "compileall",
+      "status": "pass"
+    },
+    {
+      "name": "git_diff_check",
+      "status": "pass"
+    },
+    {
+      "name": "claude_plugin_validate",
+      "status": "pass"
+    },
+    {
+      "name": "claude_marketplace_validate",
+      "status": "pass"
+    },
+    {
+      "name": "claude_compat_tests",
+      "status": "pass"
+    },
+    {
+      "name": "plugin_upgrade_migrator_tests",
+      "status": "pass"
+    },
+    {
+      "name": "deepseek_flash_smoke",
+      "status": "pass"
+    },
+    {
+      "name": "deepseek_flash_pg_route",
+      "status": "pass"
+    },
+    {
+      "name": "deepseek_flash_file_read_instruction_following",
+      "status": "pass"
+    },
+    {
+      "name": "deepseek_pro_file_read_instruction_following",
+      "status": "pass"
+    },
+    {
+      "name": "deepseek_flash_natural_auto_entrypoint",
+      "status": "pass"
+    },
+    {
+      "name": "ai_tryon_hygiene",
+      "status": "pass"
+    },
+    {
+      "name": "ai_tryon_build",
+      "status": "pass"
+    },
+    {
+      "name": "ai_tryon_quality_gates",
+      "status": "pass"
+    },
+    {
+      "name": "ai_tryon_claude_natural_prompt",
+      "status": "pass"
+    }
+  ],
+  "engineering_standards": {
+    "status": "pass",
+    "summary": {
+      "blocker_count": 0,
+      "warning_count": 0
+    }
+  },
+  "commands": [
+    "python3 -m unittest discover -s tests -p 'test*.py'",
+    "python3 tests/selftest.py",
+    "python3 tests/test_claude_code_compat.py",
+    "python3 tests/test_plugin_upgrade_migrator.py",
+    "python3 -m compileall tools skills tests claude",
+    "python3 tools/analyze_skill_catalog.py --project . --format text --fail-on-issues",
+    "codex --ask-for-approval never exec --cd /Users/yxhpy/Desktop/project/codex-project-governor --sandbox read-only --ephemeral --json \"natural Project Governor prompt...\"",
+    "codex --ask-for-approval never exec --cd /Users/yxhpy/Desktop/project/ai-tryon --sandbox read-only --ephemeral --json \"natural Project Governor prompt...\"",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD",
+    "git diff --check",
+    "claude plugin validate .",
+    "claude plugin validate examples/claude-marketplace",
+    "claude -p --bare --model deepseek-v4-flash --output-format json --max-budget-usd 0.02 -- \"Respond with exactly: OK\"",
+    "claude -p --bare --plugin-dir . --model deepseek-v4-flash --output-format json --max-budget-usd 0.35 --allowedTools \"Bash(python3 *)\" -- \"/pg-route docs-only README typo fix\"",
+    "claude -p --bare --model deepseek-v4-flash --output-format json --max-budget-usd 0.25 --allowedTools \"Read\" -- \"Read AGENTS.md and claude/skills/project-governor/SKILL.md...\"",
+    "claude -p --bare --model deepseek-v4-pro --output-format json --max-budget-usd 0.35 --allowedTools \"Read\" -- \"Read AGENTS.md and claude/skills/project-governor/SKILL.md...\"",
+    "claude -p --plugin-dir . --strict-mcp-config --mcp-config '{\"mcpServers\":{}}' --model deepseek-v4-flash --output-format json --max-budget-usd 0.35 --tools \"\" -- \"natural Project Governor prompt...\"",
+    "python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /Users/yxhpy/Desktop/project/ai-tryon --plugin-root /Users/yxhpy/Desktop/project/codex-project-governor",
+    "python3 skills/plugin-upgrade-migrator/scripts/plan_migration.py --project /Users/yxhpy/Desktop/project/ai-tryon --plugin-root /Users/yxhpy/Desktop/project/codex-project-governor --current-version 6.2.5 --target-version 6.2.5",
+    "python3 skills/context-indexer/scripts/query_context_index.py --project /Users/yxhpy/Desktop/project/ai-tryon --request \"Claude Code automatic Project Governor no explicit pg command Codex governed project\" --memory-search --auto-build --format text",
+    "npm run build in /Users/yxhpy/Desktop/project/ai-tryon",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py /Users/yxhpy/Desktop/project/ai-tryon/tasks/2026-04-30-rbac/quality-gate-input.json",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py /Users/yxhpy/Desktop/project/ai-tryon/tasks/2026-04-30-upload-preview-refresh/quality-gate-input.json",
+    "Claude hook direct smoke from /Users/yxhpy/Desktop/project/ai-tryon",
+    "Claude CLI natural prompt from /Users/yxhpy/Desktop/project/ai-tryon with strict empty MCP config"
+  ],
+  "allow_no_commands": false,
+  "require_evidence": true,
+  "evidence": {
+    "acceptance_criteria": [
+      {
+        "criterion": "Codex plugin behavior remains valid.",
+        "proof": "Full unittest discovery ran 104 tests, selftest passed, skill catalog analysis passed, Codex CLI natural prompt smokes passed in both plugin repo and ai-tryon, compileall passed, diff engineering standards passed, and git diff check passed."
+      },
+      {
+        "criterion": "Claude Code plugin behavior remains valid.",
+        "proof": "Claude plugin and marketplace validation passed; Claude compat tests passed; DeepSeek Flash and Pro instruction-following smokes passed."
+      },
+      {
+        "criterion": "Users do not need to explicitly call /pg-* for normal governed work.",
+        "proof": "Hook tests, skill wording, template tests, initialized-project tests, and DeepSeek natural prompt smokes all returned or asserted explicit_pg_required=false."
+      },
+      {
+        "criterion": "Existing initialized projects can discover the new Claude automatic-entrypoint template.",
+        "proof": "plugin-upgrade-migrator now checks CLAUDE.md drift; ai-tryon migration plan reports one safe CLAUDE.md update operation."
+      },
+      {
+        "criterion": "ai-tryon is usable as a real downstream test fixture.",
+        "proof": "Project hygiene is clean, context query succeeds, npm build passes, two existing task quality gates pass, direct hook smoke passes, and Claude CLI natural prompt from ai-tryon returns explicit_pg_required=false."
+      }
+    ],
+    "tests": [
+      {
+        "command": "python3 -m unittest discover -s tests -p 'test*.py'",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m compileall tools skills tests claude and Codex CLI natural prompt smokes",
+        "status": "passed"
+      },
+      {
+        "command": "claude plugin validate . && claude plugin validate examples/claude-marketplace",
+        "status": "passed"
+      },
+      {
+        "command": "DeepSeek Flash/Pro Claude CLI smokes",
+        "status": "passed"
+      },
+      {
+        "command": "ai-tryon hygiene, build, quality gates, and Claude natural prompt",
+        "status": "passed"
+      }
+    ],
+    "docs_refresh": {
+      "needed": true,
+      "files_updated": [
+        "README.md",
+        "README.zh-CN.md",
+        "docs/compat/CLAUDE_CODE.md",
+        "docs/memory/PROJECT_MEMORY.md",
+        "templates/CLAUDE.md",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/TEST_PLAN.md",
+        "tasks/2026-04-30-claude-deepseek-minimum-adapter/QUALITY_REPORT.md"
+      ]
+    }
+  }
+}

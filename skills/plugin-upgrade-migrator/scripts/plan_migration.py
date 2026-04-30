@@ -8,7 +8,7 @@ from typing import Any
 
 from _common import load_json, operation_policy, sha256_path, version_between, write_json
 
-RULE_TEMPLATE_DRIFT_PATHS = ("AGENTS.md",)
+RULE_TEMPLATE_DRIFT_PATHS = ("AGENTS.md", "CLAUDE.md")
 REQUIRED_PROJECT_RUNTIME_PATHS = (".project-governor/runtime/EXECUTION_POLICY.json",)
 
 
@@ -118,7 +118,7 @@ def rule_template_drift_operations(
                         "path": relative_path,
                         "source": source_path,
                         "upgrade_policy": "three_way_merge",
-                        "reason": "Review updated mandatory Project Governor rules from the latest AGENTS.md template without overwriting local project rules.",
+                        "reason": f"Review updated mandatory Project Governor rules from the latest {relative_path} template without overwriting local project rules.",
                     },
                     tracked_files,
                 ),

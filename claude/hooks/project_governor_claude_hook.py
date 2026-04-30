@@ -11,7 +11,13 @@ from collections.abc import Mapping
 from pathlib import Path
 
 UI_PROMPT_RE = re.compile(
-    r"\b(ui|frontend|front-end|react|next\.js|nextjs|tailwind|css|component|page|layout|dashboard|landing|modal|dialog|form|table|card|responsive|mobile|visual|design|theme|style|redesign|polish)\b",
+    r"\b(ui|frontend|front-end|react|next\.js|nextjs|tailwind|css|component|page|layout|dashboard|landing|modal|dialog|form|table|card|responsive|mobile|visual|design|theme|style|redesign|polish)\b"
+    r"|界面|前端|样式|页面|布局|组件|响应式|移动端|视觉|设计|主题|美化|弹窗|表单|表格|卡片|仪表盘",
+    re.I,
+)
+PROJECT_WORK_PROMPT_RE = re.compile(
+    r"\b(code|coding|implement|implementation|feature|fix|bug|refactor|test|tests|review|pr|docs|documentation|readme|release|publish|deploy|upgrade|dependency|init|initialize|governance|quality|memory|route|context|compat|adapter|plugin|check|inspect|audit|verify|validate|compliance|comply|scenario|scenarios)\b"
+    r"|改|修|实现|添加|新增|删除|更新|升级|测试|评审|审查|检查|验证|审计|文档|发布|初始化|治理|质量|记忆|路由|上下文|兼容|适配|插件|遵循|合规|达标|通过|场景",
     re.I,
 )
 UI_FILE_RE = re.compile(
@@ -29,6 +35,18 @@ REQUIRED_ENV = (
 PROOF_DIRS = (
     Path(".codex/design-md-governor"),
     Path(".project-governor/design-md-governor"),
+)
+GOVERNANCE_AUTO_CONTEXT = (
+    "Project Governor is active for this project task. Do not wait for the user to invoke `/pg-*` commands. "
+    "For non-trivial work, read `CLAUDE.md` or `AGENTS.md` when present, classify the request with "
+    "`${CLAUDE_PLUGIN_ROOT}/skills/task-router/scripts/classify_task.py`, query compact context with "
+    "`${CLAUDE_PLUGIN_ROOT}/skills/context-indexer/scripts/query_context_index.py`, then choose the fastest safe governed workflow. "
+    "Prefer local project files and Project Governor deterministic scripts; do not call unrelated web, browser, or MCP tools unless the user asks or local context is insufficient. "
+    "Use `/pg-*` commands only as manual shortcuts or diagnostics."
+)
+UI_AUTO_CONTEXT = (
+    "This appears to be UI/frontend work. Use Project Governor DESIGN.md preflight before editing UI files. "
+    "Configure Gemini/Stitch with environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 in .env-design for basic mode."
 )
 
 
@@ -177,11 +195,13 @@ def should_gate_pre_tool(tool: str, tool_input: object) -> bool:
 
 def handle_user_prompt(event: dict[str, object]) -> None:
     prompt = str(event.get("prompt", ""))
+    contexts: list[str] = []
+    if PROJECT_WORK_PROMPT_RE.search(prompt):
+        contexts.append(GOVERNANCE_AUTO_CONTEXT)
     if UI_PROMPT_RE.search(prompt):
-        additional_context(
-            "UserPromptSubmit",
-            "This appears to be UI/frontend work. Use Project Governor DESIGN.md preflight before editing UI files. Configure Gemini/Stitch with environment variables or project .env-design, or set DESIGN_BASIC_MODE=1 in .env-design for basic mode.",
-        )
+        contexts.append(UI_AUTO_CONTEXT)
+    if contexts:
+        additional_context("UserPromptSubmit", "\n\n".join(contexts))
 
 
 def handle_pre_tool(root: Path, event: dict[str, object]) -> None:

@@ -38,7 +38,7 @@ class ClaudeCodeCompatTest(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], "codex-project-governor")
         self.assertEqual(claude["version"], codex["version"])
-        self.assertEqual(claude["version"], "6.2.5")
+        self.assertEqual(claude["version"], "6.2.6")
         for key, rel in {
             "skills": "claude/skills/",
             "commands": "claude/commands/",
@@ -129,6 +129,49 @@ class ClaudeCodeCompatTest(unittest.TestCase):
             )
             self.assertEqual(self.run_hook(project, event), "")
 
+    def test_claude_hook_adds_auto_governance_context_for_project_work(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            prompts = [
+                ("帮我修一下 Claude Code 插件适配并跑测试", False),
+                ("检查这个项目是否完全遵循治理，保证所有场景都通过", False),
+                ("Update the dashboard layout and verify the UI", True),
+            ]
+            for prompt, expects_ui_context in prompts:
+                with self.subTest(prompt=prompt):
+                    event = {
+                        "hook_event_name": "UserPromptSubmit",
+                        "prompt": prompt,
+                    }
+                    output = json.loads(self.run_hook(project, event))["hookSpecificOutput"]
+                    self.assertEqual(output["hookEventName"], "UserPromptSubmit")
+                    context = output["additionalContext"]
+                    self.assertIn("Project Governor is active", context)
+                    self.assertIn("Do not wait for the user to invoke `/pg-*` commands", context)
+                    self.assertIn("classify_task.py", context)
+                    self.assertIn("query_context_index.py", context)
+                    self.assertIn("Prefer local project files", context)
+                    if expects_ui_context:
+                        self.assertIn("DESIGN.md preflight", context)
+
+    def test_claude_skill_declares_auto_invocation(self) -> None:
+        skill = ROOT / "claude" / "skills" / "project-governor" / "SKILL.md"
+        text = skill.read_text(encoding="utf-8")
+        meta = frontmatter(skill)
+        self.assertIn("Automatically use Project Governor", meta["description"])
+        self.assertIn("Users should not need to explicitly call /pg-* commands", meta["description"])
+        self.assertIn("## Automatic Activation", text)
+        self.assertIn("Do not wait for the user to explicitly invoke `/pg-*` commands", text)
+
+    def test_claude_template_declares_auto_invocation(self) -> None:
+        text = (ROOT / "templates" / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("@AGENTS.md", text)
+        self.assertIn("Do not wait for the user to invoke `/pg-*` commands", text)
+        self.assertIn("Treat natural coding, testing, review, docs, upgrade, initialization, compatibility, quality, memory, and UI requests", text)
+        self.assertIn("optional shortcuts or diagnostics", text)
+        self.assertNotIn("Use `/pg-route` before", text)
+        self.assertNotIn("Use `/pg-quality` before", text)
+
     def test_init_project_copies_claude_md(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp)
@@ -142,7 +185,11 @@ class ClaudeCodeCompatTest(unittest.TestCase):
             result = json.loads(proc.stdout)
             self.assertIn("CLAUDE.md", result["created"])
             self.assertTrue((project / "CLAUDE.md").exists())
-            self.assertIn("@AGENTS.md", (project / "CLAUDE.md").read_text(encoding="utf-8"))
+            text = (project / "CLAUDE.md").read_text(encoding="utf-8")
+            self.assertIn("@AGENTS.md", text)
+            self.assertIn("Do not wait for the user to invoke `/pg-*` commands", text)
+            self.assertIn("optional shortcuts or diagnostics", text)
+            self.assertNotIn("Use `/pg-route` before", text)
 
     def test_claude_marketplaces_are_versioned(self) -> None:
         marketplace = json.loads((ROOT / "examples/claude-marketplace/.claude-plugin/marketplace.json").read_text(encoding="utf-8"))
@@ -150,8 +197,8 @@ class ClaudeCodeCompatTest(unittest.TestCase):
         self.assertEqual(marketplace["owner"], {"name": "yxhpy"})
         entry = marketplace["plugins"][0]
         self.assertEqual(entry["name"], "codex-project-governor")
-        self.assertEqual(entry["version"], "6.2.5")
-        self.assertEqual(entry["source"]["ref"], "v6.2.5")
+        self.assertEqual(entry["version"], "6.2.6")
+        self.assertEqual(entry["source"]["ref"], "v6.2.6")
 
 
 if __name__ == "__main__":

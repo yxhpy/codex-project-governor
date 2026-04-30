@@ -1,0 +1,169 @@
+{
+  "level": "standard",
+  "route": "upgrade_or_migration",
+  "execution_context": "release_publish",
+  "change_budget": {
+    "max_files_changed": 40,
+    "max_new_files": 20,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 19,
+    "new_files": 13,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 0
+  },
+  "checks": [
+    {
+      "name": "upgrade_advisor",
+      "status": "pass",
+      "message": "python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py tasks/2026-04-30-release-6-2-6/UPGRADE_ADVISORY_INPUT.json"
+    },
+    {
+      "name": "claude_code_compat_tests",
+      "status": "pass",
+      "message": "python3 tests/test_claude_code_compat.py"
+    },
+    {
+      "name": "plugin_upgrade_migrator_tests",
+      "status": "pass",
+      "message": "python3 tests/test_plugin_upgrade_migrator.py"
+    },
+    {
+      "name": "harness_v6_tests",
+      "status": "pass",
+      "message": "python3 tests/test_harness_v6.py"
+    },
+    {
+      "name": "selftest",
+      "status": "pass",
+      "message": "python3 tests/selftest.py"
+    },
+    {
+      "name": "unittest_discover",
+      "status": "pass",
+      "message": "python3 -m unittest discover -s tests -p 'test*.py'"
+    },
+    {
+      "name": "compileall",
+      "status": "pass",
+      "message": "python3 -m compileall tools skills tests claude"
+    },
+    {
+      "name": "claude_plugin_validate",
+      "status": "pass",
+      "message": "claude plugin validate ."
+    },
+    {
+      "name": "claude_marketplace_validate",
+      "status": "pass",
+      "message": "claude plugin validate examples/claude-marketplace"
+    },
+    {
+      "name": "codex_cli_smoke",
+      "status": "pass",
+      "message": "codex --ask-for-approval never exec --cd /Users/yxhpy/Desktop/project/codex-project-governor --sandbox read-only --ephemeral --json <natural prompt>"
+    },
+    {
+      "name": "execution_policy",
+      "status": "pass",
+      "message": "python3 skills/quality-gate/scripts/check_execution_policy.py tasks/2026-04-30-release-6-2-6/EXECUTION_POLICY_INPUT.json"
+    },
+    {
+      "name": "engineering_standards",
+      "status": "pass",
+      "message": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD --format json"
+    },
+    {
+      "name": "diff_check",
+      "status": "pass",
+      "message": "git diff --check"
+    }
+  ],
+  "commands": [
+    "python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py tasks/2026-04-30-release-6-2-6/UPGRADE_ADVISORY_INPUT.json",
+    "python3 tests/test_claude_code_compat.py",
+    "python3 tests/test_plugin_upgrade_migrator.py",
+    "python3 tests/test_harness_v6.py",
+    "python3 tests/selftest.py",
+    "python3 -m unittest discover -s tests -p 'test*.py'",
+    "python3 -m compileall tools skills tests claude",
+    "claude plugin validate .",
+    "claude plugin validate examples/claude-marketplace",
+    "codex --ask-for-approval never exec --cd /Users/yxhpy/Desktop/project/codex-project-governor --sandbox read-only --ephemeral --json \"natural Project Governor prompt...\"",
+    "python3 skills/quality-gate/scripts/check_execution_policy.py tasks/2026-04-30-release-6-2-6/EXECUTION_POLICY_INPUT.json",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD --format json",
+    "git diff --check",
+    "gh api repos/yxhpy/codex-project-governor/git/trees --method POST --input /tmp/cpg-release-6.2.6/GITHUB_TREE_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/commits --method POST --input /tmp/cpg-release-6.2.6/GITHUB_COMMIT_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/refs/heads/main --method PATCH --input /tmp/cpg-release-6.2.6/GITHUB_UPDATE_REF_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/refs --method POST --input /tmp/cpg-release-6.2.6/GITHUB_TAG_REF_PAYLOAD.json",
+    "gh release create v6.2.6 --target <release-commit-sha> --notes-file releases/6.2.6.md --title \"6.2.6 - Automatic Agent Entrypoints\""
+  ],
+  "engineering_standards": {
+    "status": "pass",
+    "summary": {
+      "blocker_count": 0,
+      "warning_count": 0
+    }
+  },
+  "require_evidence": true,
+  "evidence": {
+    "acceptance_criteria": [
+      {
+        "criterion": "Version metadata is aligned for 6.2.6.",
+        "proof": "Selftest, harness tests, Claude compat tests, plugin manifests, README refs, marketplace refs, and feature matrix all point at 6.2.6."
+      },
+      {
+        "criterion": "Automatic Codex/Claude entrypoint compatibility is included in the release.",
+        "proof": "Release notes, README, manifests, feature matrix, and compatibility task evidence describe natural-prompt Project Governor entrypoints and optional pg-* diagnostics."
+      },
+      {
+        "criterion": "Release validation is complete.",
+        "proof": "Upgrade advisor, targeted tests, full unittest discovery, compileall, Claude plugin validation, Codex CLI smoke, engineering standards, execution policy, quality gate, and diff check passed."
+      },
+      {
+        "criterion": "Release publishing follows execution policy.",
+        "proof": "Recorded publish commands use gh api and gh release create; no git push command is recorded."
+      }
+    ],
+    "tests": [
+      {
+        "command": "python3 -m unittest discover -s tests -p 'test*.py'",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m compileall tools skills tests claude",
+        "status": "passed"
+      },
+      {
+        "command": "claude plugin validate . && claude plugin validate examples/claude-marketplace",
+        "status": "passed"
+      },
+      {
+        "command": "Codex CLI natural prompt smoke",
+        "status": "passed"
+      },
+      {
+        "command": "execution policy, engineering standards, and diff check",
+        "status": "passed"
+      }
+    ],
+    "docs_refresh": {
+      "needed": true,
+      "files_updated": [
+        "README.md",
+        "README.zh-CN.md",
+        "docs/project/CHARTER.md",
+        "docs/project/ROADMAP.md",
+        "docs/memory/PROJECT_MEMORY.md",
+        "docs/upgrades/UPGRADE_REGISTER.md",
+        "releases/6.2.6.md",
+        "releases/FEATURE_MATRIX.json"
+      ]
+    }
+  }
+}

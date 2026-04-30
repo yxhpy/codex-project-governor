@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.5",
+  "current_latest": "6.2.6",
   "versions": [
     {
       "version": "0.4.1",
@@ -595,6 +595,41 @@
           "user_value": "Initialized projects can reduce plan/document churn for small tasks without lowering quality for larger changes.",
           "requires_project_migration": true,
           "migration_id": "migration_6_2_5_fast_path_v2"
+        }
+      ]
+    },
+    {
+      "version": "6.2.6",
+      "title": "Automatic Agent Entrypoints",
+      "features": [
+        {
+          "id": "automatic_agent_entrypoints",
+          "name": "Automatic Codex and Claude entrypoints",
+          "summary": "Natural project requests in Codex or Claude Code enter Project Governor without requiring users to explicitly invoke a skill name or /pg-* command.",
+          "user_value": "Users can ask for normal coding, tests, reviews, docs, upgrades, compatibility checks, and UI work without memorizing Project Governor commands.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "claude_prompt_hook_context",
+          "name": "Claude prompt hook context",
+          "summary": "Adds Claude UserPromptSubmit context for English and Chinese project-work prompts, pointing to task-router, context-indexer, local project files, and deterministic scripts.",
+          "user_value": "Claude Code sessions start with the same governed workflow as Codex and avoid unnecessary web, browser, or MCP calls for local project work.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "claude_md_auto_template",
+          "name": "Automatic CLAUDE.md template",
+          "summary": "Updates target-project CLAUDE.md so /pg-* commands are optional diagnostics rather than required workflow entrypoints.",
+          "user_value": "Initialized projects get a shorter, clearer Claude Code entrypoint that still imports shared AGENTS.md rules.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
+        },
+        {
+          "id": "codex_claude_cli_fixture_validation",
+          "name": "Codex and Claude CLI fixture validation",
+          "summary": "Records Codex CLI, Claude CLI, DeepSeek Flash/Pro, and ai-tryon downstream fixture validation for automatic-entrypoint behavior.",
+          "user_value": "Compatibility claims are backed by real runtime smoke tests, not only static manifest checks.",
+          "requires_project_migration": false
         }
       ]
     }

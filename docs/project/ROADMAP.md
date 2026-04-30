@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Project Governor Harness v6.2.5 with Fast Path v2 `tiny_patch` routing and `artifact_policy`, actual-project reliability gates, host-runtime-aware subagent authorization, slots-first generated artifact creation, execution-policy command checks, Claude Code plugin compatibility, initialized self-governance, engineering standards governance, diagnostics-baseline cleanup, token-efficient docs navigation through `DOCS_MANIFEST.json`, architecture-aware roles, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md/CLAUDE.md rule-template drift migration, session lifecycle state, evidence manifests, skill catalog consolidation, compact default prompts, and harness doctor checks.
+Project Governor Harness v6.2.6 with automatic natural-prompt Project Governor entrypoints for Codex and Claude, optional `pg-*` diagnostics, Fast Path v2 `tiny_patch` routing and `artifact_policy`, actual-project reliability gates, host-runtime-aware subagent authorization, slots-first generated artifact creation, execution-policy command checks, Claude Code plugin compatibility, initialized self-governance, engineering standards governance, diagnostics-baseline cleanup, token-efficient docs navigation through `DOCS_MANIFEST.json`, architecture-aware roles, section-level context retrieval, route-specific doc packs, session-learning ledgers for failed commands and stale memory, proactive memory-search startup policy, user-level Git install/update support for local marketplaces, advisory research gates, quality-gated acceleration, clean reinstall management, opt-in DESIGN.md governance, DESIGN.md-gated UI workflows, context-index v2, governed memory search, AGENTS.md/CLAUDE.md rule-template drift migration, session lifecycle state, evidence manifests, skill catalog consolidation, compact default prompts, and harness doctor checks.
 
 ## Current Maintained Surfaces
 
@@ -35,6 +35,6 @@ Project Governor Harness v6.2.5 with Fast Path v2 `tiny_patch` routing and `arti
 
 ## Evidence
 
-- `.codex-plugin/plugin.json` declares version `6.2.5`.
+- `.codex-plugin/plugin.json` declares version `6.2.6`.
 - `README.md` lists 35+ skills and deterministic script entrypoints.
 - `.github/workflows/selftest.yml` runs the repository self-test on push, pull request, and workflow dispatch.

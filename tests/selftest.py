@@ -25,8 +25,8 @@ class ProjectGovernorSelfTest(unittest.TestCase):
     def test_plugin_manifest(self) -> None:
         manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "codex-project-governor")
-        self.assertEqual(manifest["version"], "6.2.5")
-        self.assertIn("Harness v6.2.5", manifest["description"])
+        self.assertEqual(manifest["version"], "6.2.6")
+        self.assertIn("Harness v6.2.6", manifest["description"])
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertIn("interface", manifest)
         self.assertIn("defaultPrompt", manifest["interface"])
@@ -49,10 +49,10 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         }:
             self.assertNotIn(internal_skill, joined_prompts)
         feature_matrix = json.loads((ROOT / "releases" / "FEATURE_MATRIX.json").read_text(encoding="utf-8"))
-        self.assertEqual(feature_matrix["current_latest"], "6.2.5")
+        self.assertEqual(feature_matrix["current_latest"], "6.2.6")
         versions = {item["version"] for item in feature_matrix["versions"]}
-        self.assertIn("6.2.5", versions)
-        self.assertTrue((ROOT / "releases" / "6.2.5.md").exists())
+        self.assertIn("6.2.6", versions)
+        self.assertTrue((ROOT / "releases" / "6.2.6.md").exists())
 
     def test_skills_have_metadata(self) -> None:
         skill_dirs = [p for p in (ROOT / "skills").iterdir() if p.is_dir()]
@@ -101,7 +101,7 @@ class ProjectGovernorSelfTest(unittest.TestCase):
         self.assertIn("Project Governor", readme)
         self.assertIn("research-radar", readme)
         self.assertIn("version-researcher", readme)
-        self.assertIn("6.2.5", readme)
+        self.assertIn("6.2.6", readme)
         self.assertIn("Claude Code", readme)
         self.assertIn("task-router", readme)
         self.assertIn("route-guard", readme)
@@ -157,6 +157,9 @@ class ProjectGovernorSelfTest(unittest.TestCase):
             self.assertIn("skipped_global", result)
             self.assertTrue((repo / "AGENTS.md").exists())
             self.assertTrue((repo / "CLAUDE.md").exists())
+            claude_md = (repo / "CLAUDE.md").read_text(encoding="utf-8")
+            self.assertIn("Do not wait for the user to invoke `/pg-*` commands", claude_md)
+            self.assertNotIn("Use `/pg-route` before", claude_md)
             self.assertTrue((repo / "docs" / "conventions" / "ITERATION_CONTRACT.md").exists())
             self.assertTrue((repo / ".codex" / "rules" / "project.rules").exists())
             self.assertTrue((repo / ".codex" / "hooks" / "check_iteration_compliance.py").exists())

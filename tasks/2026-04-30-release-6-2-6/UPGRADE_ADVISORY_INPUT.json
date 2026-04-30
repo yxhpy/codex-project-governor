@@ -1,0 +1,40 @@
+{
+  "project_requirements": [
+    "Publish the completed Codex and Claude automatic Project Governor entrypoint compatibility work as a Project Governor patch release.",
+    "Keep Codex and Claude Code plugin metadata, release notes, feature matrix, tests, memory, and install instructions in sync.",
+    "Preserve dependency-free deterministic helper scripts and avoid package or lockfile changes.",
+    "Release publishing must use gh/GitHub API transport, not plain git push."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance-plugin",
+      "current": "6.2.5",
+      "latest": "6.2.6",
+      "candidate": "6.2.6",
+      "safe_target": "6.2.6",
+      "available_versions": ["6.2.5", "6.2.6"],
+      "usage": "Codex and Claude Code governance plugin metadata, runtime planning, task routing, deterministic helper scripts, tests, docs, release metadata, and copied governance templates.",
+      "required": true,
+      "wanted_by": ["publish new version"],
+      "requirement_matches": [
+        "Natural Codex and Claude project requests enter Project Governor without explicit skill or slash-command invocation.",
+        "Claude Code UserPromptSubmit hook injects Project Governor workflow context for English and Chinese project-work prompts.",
+        "Initialized projects receive CLAUDE.md wording that treats /pg-* commands as optional diagnostics.",
+        "plugin-upgrade-migrator surfaces CLAUDE.md template drift for already initialized projects.",
+        "Codex CLI, Claude CLI, DeepSeek Flash/Pro, and ai-tryon downstream fixture compatibility evidence is recorded."
+      ],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release for compatibility and instruction-following improvements. It adds no dependencies, package manifests, lockfiles, runtime services, or deterministic helper schema removals.",
+      "constraints": [
+        "No new dependencies.",
+        "No package manifest or lockfile changes.",
+        "Template wording changes must be surfaced through migration planning and tests.",
+        "Codex and Claude plugin version metadata must remain aligned."
+      ]
+    }
+  ]
+}

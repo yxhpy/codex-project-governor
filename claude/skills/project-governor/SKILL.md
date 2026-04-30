@@ -1,11 +1,18 @@
 ---
 name: project-governor
-description: Use Project Governor Harness workflows inside Claude Code for iterative coding, context indexing, governed memory search, route guards, evidence gates, engineering standards, upgrades, and DESIGN.md UI gates.
+description: Automatically use Project Governor Harness workflows inside Claude Code for project coding, tests, reviews, docs, upgrades, initialization, compatibility work, context indexing, governed memory search, route guards, evidence gates, engineering standards, and DESIGN.md UI gates. Users should not need to explicitly call /pg-* commands for normal governed project work.
 ---
 
 # Project Governor For Claude Code
 
-Use this skill when a Claude Code session should follow Project Governor rules instead of ad hoc coding.
+Use this skill automatically when a Claude Code session should follow Project Governor rules instead of ad hoc coding. Do not wait for the user to explicitly invoke `/pg-*` commands before applying the workflow.
+
+## Automatic Activation
+
+- Treat natural project requests like "fix this", "add a test", "review this branch", "update docs", "initialize governance", "adapt Claude Code", or their Chinese equivalents as Project Governor-governed work.
+- Start with the default workflow below when the task is non-trivial, even if the user did not type a Project Governor slash command.
+- Use `/pg-*` commands as manual shortcuts, diagnostics, or a way for users to inspect a single workflow stage; they are not the normal required entrypoint.
+- For tiny local edits, follow the route selected by `task-router`; do not create heavy artifacts unless the route requires them.
 
 ## Source Of Truth
 
@@ -50,7 +57,7 @@ Do not copy plugin-global assets into a target repository. Use `templates/` only
 
 ## Manual Slash Commands
 
-Use the bundled `pg-*` commands for common entry points:
+Use the bundled `pg-*` commands as optional shortcuts and diagnostics:
 
 - `/pg-init`
 - `/pg-route`

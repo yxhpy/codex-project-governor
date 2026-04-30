@@ -1,0 +1,48 @@
+{
+  "task_id": "2026-04-30-claude-deepseek-minimum-adapter",
+  "source": "Claude Code DeepSeek compatibility validation",
+  "items": [
+    {
+      "type": "command_failure",
+      "command": "python3 skills/task-router/scripts/classify_task.py --request <request> --json",
+      "error": "classify_task.py does not accept --json; it emits JSON by default.",
+      "lesson": "Use `python3 skills/task-router/scripts/classify_task.py --request <request>` without --json.",
+      "evidence": "Current session command output."
+    },
+    {
+      "type": "command_failure",
+      "command": "claude -p ... --tools \"\" \"<prompt>\"",
+      "error": "Claude CLI reported missing input because the variadic --tools option consumed the prompt argument.",
+      "lesson": "When passing an empty Claude Code tool list, separate options from the prompt with `--`, for example `--tools \"\" -- \"<prompt>\"`.",
+      "evidence": "Current session command output."
+    },
+    {
+      "type": "command_failure",
+      "command": "claude -p ... --max-budget-usd <low cap> <plugin command or skill prompt>",
+      "error": "Several runs ended with error_max_budget_usd before producing useful output; `/pg-route` needed about $0.13 in the observed DeepSeek Flash environment.",
+      "lesson": "Use realistic `--max-budget-usd` caps for Claude Code plugin-command smoke tests, especially when plugin commands may run tools or read context. For `/pg-route` diagnostics, start at $0.35 rather than $0.08-$0.12.",
+      "evidence": "Current session command output."
+    },
+    {
+      "type": "command_failure",
+      "command": "claude -p --plugin-dir . --tools \"\" -- \"<natural prompt>\"",
+      "error": "Without `--strict-mcp-config`, user-level MCP tools were still visible enough for the model to attempt unrelated browser/MCP calls that were denied.",
+      "lesson": "For deterministic Claude Code automatic-entrypoint smoke tests, use `--strict-mcp-config --mcp-config '{\"mcpServers\":{}}'` and keep the prompt focused on local project governance.",
+      "evidence": "Current session command output."
+    },
+    {
+      "type": "command_failure",
+      "command": "codex plugin list",
+      "error": "Codex CLI 0.125.0 reported `unrecognized subcommand 'list'`; plugin management exposes the `marketplace` subtree instead.",
+      "lesson": "Do not use `codex plugin list` for smoke tests. Use `codex plugin marketplace --help` for CLI shape checks and deterministic plugin scripts/tests for installed plugin validation.",
+      "evidence": "Current session command output."
+    },
+    {
+      "type": "command_failure",
+      "command": "codex exec --ask-for-approval never ...",
+      "error": "Codex CLI 0.125.0 reported `unexpected argument '--ask-for-approval'` because approval policy is a top-level option, not an `exec` subcommand option.",
+      "lesson": "Place approval policy before the subcommand: `codex --ask-for-approval never exec ...`.",
+      "evidence": "Current session command output."
+    }
+  ]
+}

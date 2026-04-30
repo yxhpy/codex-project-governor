@@ -2,7 +2,7 @@
 
 [中文文档](README.zh-CN.md) | English
 
-`codex-project-governor` is a Codex and Claude Code plugin for making projects self-governing across agent sessions. Harness v6.2.5 adds Fast Path v2 with `tiny_patch` routing and explicit `artifact_policy` output, initializes governance files, mines conventions from existing repositories, forces iteration-first development, creates and renders generated governance artifacts from structured slots, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, generated-artifact slot indexing, governed memory search, session state, session-learning ledgers, and evidence manifests, selects subagents with host-runtime authorization awareness, enforces execution policy for user-selected command transports, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md/CLAUDE.md rule-template drift detection, clean user-level Git install/update for local marketplaces, Claude Code commands/agents/hooks, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
+`codex-project-governor` is a Codex and Claude Code plugin for making projects self-governing across agent sessions. Harness v6.2.6 adds automatic Project Governor entrypoints for natural Codex and Claude project requests, keeps `pg-*` commands as optional diagnostics, adds Fast Path v2 with `tiny_patch` routing and explicit `artifact_policy` output, initializes governance files, mines conventions from existing repositories, forces iteration-first development, creates and renders generated governance artifacts from structured slots, routes work through one source of truth, plans GPT-5.5-era runtime execution, builds context-index v2 with `DOCS_MANIFEST.json`, section-level retrieval, route-specific doc packs, generated-artifact slot indexing, governed memory search, session state, session-learning ledgers, and evidence manifests, selects subagents with host-runtime authorization awareness, enforces execution policy for user-selected command transports, advises on upgrades, adds diff-derived route guards, enforces engineering standards for source size, function complexity, mock leakage, test planning, and reuse-first coding, supports safe plugin upgrade migrations with AGENTS.md/CLAUDE.md rule-template drift detection, clean user-level Git install/update for local marketplaces, Claude Code commands/agents/hooks, opt-in DESIGN.md governance, DESIGN.md-gated UI coding, and scheduled memory compaction.
 
 The core idea is simple: the project should carry durable memory and rules in version-controlled files, while Codex or Claude Code acts as an executor, reviewer, and compactor.
 
@@ -60,7 +60,7 @@ Use the installer/updater to clone the plugin and write the local marketplace en
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.6 --apply
 ```
 
 The generated `~/.agents/plugins/marketplace.json` entry remains a local marketplace pointer:
@@ -97,13 +97,13 @@ Codex sees the entry above as `source: local`, so built-in Git marketplace upgra
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yxhpy/codex-project-governor/main/tools/install_or_update_user_plugin.py \
   -o /tmp/install_or_update_user_plugin.py
-python3 /tmp/install_or_update_user_plugin.py --ref v6.2.5 --apply
+python3 /tmp/install_or_update_user_plugin.py --ref v6.2.6 --apply
 ```
 
-After v6.2.5 is installed, the same helper is available from the plugin checkout:
+After v6.2.6 is installed, the same helper is available from the plugin checkout:
 
 ```bash
-python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.5 --apply
+python3 ~/.codex/plugins/codex-project-governor/tools/install_or_update_user_plugin.py --ref v6.2.6 --apply
 ```
 
 For a manual equivalent that works when the helper is not present:
@@ -111,7 +111,7 @@ For a manual equivalent that works when the helper is not present:
 ```bash
 PLUGIN_DIR="${CODEX_PROJECT_GOVERNOR_PLUGIN_DIR:-$HOME/.codex/plugins/codex-project-governor}"
 git -C "$PLUGIN_DIR" fetch --tags origin
-git -C "$PLUGIN_DIR" checkout --detach v6.2.5
+git -C "$PLUGIN_DIR" checkout --detach v6.2.6
 python3 "$PLUGIN_DIR/tests/selftest.py"
 ```
 
@@ -138,7 +138,7 @@ For distribution, publish a marketplace repository using `examples/claude-market
 /plugin install codex-project-governor@project-governor-claude-marketplace
 ```
 
-The Claude adapter exposes:
+The Claude adapter applies Project Governor automatically for normal project work. The `pg-*` commands remain optional shortcuts and diagnostics:
 
 - `/pg-init` to initialize governance files.
 - `/pg-route` and `/pg-context` for route and context retrieval.
@@ -164,12 +164,12 @@ The repo-scoped entry is also `source: local`. Teams should update the checkout 
 
 ## Use
 
-### Use Harness v6.2.5
+### Use Harness v6.2.6
 
-Harness v6.2.5 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
+Harness v6.2.6 makes `task-router` the single route source of truth and lets the runtime planner, docs manifest, section-level context index, governed memory search, session-learning ledgers, session state, route guard, quality gate, evidence manifest, DESIGN.md UI gate, and merge-readiness checks share one contract.
 
 ```text
-Use Project Governor Harness v6.2.5 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
+Use Project Governor Harness v6.2.6 to plan this change with DOCS_MANIFEST, section-level context retrieval, governed memory search, session state, evidence, route guard checks, and DESIGN.md UI gates when relevant.
 I authorize Project Governor to use selected subagents for this task.
 ```
 
@@ -393,13 +393,13 @@ Use `clean-reinstall-manager` when a plugin reinstall or project refresh is need
 Install or update the user-level plugin checkout and local marketplace entry:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.5 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.6 --apply
 ```
 
 Generate user-level reinstall commands:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.5
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.6
 ```
 
 Discover governed projects from outside a project:
@@ -502,7 +502,7 @@ Alternative examples are in:
 These scripts do not require third-party Python packages.
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.5
+python3 tools/install_or_update_user_plugin.py --ref v6.2.6
 python3 tools/init_project.py --mode existing --target /path/to/repo
 python3 tools/init_project.py --mode existing --profile legacy-full --target /path/to/repo
 python3 skills/project-hygiene-doctor/scripts/inspect_project_hygiene.py --project /path/to/project --plugin-root /path/to/codex-project-governor

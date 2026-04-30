@@ -255,6 +255,47 @@ class PluginUpgradeMigratorTest(unittest.TestCase):
             self.assertEqual(operation["status"], "safe_update_unchanged_from_install")
             self.assertEqual(operation["migration_id"], "rule_template_drift")
 
+    def test_plan_migration_surfaces_claude_template_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project = Path(temp_dir)
+            (project / ".project-governor").mkdir()
+            installed = "@AGENTS.md\n\n## Claude Code\n\n- Use `/pg-route` before non-trivial implementation.\n"
+            (project / "CLAUDE.md").write_text(installed, encoding="utf-8")
+            manifest = {
+                "plugin": {"installed_version": "6.2.5"},
+                "generated_files": [
+                    {
+                        "path": "CLAUDE.md",
+                        "template": "templates/CLAUDE.md",
+                        "template_sha256": sha(installed),
+                        "installed_sha256": sha(installed),
+                        "upgrade_policy": "add_if_missing",
+                    }
+                ],
+            }
+            (project / ".project-governor" / "INSTALL_MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
+            data = self.run_json(
+                [
+                    PY,
+                    str(ROOT / "skills" / "plugin-upgrade-migrator" / "scripts" / "plan_migration.py"),
+                    "--project",
+                    str(project),
+                    "--plugin-root",
+                    str(ROOT),
+                    "--current-version",
+                    "6.2.5",
+                    "--target-version",
+                    "6.2.5",
+                ]
+            )
+            operation = data["operations"][0]
+            self.assertEqual(operation["op"], "review_rule_template_drift")
+            self.assertEqual(operation["path"], "CLAUDE.md")
+            self.assertEqual(operation["source"], "templates/CLAUDE.md")
+            self.assertEqual(operation["action"], "replace_from_template")
+            self.assertEqual(operation["status"], "safe_update_unchanged_from_install")
+            self.assertEqual(operation["migration_id"], "rule_template_drift")
+
     def test_plan_migration_adds_missing_execution_policy_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             project = Path(temp_dir)
