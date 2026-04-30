@@ -10,5 +10,6 @@ Project Governor upgrades must preserve local project customizations.
 - Apply only safe additions or unchanged-file replacements automatically.
 - Leave user-modified files for three-way merge or manual review.
 - Surface `AGENTS.md` template drift during upgrade planning so newly added mandatory rules are visible to already initialized projects.
+- Surface missing required `.project-governor/runtime/*` policy files during upgrade planning so new quality gates can run in already initialized projects.
 - Never overwrite `docs/memory/*` or existing `docs/decisions/*`.
 - Generate an upgrade plan before applying migrations.

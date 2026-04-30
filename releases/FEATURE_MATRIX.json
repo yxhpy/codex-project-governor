@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.3",
+  "current_latest": "6.2.4",
   "versions": [
     {
       "version": "0.4.1",
@@ -529,6 +529,44 @@
           "user_value": "Future sessions follow the lower-token artifact workflow consistently.",
           "requires_project_migration": true,
           "migration_id": "rule_template_drift"
+        }
+      ]
+    },
+    {
+      "version": "6.2.4",
+      "title": "Actual-Project Reliability Gates",
+      "features": [
+        {
+          "id": "subagent_authorization_awareness",
+          "name": "Subagent authorization awareness",
+          "summary": "Separates automatic subagent selection from host-runtime permission to spawn agents and surfaces a standard consent phrase.",
+          "user_value": "Actual projects can use selected subagents without asking users to manually list agent names or confusing selection with authorization.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
+        },
+        {
+          "id": "slot_artifact_initial_creation",
+          "name": "Slots-first artifact creation",
+          "summary": "Adds a deterministic helper for creating initial governance artifact slot files and rendering Markdown from those slots.",
+          "user_value": "Agents do not need to hand-write fixed plan template content before filling task-specific fields.",
+          "requires_project_migration": true,
+          "migration_id": "rule_template_drift"
+        },
+        {
+          "id": "execution_policy_quality_gate",
+          "name": "Execution policy quality gate",
+          "summary": "Adds a dependency-free command policy checker and integrates it into quality-gate when execution context is provided.",
+          "user_value": "User-selected tools and transports become deterministic blockers instead of soft chat memory.",
+          "requires_project_migration": true,
+          "migration_id": "required_project_runtime_templates"
+        },
+        {
+          "id": "release_publish_gh_policy",
+          "name": "Release publishing gh/API policy",
+          "summary": "Adds a default release_publish policy requiring gh release or gh api and blocking plain git push unless explicitly overridden.",
+          "user_value": "Release sessions keep using the selected GitHub CLI/API publishing path across new sessions.",
+          "requires_project_migration": true,
+          "migration_id": "required_project_runtime_templates"
         }
       ]
     }

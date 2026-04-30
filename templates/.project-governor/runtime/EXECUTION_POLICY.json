@@ -1,0 +1,27 @@
+{
+  "schema": "project-governor-execution-policy-v1",
+  "version": 1,
+  "description": "Project-owned command execution policy for workflows where the user or project has selected a required tool or transport.",
+  "contexts": {
+    "release_publish": {
+      "description": "Publishing a Project Governor release should use GitHub CLI or GitHub REST API commands instead of falling back to plain git push.",
+      "override_field": "execution_policy_override_approved",
+      "required_any_patterns": [
+        {
+          "pattern": "(^|\\s)gh\\s+release\\s+create\\b",
+          "message": "Release publishing must record a GitHub CLI release command."
+        },
+        {
+          "pattern": "(^|\\s)gh\\s+api\\b",
+          "message": "Release publishing may use GitHub REST API through gh api."
+        }
+      ],
+      "disallowed_patterns": [
+        {
+          "pattern": "(^|\\s)git\\s+push\\b",
+          "message": "Release publishing is configured for gh/GitHub API transport; do not use plain git push unless the user explicitly approves an override."
+        }
+      ]
+    }
+  }
+}

@@ -26,9 +26,10 @@ Use before implementing any non-trivial feature, bug fix, migration, or refactor
 5. Justify every new file.
 6. Reject new dependencies unless clearly necessary.
 7. Identify tests and validation commands.
-8. Create `tasks/<yyyy-mm-dd>-<slug>/ITERATION_PLAN.slots.json` for variable plan content, then render `ITERATION_PLAN.md` with `tools/render_governance_artifact.py`.
-9. If the plan changes during execution, write a small update patch and apply it with `tools/update_governance_artifact.py`; do not ask the model to rewrite the full Markdown template.
-10. Do not implement until the initial plan is complete.
+8. Create `tasks/<yyyy-mm-dd>-<slug>/ITERATION_PLAN.slots.json` for variable plan content. Prefer `tools/new_governance_artifact.py --render` for the initial skeleton so fixed Markdown template text is never model-authored.
+9. Render `ITERATION_PLAN.md` with `tools/render_governance_artifact.py`; treat the Markdown as generated output.
+10. If the plan changes during execution, write a small update patch and apply it with `tools/update_governance_artifact.py`; do not ask the model to rewrite the full Markdown template.
+11. Do not implement until the initial plan is complete.
 
 ## Anti-greenfield checks
 

@@ -1,0 +1,12 @@
+{
+  "session_id": "2026-04-30-execution-policy-alignment",
+  "learnings": [
+    {
+      "kind": "failed_command",
+      "command": "python3 tools/render_governance_artifact.py --template iteration_plan_v1 --slots tasks/2026-04-30-execution-policy-alignment/ITERATION_PLAN.slots.json --output tasks/2026-04-30-execution-policy-alignment/ITERATION_PLAN.md",
+      "error_signature": "render_governance_artifact.py: error: the following arguments are required: --input",
+      "lesson": "Use --input, not --slots, when calling tools/render_governance_artifact.py from the CLI.",
+      "correct_behavior": "Run python3 tools/render_governance_artifact.py --template iteration_plan_v1 --input <slots.json> --output <artifact.md>."
+    }
+  ]
+}

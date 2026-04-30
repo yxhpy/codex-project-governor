@@ -12,6 +12,7 @@ Use after task route, context pack, pattern reuse plan, test plan, and change bu
 Run `subagent-activation` with workflow `parallel-feature-builder`.
 
 The user should not have to choose implementation or review agents manually. Use selected project-scoped agents from `.codex/agents/` when present.
+If the selector returns `subagent_authorization.status=needs_explicit_user_authorization`, ask once for consent before spawning; do not ask the user to name agents.
 
 For `micro_patch`, do not spawn subagents unless route-guard fails, confidence is low, or the target unexpectedly touches shared/global scope.
 
@@ -22,7 +23,7 @@ Do not let multiple write agents modify overlapping production code. Use paralle
 ## Pipeline
 
 1. Run `subagent-activation`.
-2. Spawn selected read-only scouts and wait for all results.
+2. Spawn selected read-only scouts only after authorization is satisfied, then wait for all results.
 3. Consolidate scope and change budget.
 4. Use one implementation writer for the smallest coherent production patch.
 5. Use one test writer for tests and fixtures.

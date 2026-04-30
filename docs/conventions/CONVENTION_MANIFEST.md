@@ -17,6 +17,7 @@
 - Harness v6 runtime policy: `managed-assets/runtime/HARNESS_V6_POLICY.md`
 - Harness v6 contract: `docs/harness/HARNESS_V6.md`
 - GPT-5.5 runtime mode template: `templates/.project-governor/runtime/GPT55_RUNTIME_MODE.json`
+- Execution policy template: `templates/.project-governor/runtime/EXECUTION_POLICY.json`
 - Harness v6 state templates: `templates/.project-governor/state/`
 - Harness v6 evidence templates: `templates/.project-governor/evidence/_template/`
 - Generated docs manifest: `.project-governor/context/DOCS_MANIFEST.json`
@@ -27,9 +28,10 @@
 - Clean reinstall policy: `templates/docs/upgrades/CLEAN_REINSTALL_POLICY.md`
 - Release feature matrix: `releases/FEATURE_MATRIX.json`
 - Release migrations: `releases/MIGRATIONS.json`
-- Current versioned release notes: `releases/6.2.2.md`
+- Current versioned release notes: `releases/6.2.4.md`
 - Harness v6 release notes: `releases/6.0.0.md`
 - Harness v6 release notes: `releases/HARNESS_V6_RELEASE_NOTES.md`
+- Generated artifact helpers: `tools/new_governance_artifact.py`, `tools/render_governance_artifact.py`, `tools/update_governance_artifact.py`
 - User plugin install/update helper: `tools/install_or_update_user_plugin.py`
 - Skill catalog analyzer: `tools/analyze_skill_catalog.py`
 - Session learning recorder: `skills/memory-compact/scripts/record_session_learning.py`
@@ -64,6 +66,7 @@ If implementation conflicts with these files, create or update a decision record
 - Example JSON inputs are stored under `examples/`.
 - Tests use Python standard-library `unittest` in `tests/selftest.py`.
 - Engineering standards checks are dependency-free Python scripts and should remain conservative, additive, and documented in API contracts.
+- Execution policy checks are dependency-free Python scripts and should convert user-selected command tools/transports into quality-gate findings before release, deploy, or publish completion.
 
 ## Evidence
 

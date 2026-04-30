@@ -12,11 +12,12 @@ Use before implementation when a change could introduce components, services, ho
 Run `subagent-activation` with workflow `pattern-reuse-engine` when the route is not `micro_patch` or when the target may be shared/global.
 
 Use `pattern-reuse-scout` for read-only reuse discovery when selected. Do not ask the user to name the scout.
+If host-runtime authorization is required before spawning, ask once for consent and continue with local search while waiting for approval.
 
 ## Process
 
 1. Read `PATTERN_REGISTRY.md` and `COMPONENT_REGISTRY.md`.
-2. Run selected read-only scouts when subagent mode is optional or required.
+2. Run selected read-only scouts when subagent mode is optional or required and spawning is authorized.
 3. Search adjacent implementation.
 4. Identify reusable patterns and forbidden duplicates.
 5. Identify existing fixtures, mocks, integration tests, and contract tests before creating new test doubles.

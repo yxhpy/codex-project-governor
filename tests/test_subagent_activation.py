@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,15 +24,24 @@ class SubagentActivationTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
         return json.loads(proc.stdout)
 
+    def run_payload(self, payload: dict) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "subagent-input.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            return self.run_json(str(path))
+
     def test_micro_patch_uses_no_subagents(self) -> None:
         data = self.run_json("examples/subagent-activation-micro.json")
         self.assertEqual(data["subagent_mode"], "none")
         self.assertEqual(data["selected_agents"], [])
+        self.assertEqual(data["subagent_authorization"]["status"], "not_required")
         self.assertIn("Do not spawn subagents", data["spawn_instructions"])
 
     def test_standard_feature_selects_fast_read_only_and_writers(self) -> None:
         data = self.run_json("examples/subagent-activation-standard-feature.json")
         self.assertEqual(data["subagent_mode"], "required")
+        self.assertEqual(data["subagent_authorization"]["status"], "needs_explicit_user_authorization")
+        self.assertIn("authorize Project Governor", data["subagent_authorization"]["consent_phrase"])
         names = {agent["name"] for agent in data["selected_agents"]}
         self.assertIn("context-scout", names)
         self.assertIn("pattern-reuse-scout", names)
@@ -40,6 +50,17 @@ class SubagentActivationTest(unittest.TestCase):
         models = {agent["name"]: agent["model"] for agent in data["selected_agents"]}
         self.assertEqual(models["context-scout"], "gpt-5.4-mini")
         self.assertEqual(models["implementation-writer"], "gpt-5.4")
+
+    def test_explicit_authorization_marks_subagent_spawn_authorized(self) -> None:
+        data = self.run_payload({
+            "route": "standard_feature",
+            "workflow": "parallel-feature-builder",
+            "quality_level": "standard",
+            "subagent_mode": "required",
+            "subagent_authorized": True,
+        })
+        self.assertEqual(data["subagent_authorization"]["status"], "authorized")
+        self.assertTrue(data["subagent_authorization"]["authorized"])
 
     def test_risk_feature_uses_high_reasoning_reviewers(self) -> None:
         data = self.run_json("examples/subagent-activation-risk.json")

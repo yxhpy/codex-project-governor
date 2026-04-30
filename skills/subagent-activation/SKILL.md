@@ -20,9 +20,11 @@ The main Codex agent must:
 1. Determine `subagent_mode`: `none`, `optional`, or `required`.
 2. Select project-scoped custom agents from `.codex/agents/` when present.
 3. Use fast models for read-heavy subagents and stronger models for implementation/risk/final review.
-4. Explicitly spawn selected subagents when mode is `required`.
-5. Wait for all read-only subagents before implementation.
-6. Consolidate subagent findings into the current task artifact.
+4. Check the returned `subagent_authorization` status before spawning. Automatic selection does not override host-runtime rules that require explicit user authorization for subagents.
+5. Explicitly spawn selected subagents when mode is `required` and spawning is authorized.
+6. If authorization is required but missing, ask once for a single consent phrase instead of asking the user to list agent names.
+7. Wait for all read-only subagents before implementation.
+8. Consolidate subagent findings into the current task artifact.
 
 ## Mode policy
 
@@ -43,12 +45,14 @@ python3 skills/subagent-activation/scripts/select_subagents.py examples/subagent
 ```
 
 The helper returns selected agents, recommended models, explicit spawn instructions, and skipped agents.
+It also returns `subagent_authorization`; pass `subagent_authorized=true` or include `I authorize Project Governor to use selected subagents for this task.` in the request when the host runtime requires explicit consent.
 
 ## Output
 
 Return:
 
 - subagent mode
+- subagent authorization status
 - selected agents
 - skipped agents
 - model strategy

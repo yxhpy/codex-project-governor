@@ -6,6 +6,14 @@ import json
 from pathlib import Path
 from typing import Any
 
+SUBAGENT_CONSENT_PHRASE = "I authorize Project Governor to use selected subagents for this task."
+SUBAGENT_CONSENT_PHRASES = {
+    SUBAGENT_CONSENT_PHRASE.lower(),
+    "我授权 Project Governor 使用选定的 subagents",
+    "允许 Project Governor 使用选定的 subagents",
+}
+AUTHORIZATION_FIELDS = ("subagent_authorized", "user_authorized_subagents", "allow_subagents")
+
 AGENTS = {
     "context-scout": {"model": "gpt-5.4-mini", "reasoning": "low", "sandbox": "read-only", "purpose": "find relevant files, entry points, adjacent code, docs, tests, APIs"},
     "pattern-reuse-scout": {"model": "gpt-5.4-mini", "reasoning": "medium", "sandbox": "read-only", "purpose": "find reusable components, hooks, services, schemas, styles, tests"},
@@ -43,6 +51,47 @@ def unique(items: list[str]) -> list[str]:
             seen.add(item)
             out.append(item)
     return out
+
+
+def truthy(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y", "on", "authorized", "allowed"}
+    return bool(value)
+
+
+def request_contains_consent_phrase(data: dict[str, Any]) -> bool:
+    request = str(data.get("request") or data.get("user_request") or "")
+    lower = request.lower()
+    return any(phrase in lower or phrase in request for phrase in SUBAGENT_CONSENT_PHRASES)
+
+
+def subagent_authorized(data: dict[str, Any]) -> bool:
+    return any(truthy(data.get(field)) for field in AUTHORIZATION_FIELDS) or request_contains_consent_phrase(data)
+
+
+def authorization_for(data: dict[str, Any], selected: list[str], mode: str) -> dict[str, Any]:
+    spawn_needed = bool(selected)
+    authorized = subagent_authorized(data)
+    if not spawn_needed:
+        status = "not_required"
+        reason = "No subagents are selected for this route."
+    elif authorized:
+        status = "authorized"
+        reason = "The request or input explicitly authorized Project Governor subagent spawning."
+    else:
+        status = "needs_explicit_user_authorization"
+        reason = "Host runtimes may require the user to explicitly authorize subagent spawning even when Project Governor selects subagents automatically."
+    return {
+        "status": status,
+        "subagent_mode": mode,
+        "spawn_requires_user_authorization": spawn_needed,
+        "authorized": authorized if spawn_needed else False,
+        "consent_phrase": SUBAGENT_CONSENT_PHRASE if spawn_needed else "",
+        "accepted_input_fields": list(AUTHORIZATION_FIELDS),
+        "reason": reason,
+    }
 
 
 def explicit_mode_for(data: dict[str, Any]) -> str | None:
@@ -137,6 +186,7 @@ def plan(data: dict[str, Any]) -> dict[str, Any]:
         "workflow": data.get("workflow", data.get("skill")),
         "selected_agents": [{"name": name, **AGENTS[name]} for name in selected],
         "skipped_agents": skipped,
+        "subagent_authorization": authorization_for(data, selected, mode),
         "model_strategy": {
             "fast_read_only": "gpt-5.4-mini",
             "balanced_default": "gpt-5.4",

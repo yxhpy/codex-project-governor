@@ -24,8 +24,8 @@ Before implementation:
 
 - inspect existing adjacent code
 - identify reusable patterns
-- create or update `tasks/<date>-<slug>/ITERATION_PLAN.md`
-- prefer `*.slots.json` plus deterministic render/update scripts for generated governance artifacts; when plans change, patch the slots and re-render Markdown instead of rewriting fixed template text
+- create or update `tasks/<date>-<slug>/ITERATION_PLAN.slots.json`, then render `ITERATION_PLAN.md` with deterministic artifact scripts
+- treat generated Markdown as output, not the model-authored source; when plans change, patch the slots and re-render Markdown instead of rewriting fixed template text
 - avoid new files unless justified in the iteration plan
 - avoid new dependencies unless approved in a decision record
 - preserve API, UI, data, and architecture conventions
@@ -79,9 +79,19 @@ For coding work that changes production or test code:
 
 Do not leave partial mock implementations in production paths. If a mock is used for an external dependency, record the real contract and the integration, contract, or smoke test that protects it.
 
+## Execution policy
+
+When the user or project specifies an execution tool, transport, or negative constraint, treat it as command policy, not a soft preference. Examples include “publish with `gh`”, “use `pnpm`”, “do not run `git push`”, or “deploy through Vercel CLI”.
+
+- Record the constraint in the task plan or evidence.
+- Feed relevant command lists into `quality-gate` with `execution_context` or run `skills/quality-gate/scripts/check_execution_policy.py` directly.
+- For release/publish work, default to `.project-governor/runtime/EXECUTION_POLICY.json`; plain `git push` is blocked for `release_publish` unless the user explicitly approves an override.
+
 ## Automatic skill and subagent activation
 
 The user should not need to manually list subagents or pick models after Project Governor initialization.
+
+Automatic selection does not override host-runtime authorization rules. If the active Codex or Claude runtime requires explicit user authorization before spawning subagents, ask once for that authorization or use an already-provided consent phrase; do not ask the user to list agent names.
 
 When a task is non-trivial, the main coding agent must automatically:
 

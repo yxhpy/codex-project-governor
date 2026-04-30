@@ -36,9 +36,8 @@ def build_index(project: Path, plugin_root: Path) -> dict:
     return json.loads(proc.stdout)
 
 
-def write_runtime(project: Path, *, apply: bool) -> dict:
-    target = project / ".project-governor" / "runtime" / "GPT55_RUNTIME_MODE.json"
-    payload = {
+def fallback_runtime_payload() -> dict:
+    return {
         "schema": "project-governor-runtime-mode-v1",
         "mode": "gpt55-auto-orchestration",
         "model_policy": {
@@ -64,14 +63,46 @@ def write_runtime(project: Path, *, apply: bool) -> dict:
             "project_runtime_state_only": True,
         },
     }
-    if apply:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return {"status": "written" if apply else "planned", "path": str(target), "payload": payload}
+
+
+def runtime_template_payloads(plugin_root: Path) -> list[tuple[str, Path | None, dict]]:
+    runtime_dir = plugin_root / "templates" / ".project-governor" / "runtime"
+    payloads: list[tuple[str, Path | None, dict]] = []
+    if runtime_dir.exists():
+        for source in sorted(runtime_dir.glob("*.json")):
+            payloads.append((source.name, source, json.loads(source.read_text(encoding="utf-8"))))
+    if not any(name == "GPT55_RUNTIME_MODE.json" for name, _source, _payload in payloads):
+        payloads.append(("GPT55_RUNTIME_MODE.json", None, fallback_runtime_payload()))
+    return payloads
+
+
+def write_runtime(project: Path, plugin_root: Path, *, apply: bool) -> dict:
+    runtime_files = []
+    for filename, source, payload in runtime_template_payloads(plugin_root):
+        target = project / ".project-governor" / "runtime" / filename
+        if apply:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        runtime_files.append(
+            {
+                "status": "written" if apply else "planned",
+                "path": str(target),
+                "source": str(source) if source else "fallback",
+                "payload": payload,
+            }
+        )
+
+    primary = next((item for item in runtime_files if item["path"].endswith("GPT55_RUNTIME_MODE.json")), runtime_files[0])
+    return {
+        "status": "written" if apply else "planned",
+        "path": primary["path"],
+        "payload": primary["payload"],
+        "files": runtime_files,
+    }
 
 
 def apply_project(project: Path, plugin_root: Path, *, apply: bool) -> dict:
-    runtime = write_runtime(project, apply=apply)
+    runtime = write_runtime(project, plugin_root, apply=apply)
     index = build_index(project, plugin_root) if apply else {"status": "planned", "reason": "run with --apply to build context index"}
     return {"project": str(project), "runtime": runtime, "context_index": index}
 

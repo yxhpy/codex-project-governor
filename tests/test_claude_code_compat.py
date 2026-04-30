@@ -38,7 +38,7 @@ class ClaudeCodeCompatTest(unittest.TestCase):
         claude = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(claude["name"], "codex-project-governor")
         self.assertEqual(claude["version"], codex["version"])
-        self.assertEqual(claude["version"], "6.2.3")
+        self.assertEqual(claude["version"], "6.2.4")
         for key, rel in {
             "skills": "claude/skills/",
             "commands": "claude/commands/",
@@ -150,8 +150,8 @@ class ClaudeCodeCompatTest(unittest.TestCase):
         self.assertEqual(marketplace["owner"], {"name": "yxhpy"})
         entry = marketplace["plugins"][0]
         self.assertEqual(entry["name"], "codex-project-governor")
-        self.assertEqual(entry["version"], "6.2.3")
-        self.assertEqual(entry["source"]["ref"], "v6.2.3")
+        self.assertEqual(entry["version"], "6.2.4")
+        self.assertEqual(entry["source"]["ref"], "v6.2.4")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,102 @@
+{
+  "level": "standard",
+  "route": "standard_feature",
+  "change_budget": {
+    "max_files_changed": 60,
+    "max_new_files": 12,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 47,
+    "new_files": 5,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 0
+  },
+  "checks": [
+    {
+      "name": "execution_policy_tests",
+      "status": "pass",
+      "message": "python3 tests/test_execution_policy.py"
+    },
+    {
+      "name": "gpt55_orchestration_tests",
+      "status": "pass",
+      "message": "python3 tests/test_gpt55_auto_orchestration.py"
+    },
+    {
+      "name": "plugin_upgrade_migrator_tests",
+      "status": "pass",
+      "message": "python3 tests/test_plugin_upgrade_migrator.py"
+    },
+    {
+      "name": "clean_reinstall_tests",
+      "status": "pass",
+      "message": "python3 tests/test_clean_reinstall_manager.py"
+    },
+    {
+      "name": "selftest",
+      "status": "pass",
+      "message": "python3 tests/selftest.py"
+    },
+    {
+      "name": "harness_v6_tests",
+      "status": "pass",
+      "message": "python3 tests/test_harness_v6.py"
+    },
+    {
+      "name": "claude_code_compat_tests",
+      "status": "pass",
+      "message": "python3 tests/test_claude_code_compat.py"
+    },
+    {
+      "name": "subagent_activation_tests",
+      "status": "pass",
+      "message": "python3 tests/test_subagent_activation.py"
+    },
+    {
+      "name": "governance_artifact_renderer_tests",
+      "status": "pass",
+      "message": "python3 tests/test_governance_artifact_renderer.py"
+    },
+    {
+      "name": "compileall",
+      "status": "pass",
+      "message": "python3 -m compileall tools skills tests"
+    },
+    {
+      "name": "diff_check",
+      "status": "pass",
+      "message": "git diff --check"
+    },
+    {
+      "name": "quality_gate",
+      "status": "pass",
+      "message": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-execution-policy-alignment/QUALITY_GATE_INPUT.json"
+    }
+  ],
+  "commands": [
+    "python3 tests/test_execution_policy.py",
+    "python3 tests/test_gpt55_auto_orchestration.py",
+    "python3 tests/test_plugin_upgrade_migrator.py",
+    "python3 tests/test_clean_reinstall_manager.py",
+    "python3 tests/selftest.py",
+    "python3 tests/test_harness_v6.py",
+    "python3 tests/test_claude_code_compat.py",
+    "python3 tests/test_subagent_activation.py",
+    "python3 tests/test_governance_artifact_renderer.py",
+    "python3 -m compileall tools skills tests",
+    "git diff --check",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD --format json",
+    "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-execution-policy-alignment/QUALITY_GATE_INPUT.json"
+  ],
+  "engineering_standards": {
+    "status": "pass",
+    "summary": {
+      "blocker_count": 0,
+      "warning_count": 0
+    }
+  }
+}

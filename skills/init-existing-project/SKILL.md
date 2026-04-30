@@ -20,7 +20,7 @@ Use this skill when code already exists and the goal is to make the project self
 
 Run `subagent-activation` with workflow `init-existing-project`.
 
-Explicitly spawn selected read-only subagents. Each subagent must cite file paths, distinguish confirmed facts from guesses, avoid writing files, and return concise findings.
+Explicitly spawn selected read-only subagents only after host-runtime authorization is satisfied. If authorization is missing, ask once for consent; the user should not need to name agents. Each subagent must cite file paths, distinguish confirmed facts from guesses, avoid writing files, and return concise findings.
 
 Preferred project-scoped roles:
 

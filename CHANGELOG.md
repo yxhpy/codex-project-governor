@@ -1,5 +1,27 @@
 # Changelog
 
+## 6.2.4 - Actual-Project Reliability Gates
+
+### Added
+
+- Added host-runtime authorization awareness to subagent planning and the default Harness prompt consent sentence.
+- Added `tools/new_governance_artifact.py` for slots-first initial governance artifact creation.
+- Added execution-policy quality-gate checks and a copied runtime `EXECUTION_POLICY.json` template.
+- Added a default `release_publish` policy that requires `gh release` or `gh api` and blocks plain `git push` unless explicitly overridden.
+
+### Changed
+
+- `quality-gate` can run execution-policy checks when command policy context is provided.
+- `gpt55-auto-orchestrator` now surfaces release publishing execution-policy hints for `gh`/GitHub API workflows.
+- `clean-reinstall-manager` applies all runtime JSON templates instead of hard-coding only GPT55 runtime mode.
+- `plugin-upgrade-migrator` surfaces missing required runtime policy files for already initialized projects.
+
+### Compatibility
+
+- Existing CLI entry points and skill names remain compatible.
+- The new quality-gate fields are additive.
+- No new third-party dependencies.
+
 ## 6.2.3 - Slot-Based Governance Artifacts
 
 ### Added

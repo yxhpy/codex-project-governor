@@ -19,7 +19,7 @@ This repository has no HTTP API routes.
 
 Changes to these fields affect plugin discovery and user-facing positioning.
 
-`interface.defaultPrompt` must remain a compact list of scenario-level prompts. It should align with README recommended entry points and avoid listing internal workflow stages or diagnostic skills as default UI choices.
+`interface.defaultPrompt` must remain a compact list of scenario-level prompts. It should align with README recommended entry points and avoid listing internal workflow stages or diagnostic skills as default UI choices. The main Harness prompt may include the standard subagent consent sentence so host runtimes that require explicit authorization can spawn selected agents without asking the user to list names.
 
 ## Claude Code Plugin Manifest Contract
 
@@ -188,6 +188,36 @@ JSON output fields:
 - `revision`
 
 The current schema is `project-governor-artifact-render-result-v1`.
+
+### `tools/new_governance_artifact.py`
+
+Input:
+
+- required `--output-dir <task-dir>`
+- optional `--template <template-id>`; defaults to `iteration_plan_v1`
+- optional `--task-id <task-id>`
+- optional `--title <artifact-title>`
+- required `--user-request <text>` for `iteration_plan_v1`
+- optional `--render`
+- optional `--force`
+
+Behavior:
+
+- Reads `templates/artifacts/ARTIFACT_TEMPLATES.json` to find the slot filename and rendered output filename.
+- Writes the initial structured slot JSON for a generated governance artifact so agents do not need to hand-write fixed Markdown template text.
+- When `--render` is provided, renders Markdown through the same renderer used by `tools/render_governance_artifact.py`.
+- Refuses to overwrite existing slot or rendered files unless `--force` is supplied.
+
+JSON output fields:
+
+- `status`
+- `schema`
+- `template_id`
+- `slot_output`
+- `render_output`
+- `revision`
+
+The current schema is `project-governor-artifact-create-result-v1`.
 
 ### `tools/update_governance_artifact.py`
 
@@ -650,10 +680,13 @@ Output:
 - `workflow`
 - `selected_agents`
 - `skipped_agents`
+- `subagent_authorization`
 - `model_strategy`
 - `spawn_instructions`
 - `wait_policy`
 - `write_policy`
+
+`subagent_authorization` includes `status`, `subagent_mode`, `spawn_requires_user_authorization`, `authorized`, `consent_phrase`, `accepted_input_fields`, and `reason`. Status values are `not_required`, `authorized`, or `needs_explicit_user_authorization`.
 
 ### `skills/plugin-upgrade-migrator/scripts/inspect_installation.py`
 
@@ -711,6 +744,8 @@ Output:
 Operations with `op=run_hygiene_check` or `upgrade_policy=diagnostic_only` are diagnostic steps. They must be planned as manual review operations and must not be treated as safe file-copy operations by `apply_safe_migration.py`.
 
 The planner also surfaces tracked `AGENTS.md` rule-template drift. When `.project-governor/INSTALL_MANIFEST.json` records an older `templates/AGENTS.md` hash and the current project `AGENTS.md` does not already match the latest template, `plan_migration.py` emits an operation with `op=review_rule_template_drift`, `path=AGENTS.md`, `migration_id=rule_template_drift`, and normal `three_way_merge` classification. Unmodified installed files can be `replace_from_template`; user-modified files remain `manual_review_or_three_way_merge`.
+
+The planner also surfaces required project runtime templates for already initialized projects. When an install manifest exists and `.project-governor/runtime/EXECUTION_POLICY.json` is missing, it emits `op=add_required_project_runtime_template`, `migration_id=required_project_runtime_templates`, and `action=add_if_missing`.
 
 ### `skills/plugin-upgrade-migrator/scripts/apply_safe_migration.py`
 
@@ -861,7 +896,7 @@ Input:
 Behavior:
 
 - Detects whether `--path` is a Project Governor project.
-- Writes project-owned `.project-governor/runtime/GPT55_RUNTIME_MODE.json` only when `--apply` is used.
+- Writes project-owned runtime templates from `templates/.project-governor/runtime/*.json` only when `--apply` is used, including `GPT55_RUNTIME_MODE.json` and `EXECUTION_POLICY.json`.
 - Builds `.project-governor/context/CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, and `SESSION_BRIEF.md` only when `--apply` is used and `context-indexer` is installed.
 - Does not copy plugin-global `.codex/agents`, `.codex/prompts`, or `.codex/config.toml`.
 
@@ -871,6 +906,8 @@ Output:
 - `result` for current-project mode
 - `discovered_projects` and `user_choices` for stop mode
 - `selected_count` and `results` for selected/all mode
+
+Runtime results include a backwards-compatible primary `path` and `payload` plus `files`, the list of copied or planned runtime JSON files.
 
 ### `skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py`
 
@@ -886,6 +923,7 @@ Input JSON fields include:
 - optional `prefer_speed`
 - optional `route`
 - optional `quality_level` or `quality_gate`
+- optional `execution_context`
 
 Output:
 
@@ -903,13 +941,15 @@ Output:
 - `context_budget`
 - `route_doc_pack`
 - `context_retrieval`
+- `execution_policy`
 - `skill_sequence`
 - `subagent_mode`
 - `subagents`
+- `subagent_authorization`
 - `skipped_skills`
 - `quality_rules`
 
-`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available. `quality_rules.run_engineering_standards` indicates whether the runtime plan expects the engineering standards scanner before quality gate.
+`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available. `execution_policy` includes `required`, `context`, `policy_path`, and quality-gate input hints when the request implies a command-policy context such as `release_publish`. `quality_rules.run_engineering_standards` indicates whether the runtime plan expects the engineering standards scanner before quality gate; `quality_rules.run_execution_policy` indicates whether recorded commands must be checked against `.project-governor/runtime/EXECUTION_POLICY.json`.
 
 ### `skills/context-indexer/scripts/build_context_index.py`
 
@@ -1110,6 +1150,32 @@ Output:
 
 The script exits non-zero when the budget fails.
 
+### `skills/quality-gate/scripts/check_execution_policy.py`
+
+Input JSON fields include:
+
+- `execution_context` or `context`
+- `commands`
+- optional `execution_policy_path`
+- optional inline `execution_policy`
+- optional `execution_policy_override_approved`
+
+Output:
+
+- `status`
+- `schema`
+- `context`
+- `checked`
+- `policy_source`
+- `override_approved`
+- `commands_checked`
+- `findings`
+- `blockers`
+- `warnings`
+- `summary`
+
+The script exits non-zero when blocking findings are present. The default copied policy defines `release_publish`, which requires a `gh release` or `gh api` command and blocks plain `git push` unless an explicit override is approved.
+
 ### `skills/quality-gate/scripts/run_quality_gate.py`
 
 Input JSON fields include:
@@ -1122,6 +1188,10 @@ Input JSON fields include:
 - `commands`
 - `route_guard`
 - optional `engineering_standards`
+- optional `execution_context`
+- optional `execution_policy_path`
+- optional `execution_policy`
+- optional `execution_policy_result`
 
 Output:
 
@@ -1134,6 +1204,7 @@ Output:
 - `warnings`
 - `commands`
 - `route_guard`
+- `execution_policy`
 - `evidence_required`
 - `evidence`
 - `repair_loop_required`

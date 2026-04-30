@@ -23,5 +23,6 @@
 - Quality gate policy: `docs/quality/QUALITY_GATE_POLICY.md`
 - Route guard policy: `docs/quality/ROUTE_GUARD_POLICY.md`
 - Subagent activation policy: `docs/quality/SUBAGENT_ACTIVATION_POLICY.md`
+- Execution policy template: `.project-governor/runtime/EXECUTION_POLICY.json`
 
 If implementation conflicts with these files, create or update a decision record first.

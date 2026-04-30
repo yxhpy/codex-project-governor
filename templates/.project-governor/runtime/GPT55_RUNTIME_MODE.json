@@ -19,6 +19,9 @@
   "automation_policy": {
     "auto_select_skills": true,
     "auto_select_subagents": true,
+    "subagent_spawn_requires_host_authorization": true,
+    "execution_policy_path": ".project-governor/runtime/EXECUTION_POLICY.json",
+    "release_publish_requires_execution_policy": true,
     "coding_routes_run_engineering_standards": true,
     "micro_patch_skips_subagents": true,
     "strict_routes_require_subagents": true

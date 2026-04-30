@@ -1,0 +1,40 @@
+{
+  "artifact": "ITERATION_PLAN",
+  "base_revision": 2,
+  "reason": "Record task-local quality and evidence artifacts plus the final verification commands.",
+  "ops": [
+    {
+      "op": "append_item",
+      "path": "/new_files",
+      "id": "task-evidence-artifacts",
+      "value": {
+        "file": "tasks/2026-04-30-subagent-auth-slot-artifacts/{ARTIFACT_CHANGES.jsonl,ITERATION_PLAN.patch*.json,QUALITY_GATE_INPUT.json,QUALITY_REPORT.md}",
+        "why": "Task-local evidence files document the slot update history, quality-gate input, and verification result for this non-trivial implementation."
+      }
+    },
+    {
+      "op": "append_item",
+      "path": "/tests",
+      "id": "quality-gate",
+      "value": "python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-subagent-auth-slot-artifacts/QUALITY_GATE_INPUT.json"
+    },
+    {
+      "op": "append_item",
+      "path": "/tests",
+      "id": "harness-compat",
+      "value": "python3 tests/test_harness_v6.py"
+    },
+    {
+      "op": "append_item",
+      "path": "/tests",
+      "id": "claude-compat",
+      "value": "python3 tests/test_claude_code_compat.py"
+    },
+    {
+      "op": "append_item",
+      "path": "/tests",
+      "id": "diff-check",
+      "value": "git diff --check"
+    }
+  ]
+}

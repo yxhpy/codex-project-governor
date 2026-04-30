@@ -59,7 +59,7 @@ Always provide a safe install/update or reinstall plan. Do not execute destructi
 For the common local marketplace case, update the Git checkout and ensure the marketplace entry exists:
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.2 --apply
+python3 tools/install_or_update_user_plugin.py --ref v6.2.4 --apply
 ```
 
 This keeps the marketplace source as `local`; it updates the Git checkout that the local entry points at. Built-in Git marketplace upgrade commands do not fetch this local checkout.
@@ -67,7 +67,7 @@ This keeps the marketplace source as `local`; it updates the Git checkout that t
 For full replacement instructions, use:
 
 ```bash
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.2
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.4
 ```
 
 ### 2. If not in a Project Governor project
@@ -120,7 +120,7 @@ If `--path` is not a governed project, it returns discovered projects and exits 
 
 ### 5. Latest runtime mode
 
-Use this for v0.5.0 GPT-5.5 auto orchestration state. It writes only project-owned files under `.project-governor/runtime/` and `.project-governor/context/`.
+Use this for GPT auto orchestration and execution-policy state. It writes only project-owned files under `.project-governor/runtime/` and `.project-governor/context/`, copying current runtime JSON templates such as `GPT55_RUNTIME_MODE.json` and `EXECUTION_POLICY.json`.
 
 ```bash
 python3 skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py \

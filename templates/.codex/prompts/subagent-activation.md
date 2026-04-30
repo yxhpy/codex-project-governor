@@ -14,6 +14,7 @@ Rules:
 - Select project-scoped custom agents from `.codex/agents/` when present.
 - Use gpt-5.4-mini for fast read-only scouting.
 - Use gpt-5.4 for implementation, risk, architecture, repair, and final quality review.
-- Explicitly spawn selected subagents when mode is `required`.
+- Explicitly spawn selected subagents when mode is `required` and `subagent_authorization.status` is `authorized`.
+- If `subagent_authorization.status` is `needs_explicit_user_authorization`, ask once for user consent instead of asking the user to list agents.
 - Wait for all read-only subagents before writing implementation code.
 - For `micro_patch`, do not spawn subagents unless route-guard fails or the target unexpectedly touches shared/global scope.

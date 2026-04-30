@@ -83,6 +83,33 @@ class GovernanceArtifactRendererTest(unittest.TestCase):
             self.assertIn("Render plans from slots.", text)
             self.assertIn("| Deterministic CLI helper | tools/*.py | Render fixed Markdown. |", text)
 
+    def test_new_governance_artifact_creates_slots_and_rendered_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = root / "tasks" / "demo"
+
+            result = self.run_json([
+                PY,
+                str(ROOT / "tools/new_governance_artifact.py"),
+                "--output-dir",
+                str(task),
+                "--task-id",
+                "demo",
+                "--title",
+                "Iteration Plan: Demo",
+                "--user-request",
+                "Create the initial slot artifact.",
+                "--render",
+            ])
+
+            self.assertEqual(result["status"], "created")
+            slots = json.loads((task / "ITERATION_PLAN.slots.json").read_text(encoding="utf-8"))
+            self.assertEqual(slots["task_id"], "demo")
+            self.assertEqual(slots["user_request"], "Create the initial slot artifact.")
+            markdown = (task / "ITERATION_PLAN.md").read_text(encoding="utf-8")
+            self.assertIn("generated_from: iteration_plan_v1", markdown)
+            self.assertIn("Create the initial slot artifact.", markdown)
+
     def test_iteration_plan_update_patch_bumps_revision_and_rerenders(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

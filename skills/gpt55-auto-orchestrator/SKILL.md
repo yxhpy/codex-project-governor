@@ -20,10 +20,11 @@ The orchestrator must:
 1. infer the request type,
 2. choose the smallest safe workflow,
 3. query the context index before reading large docs,
-4. activate subagents only when useful,
+4. select subagents only when useful and report whether host-runtime authorization is still required before spawning,
 5. route model usage for speed, token economy, and quality,
-6. run quality gates appropriate to risk,
-7. avoid copying plugin-global assets into target projects.
+6. surface execution-policy contexts when the user selects a command tool or transport,
+7. run quality gates appropriate to risk,
+8. avoid copying plugin-global assets into target projects.
 
 ## Model policy
 
@@ -58,6 +59,9 @@ python3 skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py examples/g
 ```
 
 Then follow the returned `skill_sequence` and `subagents`.
+If `subagent_authorization.status` is `needs_explicit_user_authorization`, ask once for user consent before calling any spawn tool. The user should not have to name individual subagents.
+
+If `execution_policy.required` is true, carry its `quality_gate_input` into the final quality-gate input and record the user-selected command constraint in the task plan or evidence.
 
 ## Output
 
@@ -66,6 +70,8 @@ Return:
 - selected workflow,
 - selected model plan,
 - selected subagents,
+- subagent authorization status,
+- execution policy context and quality-gate input hints,
 - context budget,
 - route doc pack,
 - skill sequence,

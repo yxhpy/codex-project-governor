@@ -4,12 +4,21 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 TASK_ROUTER = ROOT / "skills" / "task-router" / "scripts" / "classify_task.py"
+SUBAGENT_CONSENT_PHRASE = "I authorize Project Governor to use selected subagents for this task."
+SUBAGENT_CONSENT_PHRASES = {
+    SUBAGENT_CONSENT_PHRASE.lower(),
+    "我授权 Project Governor 使用选定的 subagents",
+    "允许 Project Governor 使用选定的 subagents",
+}
+AUTHORIZATION_FIELDS = ("subagent_authorized", "user_authorized_subagents", "allow_subagents")
+EXECUTION_POLICY_PATH = ".project-governor/runtime/EXECUTION_POLICY.json"
 
 
 def load_payload(path: str | None, request: str | None = None) -> dict[str, Any]:
@@ -34,6 +43,47 @@ def load_task_router() -> Any:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def truthy(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y", "on", "authorized", "allowed"}
+    return bool(value)
+
+
+def request_contains_consent_phrase(payload: dict[str, Any]) -> bool:
+    request = str(payload.get("request") or payload.get("user_request") or "")
+    lower = request.lower()
+    return any(phrase in lower or phrase in request for phrase in SUBAGENT_CONSENT_PHRASES)
+
+
+def subagent_authorized(payload: dict[str, Any]) -> bool:
+    return any(truthy(payload.get(field)) for field in AUTHORIZATION_FIELDS) or request_contains_consent_phrase(payload)
+
+
+def subagent_authorization(payload: dict[str, Any], subagents: list[str], mode: str) -> dict[str, Any]:
+    spawn_needed = bool(subagents)
+    authorized = subagent_authorized(payload)
+    if not spawn_needed:
+        status = "not_required"
+        reason = "No subagents are selected for this route."
+    elif authorized:
+        status = "authorized"
+        reason = "The request or input explicitly authorized Project Governor subagent spawning."
+    else:
+        status = "needs_explicit_user_authorization"
+        reason = "Host runtimes may require the user to explicitly authorize subagent spawning even when Project Governor selects subagents automatically."
+    return {
+        "status": status,
+        "subagent_mode": mode,
+        "spawn_requires_user_authorization": spawn_needed,
+        "authorized": authorized if spawn_needed else False,
+        "consent_phrase": SUBAGENT_CONSENT_PHRASE if spawn_needed else "",
+        "accepted_input_fields": list(AUTHORIZATION_FIELDS),
+        "reason": reason,
+    }
 
 
 def classify(payload: dict[str, Any]) -> dict[str, Any]:
@@ -237,11 +287,58 @@ def evidence_policy(evidence_required: bool, gate: str, route: str) -> dict[str,
     }
 
 
-def quality_rules(route: str, evidence_required: bool) -> dict[str, Any]:
+def task_request_text(payload: dict[str, Any], classification: dict[str, Any]) -> str:
+    pieces = [
+        str(payload.get("request", payload.get("user_request", ""))),
+        str(classification.get("request", "")),
+        " ".join(map(str, payload.get("constraints", []))) if isinstance(payload.get("constraints"), list) else "",
+    ]
+    return " ".join(pieces).lower()
+
+
+def explicit_execution_context(payload: dict[str, Any]) -> str:
+    raw = payload.get("execution_context")
+    if isinstance(raw, dict):
+        context = raw.get("type", raw.get("context", raw.get("task_type", "")))
+        return str(context)
+    if isinstance(raw, str):
+        return raw
+    return ""
+
+
+def infer_execution_context(payload: dict[str, Any], classification: dict[str, Any]) -> str:
+    explicit = explicit_execution_context(payload)
+    if explicit:
+        return explicit
+    text = task_request_text(payload, classification)
+    release_signal = bool(re.search(r"\b(release|publish|tag|ship)\b|发布|发版|打标签", text, flags=re.IGNORECASE))
+    gh_signal = bool(re.search(r"\b(gh|github cli|github api)\b", text, flags=re.IGNORECASE))
+    publish_signal = bool(re.search(r"\b(release pipeline|publish pipeline|create release)\b|发布流水线", text, flags=re.IGNORECASE))
+    if release_signal and (gh_signal or publish_signal):
+        return "release_publish"
+    return ""
+
+
+def execution_policy(payload: dict[str, Any], classification: dict[str, Any]) -> dict[str, Any]:
+    context = infer_execution_context(payload, classification)
+    required = bool(context)
+    return {
+        "required": required,
+        "context": context,
+        "policy_path": EXECUTION_POLICY_PATH if required else "",
+        "quality_gate_input": {"execution_context": context, "execution_policy_path": EXECUTION_POLICY_PATH} if required else {},
+        "record_commands_required": required,
+        "record_constraint_in_plan": required,
+        "override_field": "execution_policy_override_approved" if required else "",
+    }
+
+
+def quality_rules(route: str, evidence_required: bool, execution_policy_required: bool = False) -> dict[str, Any]:
     return {
         "do_not_read_all_initialization_docs": True,
         "do_not_copy_plugin_global_assets": True,
         "run_route_guard": True,
+        "run_execution_policy": execution_policy_required,
         "run_engineering_standards": route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"},
         "route_guard_uses_git_diff_facts": True,
         "run_quality_gate": True,
@@ -269,6 +366,7 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
     subagents = subagents_for(route, subagent_mode)
     sequence = skill_sequence_from(classification, route)
     evidence_required = bool(classification.get("evidence_required"))
+    execution_policy_plan = execution_policy(payload, classification)
 
     return {
         "status": "planned",
@@ -290,11 +388,13 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
         "state_policy": state_policy(route),
         "memory_policy": memory_policy(route),
         "evidence_policy": evidence_policy(evidence_required, gate, route),
+        "execution_policy": execution_policy_plan,
         "skill_sequence": sequence,
         "subagent_mode": subagent_mode,
         "subagents": subagents,
+        "subagent_authorization": subagent_authorization(payload, subagents, subagent_mode),
         "skipped_skills": skipped_skills(classification, route),
-        "quality_rules": quality_rules(route, evidence_required),
+        "quality_rules": quality_rules(route, evidence_required, bool(execution_policy_plan.get("required"))),
     }
 
 

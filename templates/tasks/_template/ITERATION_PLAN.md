@@ -1,3 +1,4 @@
+<!-- Template reference only. For actual tasks, create ITERATION_PLAN.slots.json and render this Markdown with tools/render_governance_artifact.py. -->
 # Iteration Plan
 
 ## User request

@@ -9,7 +9,7 @@ Before implementation, the agent must:
 1. Identify existing adjacent code.
 2. Identify existing patterns to reuse.
 3. Identify existing components, utilities, services, hooks, schemas, tests, and styles.
-4. Write or update the task iteration plan. Prefer `ITERATION_PLAN.slots.json` plus `tools/render_governance_artifact.py` for generated Markdown, and use `tools/update_governance_artifact.py` for plan changes during execution.
+4. Write or update the task iteration plan by creating `ITERATION_PLAN.slots.json` first, then rendering `ITERATION_PLAN.md`. Prefer `tools/new_governance_artifact.py --render` for the initial skeleton, and use `tools/update_governance_artifact.py` for plan changes during execution.
 5. Explain why each new file is necessary.
 6. Explain why each new dependency is necessary.
 7. Keep public API behavior stable unless explicitly asked.
@@ -59,6 +59,7 @@ Generated governance artifacts should keep model-authored content in structured 
 
 - `ITERATION_PLAN.slots.json` is the source of truth when present.
 - `ITERATION_PLAN.md` is the human-readable render output and should include a `generated_from` marker.
+- Initial slot files should be created with `tools/new_governance_artifact.py` when possible, then filled or patched with variable content.
 - Mid-task plan changes should be expressed as small update patches against the slot file, with revision checks and a change-log entry.
 - Agents should not ask the model to regenerate full Markdown templates when only variable fields changed.
 

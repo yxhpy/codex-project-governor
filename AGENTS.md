@@ -30,7 +30,7 @@ When `.project-governor/context/DOCS_MANIFEST.json` and `CONTEXT_INDEX.json` are
 ## Iteration Rules
 
 - Prefer narrow patches that preserve existing plugin, template, and script boundaries.
-- Create or update `tasks/<date>-<slug>/ITERATION_PLAN.md` for non-trivial implementation.
+- Create or update `tasks/<date>-<slug>/ITERATION_PLAN.slots.json` for non-trivial implementation, then render `ITERATION_PLAN.md` with deterministic artifact scripts. Treat rendered Markdown as output, not the model-authored source.
 - For generated governance artifacts, prefer structured `*.slots.json` plus deterministic render/update scripts over asking the model to rewrite fixed Markdown template content. When a plan changes during execution, update the slots with a small patch and re-render the Markdown artifact.
 - Keep deterministic scripts dependency-free unless a decision record approves otherwise.
 - Preserve CLI JSON output shapes unless an API contract update explains the change.
@@ -48,6 +48,14 @@ For coding work that changes production or test code:
 - require a `PATTERN_REUSE_PLAN.md` before creating new components, services, hooks, schemas, fixtures, or helpers
 
 Do not leave partial mock implementations in production paths. If a mock is used for an external dependency, record the real contract and the integration, contract, or smoke test that protects it.
+
+## Execution Policy
+
+When the user or project specifies an execution tool, transport, or negative constraint, treat it as command policy, not a soft preference. Examples include “publish with `gh`”, “use `pnpm`”, “do not run `git push`”, or “deploy through Vercel CLI”.
+
+- Record the constraint in the task plan or evidence.
+- Feed relevant command lists into `quality-gate` with `execution_context` or run `skills/quality-gate/scripts/check_execution_policy.py` directly.
+- For release/publish work, default to `.project-governor/runtime/EXECUTION_POLICY.json`; plain `git push` is blocked for `release_publish` unless the user explicitly approves an override.
 
 ## Forbidden By Default
 

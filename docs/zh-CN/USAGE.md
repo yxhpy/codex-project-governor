@@ -10,7 +10,7 @@
 - 面向 GPT-5.5 的实现、研究、升级或清理请求，可以先用 `gpt55-auto-orchestrator` 自动选择工作流、模型、上下文预算、subagent 和质量门。
 - 已初始化项目优先用 `context-indexer` 查询任务相关章节，先读 `DOCS_MANIFEST.json`、`SESSION_BRIEF.md` 和 `recommended_sections`，避免每个会话都读取所有初始化文档。
 - 需要查“为什么当时这样做”或历史决策时，用 `context-indexer --memory-search` 查治理记忆、决策、任务和状态文件，不要拼复杂 shell，也不要默认翻原始聊天记录。
-- 非平凡任务自动运行 `subagent-activation`，由项目级 `.codex/agents/` 选择 subagent 和模型策略。
+- 非平凡任务自动运行 `subagent-activation` 选择 subagent 和模型策略；如果宿主运行时要求显式授权，先让用户用一句话授权，再调用实际 spawn 工具。
 - 对普通功能先做上下文包和模式复用，再走并行实现和质量门。
 - 对会改生产或测试代码的任务，在质量门前运行 `engineering-standards-governor`，检查文件规模、函数复杂度、mock 泄漏、测试断言、边界测试计划和复用优先合规性。
 - 已初始化项目升级 Project Governor 时，使用 `plugin-upgrade-migrator` 先比较新功能并生成安全迁移计划，不要直接覆盖本地治理文件。
@@ -78,7 +78,8 @@ Request:
 
 Treat this as an iteration, not a rewrite.
 Find adjacent code and reusable patterns first.
-Create tasks/<date>-<slug>/ITERATION_PLAN.md.
+Create tasks/<date>-<slug>/ITERATION_PLAN.slots.json first, then render ITERATION_PLAN.md with the deterministic artifact renderer.
+Do not hand-write the fixed Markdown template.
 Do not implement until the plan is complete.
 ```
 
@@ -90,6 +91,12 @@ Do not implement until the plan is complete.
 - 是否新增文件，为什么必须新增。
 - 需要跑哪些测试。
 - 回滚方式。
+
+首个计划产物优先用 slots 初始化和渲染：
+
+```bash
+python3 tools/new_governance_artifact.py --output-dir tasks/<task-id> --task-id <task-id> --user-request "<需求内容>" --render
+```
 
 ## 4. 用质量门加速功能开发
 
@@ -119,6 +126,10 @@ Return the route, lane, quality level, change budget, and required downstream sk
 - `merge-readiness`：检查是否可以进入 PR 或 merge。
 - `coding-velocity-report`：复盘上下文时间、首次补丁时间、修复轮次和质量分。
 
+`subagent-activation` 只负责选择；如果脚本返回 `subagent_authorization.status=needs_explicit_user_authorization`，需要先获得一次用户授权再 spawn。
+
+如果用户或项目明确指定命令通道，例如“发布使用 `gh`”或“不要用 `git push`”，把它作为执行策略记录到 plan/evidence，并在最终质量门里带上 `execution_context`。初始化项目会有 `.project-governor/runtime/EXECUTION_POLICY.json`；默认 `release_publish` 场景要求 `gh release` 或 `gh api`。
+
 确定性脚本入口：
 
 ```bash
@@ -140,6 +151,7 @@ python3 skills/harness-doctor/scripts/doctor.py --project . --execution-readines
 python3 skills/context-pack-builder/scripts/build_context_pack.py . --request "dashboard widget"
 python3 skills/pattern-reuse-engine/scripts/find_reuse_candidates.py . --request "dashboard widget"
 python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project .
+python3 skills/quality-gate/scripts/check_execution_policy.py /path/to/execution-policy-input.json
 python3 skills/quality-gate/scripts/run_quality_gate.py examples/quality-gate-input.json
 python3 skills/merge-readiness/scripts/check_merge_readiness.py examples/merge-readiness-input.json
 python3 skills/coding-velocity-report/scripts/build_velocity_report.py examples/velocity-input.json
@@ -154,9 +166,12 @@ v6.2.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、
 Use @project-governor gpt55-auto-orchestrator.
 
 Automatically choose the Project Governor workflow, models, context budget, subagents, and quality gates for this request.
+I authorize Project Governor to use selected subagents for this task.
 Do not ask the user to name skills or subagents.
 Read DOCS_MANIFEST, then query section-level context before reading large initialization docs.
 ```
+
+如果当前 Codex/Claude 运行时要求用户显式授权 subagent，上面的授权句就足够；Project Governor 仍负责选择具体 agent，用户不需要手动列名称。
 
 `context-indexer` 会把项目上下文写入项目自有的 `.project-governor/context/`，用于后续任务检索：
 
@@ -363,8 +378,8 @@ Cleanly reinstall the user-level Project Governor plugin and refresh initialized
 常用脚本：
 
 ```bash
-python3 tools/install_or_update_user_plugin.py --ref v6.2.2 --apply
-python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.2
+python3 tools/install_or_update_user_plugin.py --ref v6.2.4 --apply
+python3 skills/clean-reinstall-manager/scripts/generate_reinstall_instructions.py --ref v6.2.4
 python3 skills/clean-reinstall-manager/scripts/discover_governed_projects.py --root "$HOME"
 python3 skills/clean-reinstall-manager/scripts/refresh_project_governance.py --project . --plugin-root /path/to/codex-project-governor
 python3 skills/clean-reinstall-manager/scripts/clean_reinstall_orchestrator.py --path . --plugin-root /path/to/codex-project-governor

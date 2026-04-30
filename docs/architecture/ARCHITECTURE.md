@@ -63,17 +63,19 @@ This repository is a Codex and Claude Code plugin plus governance-template bundl
 - Claude adapter files may reference existing plugin scripts through `${CLAUDE_PLUGIN_ROOT}` but should not duplicate deterministic helper logic.
 - Templates should not depend on generated output under `reports/`.
 - Managed assets are plugin-owned source material. They are not target-project files unless a user explicitly opts in and creates project-owned copies.
-- GPT-5.5 runtime mode, Harness v6 state, and evidence templates under `templates/.project-governor/` are project-owned governance state; context indexes are generated in target projects by `context-indexer`.
+- GPT-5.5 runtime mode, execution policy, Harness v6 state, and evidence templates under `templates/.project-governor/` are project-owned governance state; context indexes are generated in target projects by `context-indexer`.
 
 ## Generated Output
 
 - `tools/init_project.py` writes `reports/project-governor/init-report.json` in the target repository.
+- `tools/new_governance_artifact.py` creates initial structured slot files for generated governance artifacts and can render the Markdown artifact.
 - `tools/render_governance_artifact.py` renders generated governance Markdown such as `ITERATION_PLAN.md` from structured `*.slots.json` files.
 - `tools/update_governance_artifact.py` applies small revision-checked updates to generated artifact slot files and can re-render the Markdown artifact.
+- `skills/quality-gate/scripts/check_execution_policy.py` checks recorded commands against project-owned `.project-governor/runtime/EXECUTION_POLICY.json`.
 - `skills/context-indexer/scripts/build_context_index.py --write` writes schema-v2 `.project-governor/context/CONTEXT_INDEX.json`, `DOCS_MANIFEST.json`, `SESSION_BRIEF.md`, and `INDEX_REPORT.json` in the target repository.
 - `skills/session-lifecycle/scripts/session_lifecycle.py start|end` writes `.project-governor/state/**` in the target repository.
 - `skills/evidence-manifest/scripts/write_evidence_manifest.py` writes `.project-governor/evidence/<task-id>/EVIDENCE.json` unless `--validate` is used.
-- `skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py --apply` writes `.project-governor/runtime/GPT55_RUNTIME_MODE.json` and may build the context index in the target repository.
+- `skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py --apply` writes `.project-governor/runtime/*.json` from runtime templates and may build the context index in the target repository.
 - `reports/` is ignored by `.gitignore`.
 
 ## Known Coupling Risks

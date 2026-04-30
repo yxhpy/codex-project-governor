@@ -20,8 +20,8 @@ class HarnessV6Test(unittest.TestCase):
 
     def test_manifest_version(self):
         manifest = json.loads((ROOT / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '6.2.3')
-        self.assertIn('Harness v6.2.3', manifest['description'])
+        self.assertEqual(manifest['version'], '6.2.4')
+        self.assertIn('Harness v6.2.4', manifest['description'])
 
     def test_harness_doctor_uses_feature_matrix_current_latest(self):
         data = self.run_json([PY, str(HARNESS_DOCTOR), '--project', str(ROOT), '--execution-readiness'])

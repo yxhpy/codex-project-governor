@@ -10,6 +10,7 @@ from typing import Any
 LEVELS = {"light", "standard", "strict"}
 ROOT = Path(__file__).resolve().parents[3]
 ROUTE_GUARD = ROOT / "skills" / "route-guard" / "scripts" / "check_route_guard.py"
+EXECUTION_POLICY = ROOT / "skills" / "quality-gate" / "scripts" / "check_execution_policy.py"
 
 
 def normalize_level(value: object) -> str:
@@ -29,9 +30,23 @@ def load_route_guard_module() -> Any:
     return module
 
 
+def load_execution_policy_module() -> Any:
+    spec = importlib.util.spec_from_file_location("project_governor_execution_policy", EXECUTION_POLICY)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot import {EXECUTION_POLICY}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def run_route_guard(route_guard_payload: dict[str, Any]) -> dict[str, Any]:
     module = load_route_guard_module()
     return module.check(route_guard_payload)
+
+
+def run_execution_policy(data: dict[str, Any]) -> dict[str, Any]:
+    module = load_execution_policy_module()
+    return module.evaluate(data)
 
 
 def iter_checks(checks: object) -> list[tuple[str, object, str, bool, str]]:
@@ -172,6 +187,49 @@ def route_guard_findings(data: dict[str, Any]) -> tuple[list[dict[str, Any]], di
     return [], None
 
 
+def execution_policy_requested(data: dict[str, Any]) -> bool:
+    return any(
+        key in data
+        for key in (
+            "execution_context",
+            "execution_policy",
+            "execution_policy_path",
+            "execution_policy_result",
+            "policy_path",
+        )
+    )
+
+
+def execution_policy_findings(data: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    if isinstance(data.get("execution_policy_result"), dict):
+        result = data["execution_policy_result"]
+    elif execution_policy_requested(data):
+        result = run_execution_policy(data)
+    else:
+        return [], None
+
+    if result.get("status") == "fail":
+        return [
+            {
+                "severity": "blocking",
+                "type": "execution_policy_failed",
+                "message": "Recorded commands conflict with the selected execution policy.",
+                "execution_policy": result,
+            }
+        ], result
+    warnings = result.get("warnings", []) if isinstance(result.get("warnings"), list) else []
+    if warnings:
+        return [
+            {
+                "severity": "warning",
+                "type": "execution_policy_warning",
+                "message": "Execution policy reported warnings.",
+                "execution_policy": result,
+            }
+        ], result
+    return [], result
+
+
 def check_findings(check_rows: list[tuple[str, object, str, bool, str]], level: str) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for name, status, severity, required, message in check_rows:
@@ -205,6 +263,7 @@ def result_payload(
     findings: list[dict[str, Any]],
     commands: list[Any],
     route_guard_result: dict[str, Any] | None,
+    execution_policy_result: dict[str, Any] | None,
     evidence: dict[str, Any] | None,
     require_evidence: bool,
     check_count: int,
@@ -221,10 +280,17 @@ def result_payload(
         "warnings": warnings,
         "commands": commands,
         "route_guard": route_guard_result,
+        "execution_policy": execution_policy_result,
         "evidence_required": require_evidence,
         "evidence": evidence,
         "repair_loop_required": bool(blockers),
-        "summary": {"blocker_count": len(blockers), "warning_count": len(warnings), "checks_reported": check_count, "commands_reported": len(commands)},
+        "summary": {
+            "blocker_count": len(blockers),
+            "warning_count": len(warnings),
+            "checks_reported": check_count,
+            "commands_reported": len(commands),
+            "execution_policy_checked": bool(execution_policy_result and execution_policy_result.get("checked")),
+        },
     }
 
 
@@ -238,6 +304,8 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
     findings.extend(budget_findings(data.get("change_budget", {}), data.get("actual", {})))
     route_findings, route_guard_result = route_guard_findings(data)
     findings.extend(route_findings)
+    execution_findings, execution_policy_result = execution_policy_findings(data)
+    findings.extend(execution_findings)
     findings.extend(check_findings(check_rows, level))
     findings.extend(command_findings(commands, require_commands))
 
@@ -250,6 +318,7 @@ def evaluate(data: dict[str, Any]) -> dict[str, Any]:
         findings=findings,
         commands=commands,
         route_guard_result=route_guard_result,
+        execution_policy_result=execution_policy_result,
         evidence=evidence,
         require_evidence=require_evidence,
         check_count=len(check_rows),

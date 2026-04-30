@@ -27,11 +27,15 @@ The orchestrator should infer and invoke Project Governor skills automatically. 
 
 For coding work, the inferred workflow should include `engineering-standards-governor` before `quality-gate` so source size, complexity, mock leakage, and test hygiene are checked before final readiness.
 
+When the request selects an execution tool or transport, the orchestrator should surface an `execution_policy` plan. Release publishing through `gh` or GitHub API must carry `execution_context=release_publish` into `quality-gate` so conflicting commands are blocked deterministically.
+
 ## Subagent routing
 
 - `micro_patch`: no subagents.
 - `standard_feature`: optional read-only subagents.
 - `risky_feature`, `upgrade`, `research`, `migration`: required subagents.
+
+Automatic routing selects subagents; it does not bypass the host runtime. If the runtime requires explicit user authorization before spawning agents, the orchestrator must surface `subagent_authorization.status` and ask once for consent before using a spawn tool.
 
 ## Clean reinstall compatibility
 

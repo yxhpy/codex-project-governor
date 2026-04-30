@@ -11,7 +11,7 @@ Use before opening a PR or during review.
 
 Run `subagent-activation` with workflow `pr-governance-review`.
 
-Explicitly spawn selected read-only subagents, one per review dimension:
+Explicitly spawn selected read-only subagents only after host-runtime authorization is satisfied, one per review dimension. If authorization is missing, ask once for consent instead of asking the user to name agents:
 
 1. `iteration-compliance-reviewer`
 2. `style-drift-reviewer`

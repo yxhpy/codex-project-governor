@@ -9,6 +9,7 @@ from typing import Any
 from _common import load_json, operation_policy, sha256_path, version_between, write_json
 
 RULE_TEMPLATE_DRIFT_PATHS = ("AGENTS.md",)
+REQUIRED_PROJECT_RUNTIME_PATHS = (".project-governor/runtime/EXECUTION_POLICY.json",)
 
 
 def tracked(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -130,6 +131,47 @@ def rule_template_drift_operations(
     return operations
 
 
+def required_project_runtime_operations(
+    project: Path,
+    plugin_root: Path,
+    tracked_files: dict[str, dict[str, Any]],
+    existing_operations: list[dict[str, Any]],
+    current: str,
+    target: str,
+) -> list[dict[str, Any]]:
+    if not tracked_files:
+        return []
+
+    existing_paths = {operation.get("path") for operation in existing_operations}
+    operations: list[dict[str, Any]] = []
+    for relative_path in REQUIRED_PROJECT_RUNTIME_PATHS:
+        if relative_path in existing_paths or (project / relative_path).exists():
+            continue
+        source_path = f"templates/{relative_path}"
+        if not (plugin_root / source_path).exists():
+            continue
+        operations.append(
+            {
+                **classify(
+                    project,
+                    plugin_root,
+                    {
+                        "op": "add_required_project_runtime_template",
+                        "path": relative_path,
+                        "source": source_path,
+                        "upgrade_policy": "add_if_missing",
+                        "reason": "Add required Project Governor runtime policy so new execution-policy gates are available in already initialized projects.",
+                    },
+                    tracked_files,
+                ),
+                "migration_id": "required_project_runtime_templates",
+                "from": current,
+                "to": target,
+            }
+        )
+    return operations
+
+
 def migration_operations(project: Path, plugin_root: Path, current: str, target: str, tracked_files: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     operations: list[dict[str, Any]] = []
     for migration in migrations(plugin_root, current, target):
@@ -165,6 +207,7 @@ def plan(project: Path, plugin_root: Path, current: str, target: str) -> dict[st
     tracked_files = tracked(install_manifest)
     operations = migration_operations(project, plugin_root, current, target, tracked_files)
     operations.extend(rule_template_drift_operations(project, plugin_root, tracked_files, operations, current, target))
+    operations.extend(required_project_runtime_operations(project, plugin_root, tracked_files, operations, current, target))
 
     safe, manual, skipped = operation_groups(operations)
     return {

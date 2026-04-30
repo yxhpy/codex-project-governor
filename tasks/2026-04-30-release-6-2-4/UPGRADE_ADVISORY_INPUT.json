@@ -1,0 +1,39 @@
+{
+  "project_requirements": [
+    "Publish the completed actual-project reliability fixes as a Project Governor patch release.",
+    "Keep Codex and Claude Code plugin metadata, release notes, feature matrix, tests, and install instructions in sync.",
+    "Preserve dependency-free deterministic helper scripts and avoid package or lockfile changes.",
+    "Release publishing must use gh/GitHub API transport, not plain git push."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance-plugin",
+      "current": "6.2.3",
+      "latest": "6.2.4",
+      "candidate": "6.2.4",
+      "safe_target": "6.2.4",
+      "available_versions": ["6.2.3", "6.2.4"],
+      "usage": "Codex and Claude Code governance plugin metadata, runtime templates, skills, deterministic helper scripts, tests, and docs.",
+      "required": true,
+      "wanted_by": ["publish new version"],
+      "requirement_matches": [
+        "subagent host-runtime authorization awareness",
+        "slots-first initial governance artifact creation",
+        "execution policy gate for user-selected command transports",
+        "release publishing with gh/GitHub API transport"
+      ],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release for actual-project reliability and governance alignment. It adds no dependencies, package manifests, lockfiles, or runtime services.",
+      "constraints": [
+        "No new dependencies.",
+        "No package manifest or lockfile changes.",
+        "Template path changes must be documented and tested.",
+        "Deterministic JSON output shape changes must be documented and tested."
+      ]
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Project Governor should select and spawn subagents automatically after project initialization. Users should not need to memorize subagent names, model choices, or delegation prompts.
+Project Governor should select subagents automatically after project initialization. Users should not need to memorize subagent names, model choices, or delegation prompts.
+
+Actual spawning remains subject to the active host runtime. If Codex, Claude Code, or another runtime requires explicit user authorization before subagents can be spawned, Project Governor must surface that status and ask once for consent instead of silently treating selection as permission.
 
 ## Mode policy
 
@@ -11,6 +13,16 @@ Project Governor should select and spawn subagents automatically after project i
 | `none` | `micro_patch`, high-confidence docs/copy/style edits | Do not spawn subagents. Use direct edit, route-guard, and light quality gate. |
 | `optional` | small UI/bugfix/test tasks with uncertainty | Spawn scouts only if confidence is low, target may be shared/global, or context is missing. |
 | `required` | standard features, risky tasks, refactors, migrations, upgrades, PR review, initialization, broad research | Spawn selected read-only subagents and wait before implementation. |
+
+## Authorization Status
+
+Deterministic planners return `subagent_authorization`:
+
+- `not_required`: no subagents are selected.
+- `authorized`: the request or input explicitly authorized Project Governor to use selected subagents.
+- `needs_explicit_user_authorization`: subagents are selected, but the host runtime may require user consent before any spawn tool is called.
+
+Accepted explicit inputs include `subagent_authorized=true`, `user_authorized_subagents=true`, `allow_subagents=true`, or the prompt phrase `I authorize Project Governor to use selected subagents for this task.`
 
 ## Model routing
 
@@ -27,10 +39,6 @@ Project Governor should select and spawn subagents automatically after project i
 
 ## Initialization
 
-Project initialization must copy:
+Clean project initialization does not copy plugin-global `.codex/agents`, `.codex/prompts`, or `.codex/config.toml` into target repositories. Those assets remain plugin-owned unless the user explicitly requests `--profile legacy-full`.
 
-- `.codex/config.toml`
-- `.codex/agents/*.toml`
-- `.codex/prompts/subagent-activation.md`
-
-These files make subagent roles and model choices project-scoped and reusable.
+When project-scoped `.codex/agents/` or Claude Code plugin agents are present, use them. Otherwise use the installed plugin's available agent definitions and deterministic selector output.

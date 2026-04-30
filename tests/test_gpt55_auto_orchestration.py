@@ -21,6 +21,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertEqual(data['route'], 'micro_patch')
         self.assertEqual(data['subagent_mode'], 'none')
         self.assertEqual(data['subagents'], [])
+        self.assertEqual(data['subagent_authorization']['status'], 'not_required')
         self.assertFalse(data['context_budget']['read_all_initialization_docs'])
         self.assertIn('route-guard', data['skill_sequence'])
 
@@ -30,6 +31,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertEqual(data['quality_gate'], 'light')
         self.assertEqual(data['subagent_mode'], 'none')
         self.assertEqual(data['subagents'], [])
+        self.assertEqual(data['subagent_authorization']['status'], 'not_required')
         self.assertEqual(data['model_plan']['main_model'], 'gpt-5.4-mini')
         self.assertEqual(data['skill_sequence'], ['direct-edit', 'quality-gate', 'merge-readiness'])
         self.assertFalse(data['evidence_required'])
@@ -41,6 +43,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertIn('context-indexer', data['skill_sequence'])
         self.assertIn('engineering-standards-governor', data['skill_sequence'])
         self.assertIn('context-scout', data['subagents'])
+        self.assertEqual(data['subagent_authorization']['status'], 'needs_explicit_user_authorization')
         self.assertEqual(data['model_plan']['main_model'], 'gpt-5.5')
         self.assertEqual(data['model_plan']['scout_model'], 'gpt-5.4-mini')
         self.assertEqual(data['context_retrieval']['docs_manifest'], '.project-governor/context/DOCS_MANIFEST.json')
@@ -55,6 +58,30 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertEqual(data['model_plan']['reasoning_effort'], 'high')
         self.assertIn('risk-scout', data['subagents'])
         self.assertEqual(data['subagent_mode'], 'required')
+
+    def test_explicit_authorization_marks_runtime_subagents_authorized(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = Path(tmp) / 'runtime.json'
+            payload.write_text(json.dumps({
+                'request': 'implement checkout flow',
+                'subagent_authorized': True,
+            }), encoding='utf-8')
+            data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), str(payload)])
+            self.assertTrue(data['subagents'])
+            self.assertEqual(data['subagent_authorization']['status'], 'authorized')
+
+    def test_release_publish_request_requires_execution_policy(self):
+        data = self.run_json([
+            PY,
+            str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'),
+            '--request',
+            'Prepare and publish release v6.2.4 using gh, not plain git push',
+        ])
+        self.assertEqual(data['execution_policy']['context'], 'release_publish')
+        self.assertTrue(data['execution_policy']['required'])
+        self.assertTrue(data['execution_policy']['record_constraint_in_plan'])
+        self.assertEqual(data['execution_policy']['quality_gate_input']['execution_context'], 'release_publish')
+        self.assertTrue(data['quality_rules']['run_execution_policy'])
 
     def test_context_index_build_and_query(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -129,6 +156,9 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
             data = self.run_json([PY, str(ROOT / 'skills/clean-reinstall-manager/scripts/apply_latest_runtime_mode.py'), '--path', str(project), '--plugin-root', str(ROOT), '--apply'])
             self.assertEqual(data['status'], 'project_runtime_mode_ready')
             self.assertTrue((project / '.project-governor/runtime/GPT55_RUNTIME_MODE.json').exists())
+            self.assertTrue((project / '.project-governor/runtime/EXECUTION_POLICY.json').exists())
+            runtime_files = {Path(item['path']).name for item in data['result']['runtime']['files']}
+            self.assertIn('EXECUTION_POLICY.json', runtime_files)
             self.assertTrue((project / '.project-governor/context/CONTEXT_INDEX.json').exists())
             self.assertFalse((project / '.codex/agents').exists())
 

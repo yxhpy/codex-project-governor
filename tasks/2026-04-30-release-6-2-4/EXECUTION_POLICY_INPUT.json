@@ -1,0 +1,10 @@
+{
+  "execution_context": "release_publish",
+  "commands": [
+    "gh api repos/yxhpy/codex-project-governor/git/trees --method POST --input /tmp/cpg-release-6.2.4/GITHUB_TREE_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/commits --method POST --input /tmp/cpg-release-6.2.4/GITHUB_COMMIT_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/refs/heads/main --method PATCH --input /tmp/cpg-release-6.2.4/GITHUB_UPDATE_REF_PAYLOAD.json",
+    "gh api repos/yxhpy/codex-project-governor/git/refs --method POST --input /tmp/cpg-release-6.2.4/GITHUB_TAG_REF_PAYLOAD.json",
+    "gh release create v6.2.4 --target <release-commit-sha> --notes-file releases/6.2.4.md --title \"6.2.4 - Actual-Project Reliability Gates\""
+  ]
+}

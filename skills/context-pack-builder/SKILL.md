@@ -13,12 +13,12 @@ The user should not have to request context scouts manually.
 
 Run `subagent-activation` with workflow `context-pack-builder` unless the route is `micro_patch` with high confidence. For `micro_patch`, skip subagents and read only the explicit target file plus immediate local context.
 
-When subagents are selected, explicitly spawn the selected read-only scouts, wait for all of them, and consolidate their findings into `tasks/<date>-<slug>/CONTEXT_PACK.md`.
+When subagents are selected, check `subagent_authorization` first. If authorization is satisfied, explicitly spawn the selected read-only scouts, wait for all of them, and consolidate their findings into `tasks/<date>-<slug>/CONTEXT_PACK.md`. If authorization is missing, ask once for consent and continue with local context-index retrieval.
 
 ## Process
 
 1. Read task route and project conventions.
-2. If subagent mode is optional or required, run selected read-only scouts.
+2. If subagent mode is optional or required, run selected read-only scouts after authorization is satisfied.
 3. Search adjacent code, tests, docs, APIs, and components.
 4. Prefer context-index `must_read_sections` before whole documents.
 5. Mark files as `must_read`, `maybe_read`, or `avoid`.

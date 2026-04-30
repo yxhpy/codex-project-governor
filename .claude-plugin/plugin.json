@@ -1,7 +1,7 @@
 {
   "name": "codex-project-governor",
-  "version": "6.2.3",
-  "description": "Project Governor Harness v6.2.3 for Claude Code and Codex: slot-based governance artifact rendering, revision-checked generated artifact updates, context-index slot indexing for generated Markdown, diagnostics baseline cleanup, architecture-aware context indexing, governance skills, commands, subagents, hooks, MCP config, memory search, route guards, evidence gates, engineering standards, skill catalog consolidation, compact prompts, and DESIGN.md UI workflows.",
+  "version": "6.2.4",
+  "description": "Project Governor Harness v6.2.4 for Claude Code and Codex: subagent authorization awareness, slots-first governance artifact creation, execution-policy quality gates, slot-based governance artifact rendering, context-index slot indexing for generated Markdown, architecture-aware context indexing, governance skills, commands, subagents, hooks, MCP config, memory search, route guards, evidence gates, engineering standards, skill catalog consolidation, compact prompts, and DESIGN.md UI workflows.",
   "author": { "name": "yxhpy" },
   "homepage": "https://github.com/yxhpy/codex-project-governor",
   "repository": "https://github.com/yxhpy/codex-project-governor",

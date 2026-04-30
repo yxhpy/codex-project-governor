@@ -1,0 +1,46 @@
+{
+  "level": "standard",
+  "route": "standard_feature",
+  "change_budget": {
+    "max_files_changed": 45,
+    "max_new_files": 8,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": true
+  },
+  "actual": {
+    "files_changed": 42,
+    "new_files": 8,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 1
+  },
+  "checks": {
+    "targeted_subagent_tests": "pass",
+    "targeted_orchestrator_tests": "pass",
+    "artifact_renderer_tests": "pass",
+    "compileall": "pass",
+    "selftest": "pass",
+    "engineering_standards": "pass"
+  },
+  "commands": [
+    "python3 tests/test_subagent_activation.py",
+    "python3 tests/test_gpt55_auto_orchestration.py",
+    "python3 tests/test_governance_artifact_renderer.py",
+    "python3 -m compileall tools skills tests",
+    "python3 tests/selftest.py",
+    "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD --format text",
+    "python3 tests/test_harness_v6.py",
+    "python3 tests/test_claude_code_compat.py",
+    "git diff --check"
+  ],
+  "engineering_standards": {
+    "schema": "project-governor-engineering-standards-v1",
+    "status": "pass",
+    "summary": {
+      "files_scanned": 6,
+      "blocker_count": 0,
+      "warning_count": 0
+    }
+  }
+}

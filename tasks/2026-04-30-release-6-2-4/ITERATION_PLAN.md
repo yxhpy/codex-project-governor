@@ -1,0 +1,74 @@
+<!-- generated_from: iteration_plan_v1; source: ITERATION_PLAN.slots.json; revision: 1 -->
+# Release 6.2.4
+
+## User request
+
+Publish the completed subagent authorization, slots-first artifact creation, and execution-policy alignment work as a new Project Governor patch version.
+
+## Existing behavior
+
+- Current public metadata points at version 6.2.3.
+- The completed work adds host-runtime-aware subagent authorization, slots-first initial governance artifact creation, and execution-policy checks for user-selected command transports.
+- Release metadata is tracked in both plugin manifests, README files, release notes, feature matrix, tests, upgrade register, and Claude marketplace example metadata.
+
+## Existing patterns to reuse
+
+| Pattern | Source file | How it will be reused |
+| --- | --- | --- |
+| Reuse the 6.2.3 patch release pattern: manifests, release notes, feature matrix, upgrade register, README refs, tests, and quality evidence. |  |  |
+| Reuse slots-first task plan generation with tools/new_governance_artifact.py and tools/render_governance_artifact.py. |  |  |
+| Reuse the new execution policy by making release publishing use gh/GitHub API commands rather than plain git push. |  |  |
+
+## Files expected to change
+
+- Bump Codex and Claude plugin metadata from 6.2.3 to 6.2.4.
+- Add releases/6.2.4.md and update releases/FEATURE_MATRIX.json.
+- Update README, Chinese docs, marketplace example, tests, memory, and upgrade register version references.
+- Run upgrade-advisor, targeted tests, engineering standards, quality-gate, and execution-policy checks before publishing.
+
+## Files not to change
+
+- Package manifests or lockfiles
+- Historical release note bodies for older versions
+- Application code outside governance plugin surfaces
+
+## New files
+
+| File | Why existing files cannot cover it |
+| --- | --- |
+| releases/6.2.4.md |  |
+| tasks/2026-04-30-release-6-2-4/UPGRADE_ADVISORY_INPUT.json |  |
+| tasks/2026-04-30-release-6-2-4/QUALITY_GATE_INPUT.json |  |
+| tasks/2026-04-30-release-6-2-4/QUALITY_REPORT.md |  |
+
+## Dependencies
+
+No new dependencies expected unless explicitly approved.
+
+## Tests
+
+- python3 skills/upgrade-advisor/scripts/analyze_upgrade_candidates.py tasks/2026-04-30-release-6-2-4/UPGRADE_ADVISORY_INPUT.json
+- python3 tests/test_execution_policy.py
+- python3 tests/test_gpt55_auto_orchestration.py
+- python3 tests/test_plugin_upgrade_migrator.py
+- python3 tests/test_clean_reinstall_manager.py
+- python3 tests/test_governance_artifact_renderer.py
+- python3 tests/test_subagent_activation.py
+- python3 tests/test_harness_v6.py
+- python3 tests/test_claude_code_compat.py
+- python3 tests/selftest.py
+- python3 -m compileall tools skills tests claude
+- python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --scope diff --diff-base HEAD --format json
+- python3 skills/quality-gate/scripts/run_quality_gate.py tasks/2026-04-30-release-6-2-4/QUALITY_GATE_INPUT.json
+- python3 skills/quality-gate/scripts/check_execution_policy.py tasks/2026-04-30-release-6-2-4/EXECUTION_POLICY_INPUT.json
+- git diff --check
+
+## Risks
+
+- Version strings across Codex, Claude, README, feature matrix, release notes, and tests can drift.
+- Already initialized projects may miss new runtime execution policy unless upgrade planner and clean runtime refresh expose it.
+- Publishing must respect the new gh/API release transport policy and avoid plain git push.
+
+## Rollback
+
+Revert the task-specific changes.

@@ -87,6 +87,7 @@ REQUIRED_TEMPLATE_PATHS = [
     ".codex/hooks/design_md_codex_hook.py",
     ".codex/hooks.json",
     ".project-governor/INSTALL_MANIFEST.json",
+    ".project-governor/runtime/EXECUTION_POLICY.json",
     ".project-governor/runtime/GPT55_RUNTIME_MODE.json",
     ".project-governor/evidence/_template/EVIDENCE.json",
     ".project-governor/evidence/_template/ACCEPTANCE_MAP.md",
