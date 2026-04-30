@@ -1,0 +1,39 @@
+{
+  "project_requirements": [
+    "Publish the completed Fast Path v2 routing and artifact-policy work as a Project Governor patch release.",
+    "Keep Codex and Claude Code plugin metadata, release notes, feature matrix, migration metadata, tests, and install instructions in sync.",
+    "Preserve dependency-free deterministic helper scripts and avoid package or lockfile changes.",
+    "Release publishing must use gh/GitHub API transport, not plain git push."
+  ],
+  "dependencies": [
+    {
+      "name": "Project Governor plugin",
+      "type": "governance-plugin",
+      "current": "6.2.4",
+      "latest": "6.2.5",
+      "candidate": "6.2.5",
+      "safe_target": "6.2.5",
+      "available_versions": ["6.2.4", "6.2.5"],
+      "usage": "Codex and Claude Code governance plugin metadata, runtime planning, task routing, deterministic helper scripts, tests, docs, release metadata, and copied governance templates.",
+      "required": true,
+      "wanted_by": ["publish new version"],
+      "requirement_matches": [
+        "tiny_patch routing for low-risk local fixes",
+        "artifact_policy output for file-backed versus inline evidence decisions",
+        "micro_patch and tiny_patch fast paths that skip unnecessary planning/document artifacts",
+        "template quality policies that preserve gates for non-trivial work"
+      ],
+      "security": false,
+      "eol": false,
+      "breaking": false,
+      "risk": "low",
+      "notes": "Patch release for workflow speed and token-efficiency improvements. It adds no dependencies, package manifests, lockfiles, runtime services, or deterministic helper schema removals.",
+      "constraints": [
+        "No new dependencies.",
+        "No package manifest or lockfile changes.",
+        "Template policy changes must be surfaced through migration metadata and tests.",
+        "Additive CLI JSON output shape changes must be documented and tested."
+      ]
+    }
+  ]
+}

@@ -1,6 +1,13 @@
 # Quality-Gated Acceleration Policy
 
-Use the acceleration pipeline when speed matters but quality gates still apply:
+Use the acceleration pipeline when speed matters but quality gates still apply.
+
+Fast routes reduce governance artifacts, not safety checks:
+
+- `micro_patch`: direct edit, route guard, and light quality gate only. Do not create task plans, test plans, pattern reuse plans, evidence manifests, context packs, or subagent audits unless route guard fails and the work is rerouted.
+- `tiny_patch`: direct edit, route guard, diff-scoped engineering standards, light quality gate, merge-readiness, and inline final-response evidence. Do not create task plans, test plans, pattern reuse plans, evidence manifests, context packs, or subagent audits unless the route escalates.
+
+Use the standard acceleration pipeline for non-fast routes:
 
 1. `task-router`
 2. `subagent-activation` when the routed workflow is non-trivial
@@ -15,4 +22,4 @@ Use the acceleration pipeline when speed matters but quality gates still apply:
 11. `merge-readiness`
 12. `coding-velocity-report`
 
-Do not use multiple write agents on overlapping production code. Do not skip route guards or quality gates for speed.
+Do not use multiple write agents on overlapping production code. Do not skip route guards or quality gates for speed. If a fast route exceeds its artifact policy or change budget, stop and reroute instead of creating heavy artifacts under the original route.

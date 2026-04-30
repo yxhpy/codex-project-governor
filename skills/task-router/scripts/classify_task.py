@@ -14,11 +14,13 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from task_router_config import (
     BUG_TERMS,
+    BROAD_TARGET_RE,
     CLEAN_TERMS,
     DOC_TARGET_RE,
     DOCS_ONLY_BLOCKING_SIGNALS,
     DOCS_TERMS,
     GLOBAL_SHARED_TERMS,
+    LOCAL_TARGET_HINT_RE,
     MICRO_TERMS,
     NEGATIVE_PATTERNS,
     PRODUCTION_CHANGE_RE,
@@ -31,6 +33,7 @@ from task_router_config import (
     UPGRADE_TERMS,
 )
 from task_router_policy import (
+    artifact_policy,
     escalations_for,
     evidence_required_for,
     route_budget,
@@ -103,6 +106,8 @@ def has_explicit_target(text: str, hints: dict[str, Any]) -> bool:
     if re.search(r"[\w./-]+\.(tsx|ts|jsx|js|py|css|scss|md|vue|svelte|html|go|rs|json|yaml|yml|toml)", text, flags=re.IGNORECASE):
         return True
     if DOC_TARGET_RE.search(text):
+        return True
+    if LOCAL_TARGET_HINT_RE.search(text) and not BROAD_TARGET_RE.search(text):
         return True
     return bool(re.search(r"(只改|only change|only modify|specified page|指定页面|目标文件|这个文件|this file)", text, flags=re.IGNORECASE))
 
@@ -267,6 +272,24 @@ def micro_patch_route(ctx: dict[str, Any]) -> RouteChoice | None:
     return None
 
 
+def tiny_patch_route(ctx: dict[str, Any]) -> RouteChoice | None:
+    shape = ctx["task_shape"]
+    fast_signals = {"bug_signal", "ui_signal", "docs_signal", "test_signal"}
+    blocked_signals = {"risk_domain", "refactor_signal", "upgrade_signal", "research_signal", "clean_signal"}
+    if (
+        ctx["risk_score"] < 0.35
+        and not (set(ctx["signals"]) & blocked_signals)
+        and not PRODUCTION_CHANGE_RE.search(ctx["text"])
+        and (shape["micro_intent"] or bool(set(ctx["signals"]) & fast_signals))
+        and not shape["shared_or_global"]
+        and shape["expected_modified_files"] <= 3
+        and shape["expected_added_files"] <= 1
+        and ctx["confidence"] >= 0.70
+    ):
+        return "tiny_patch", "fast_lane", "light", "tiny_patch"
+    return None
+
+
 def refactor_route(ctx: dict[str, Any]) -> RouteChoice | None:
     return ("refactor", "refactor_lane", "strict", "refactor") if "refactor_signal" in ctx["signals"] else None
 
@@ -289,6 +312,7 @@ ROUTE_SELECTORS = (
     docs_route,
     test_route,
     micro_patch_route,
+    tiny_patch_route,
     refactor_route,
     risky_route,
     ui_route,
@@ -310,6 +334,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
     required, skipped = workflow(route)
     guard = route_guard_requirements(route, budget, ctx["negative_constraints"])
     evidence_required = evidence_required_for(route, quality)
+    artifacts = artifact_policy(route, quality)
     escalations = escalations_for(evidence_required, quality)
     task_shape = dict(ctx["task_shape"])
     task_shape["docs_only"] = route == "docs_only"
@@ -336,6 +361,7 @@ def classify(data: dict[str, Any]) -> dict[str, Any]:
         "change_budget": budget,
         "route_doc_pack": route_doc_pack(route, quality),
         "route_guard_requirements": guard,
+        "artifact_policy": artifacts,
         "evidence_required": evidence_required,
         "escalate_if": escalations,
         "escalation_triggers": escalations,

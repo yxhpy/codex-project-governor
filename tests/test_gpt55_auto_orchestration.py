@@ -24,6 +24,8 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertEqual(data['subagent_authorization']['status'], 'not_required')
         self.assertFalse(data['context_budget']['read_all_initialization_docs'])
         self.assertIn('route-guard', data['skill_sequence'])
+        self.assertEqual(data['artifact_policy']['mode'], 'none')
+        self.assertNotIn('evidence-manifest', data['skill_sequence'])
 
     def test_docs_typo_uses_light_path_without_subagents(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), '--request', 'fix a typo in README'])
@@ -36,6 +38,22 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
         self.assertEqual(data['skill_sequence'], ['direct-edit', 'quality-gate', 'merge-readiness'])
         self.assertFalse(data['evidence_required'])
         self.assertFalse(data['state_policy']['session_start'])
+
+    def test_tiny_patch_uses_fast_runtime_without_file_artifacts(self):
+        data = self.run_json([
+            PY,
+            str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'),
+            '--request',
+            'fix broken dashboard widget rendering in dashboard page',
+        ])
+        self.assertEqual(data['route'], 'tiny_patch')
+        self.assertEqual(data['quality_gate'], 'light')
+        self.assertEqual(data['subagent_mode'], 'none')
+        self.assertEqual(data['artifact_policy']['mode'], 'inline')
+        self.assertFalse(data['state_policy']['session_start'])
+        self.assertFalse(data['memory_policy']['startup_memory_search_required'])
+        self.assertIn('engineering-standards-governor', data['skill_sequence'])
+        self.assertNotIn('context-pack-builder', data['skill_sequence'])
 
     def test_standard_feature_uses_context_index_and_subagents(self):
         data = self.run_json([PY, str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'), str(ROOT / 'examples/gpt55-runtime-standard-feature.json')])
@@ -75,7 +93,7 @@ class GPT55AutoOrchestrationTest(unittest.TestCase):
             PY,
             str(ROOT / 'skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py'),
             '--request',
-            'Prepare and publish release v6.2.4 using gh, not plain git push',
+            'Prepare and publish release v6.2.5 using gh, not plain git push',
         ])
         self.assertEqual(data['execution_policy']['context'], 'release_publish')
         self.assertTrue(data['execution_policy']['required'])

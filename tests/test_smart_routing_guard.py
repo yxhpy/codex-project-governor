@@ -25,6 +25,8 @@ class SmartRoutingGuardTest(unittest.TestCase):
         self.assertIn("do_not_change_schema", data["negative_constraints"])
         self.assertEqual(data["route_guard_requirements"]["max_modified_files"], 1)
         self.assertEqual(data["route_guard_requirements"]["max_added_files"], 0)
+        self.assertEqual(data["artifact_policy"]["mode"], "none")
+        self.assertFalse(data["artifact_policy"]["task_plan_required"])
         self.assertIn("subagent-audit", data["skipped_workflow"])
 
     def test_shared_component_escalates(self) -> None:
@@ -43,11 +45,28 @@ class SmartRoutingGuardTest(unittest.TestCase):
         self.assertIn("quality-gate", data["required_workflow"])
         self.assertNotIn("context-pack-builder", data["required_workflow"])
 
-    def test_ui_copy_does_not_route_as_docs_only(self) -> None:
+    def test_ui_copy_routes_to_micro_patch_without_task_artifacts(self) -> None:
         data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "fix a typo on the dashboard button copy"])
+        self.assertEqual(data["route"], "micro_patch")
+        self.assertEqual(data["quality_level"], "light")
+        self.assertFalse(data["evidence_required"])
+        self.assertEqual(data["artifact_policy"]["mode"], "none")
+        self.assertNotIn("context-pack-builder", data["required_workflow"])
+
+    def test_tiny_patch_uses_inline_artifacts_and_diff_scoped_standards(self) -> None:
+        data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "fix broken dashboard widget rendering in dashboard page"])
+        self.assertEqual(data["route"], "tiny_patch")
+        self.assertEqual(data["quality_level"], "light")
+        self.assertEqual(data["subagent_mode"], "none")
+        self.assertEqual(data["artifact_policy"]["mode"], "inline")
+        self.assertFalse(data["artifact_policy"]["task_plan_required"])
+        self.assertIn("engineering-standards-governor", data["required_workflow"])
+        self.assertNotIn("context-pack-builder", data["required_workflow"])
+
+    def test_new_widget_does_not_route_to_tiny_patch(self) -> None:
+        data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "examples/task-router-input.json"])
         self.assertEqual(data["route"], "ui_change")
-        self.assertEqual(data["quality_level"], "standard")
-        self.assertTrue(data["evidence_required"])
+        self.assertEqual(data["artifact_policy"]["mode"], "files")
 
     def test_feature_with_tests_does_not_route_as_test_only(self) -> None:
         data = self.run_json([PY, "skills/task-router/scripts/classify_task.py", "--request", "Add an export helper that reuses the existing parser utilities and updates tests."])

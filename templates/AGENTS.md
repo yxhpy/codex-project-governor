@@ -26,6 +26,7 @@ Before implementation:
 - identify reusable patterns
 - create or update `tasks/<date>-<slug>/ITERATION_PLAN.slots.json`, then render `ITERATION_PLAN.md` with deterministic artifact scripts
 - treat generated Markdown as output, not the model-authored source; when plans change, patch the slots and re-render Markdown instead of rewriting fixed template text
+- skip task artifact creation only when `task-router` returns an artifact policy of `mode: none` or `mode: inline` for `micro_patch`, `tiny_patch`, or another explicitly fast route
 - avoid new files unless justified in the iteration plan
 - avoid new dependencies unless approved in a decision record
 - preserve API, UI, data, and architecture conventions
@@ -53,29 +54,29 @@ Before upgrading dependencies, frameworks, tools, SDKs, runtimes, or Project Gov
 
 ## Quality-gated acceleration
 
-For coding work where speed matters, use the acceleration pipeline instead of ad hoc implementation:
+For coding work where speed matters, use the acceleration pipeline instead of ad hoc implementation. Fast routes reduce governance artifacts, not safety checks.
 
-1. `task-router` to choose route, lane, quality level, change budget, and route guard requirements.
+1. `task-router` to choose route, lane, quality level, change budget, route guard requirements, and artifact policy.
 2. `context-pack-builder` to produce a minimal task context pack.
 3. `pattern-reuse-engine` to define mandatory reuse and forbidden duplicates.
 4. `test-first-synthesizer` for behavior and regression coverage.
 5. `parallel-feature-builder` with read-only subagents first, then one bounded implementation writer.
-6. `route-guard` after fast-lane implementation, especially for `micro_patch`.
+6. `route-guard` after fast-lane implementation, especially for `micro_patch` and `tiny_patch`.
 7. `quality-gate` before final response.
 8. `repair-loop` only for bounded repairs when the gate fails.
 9. `merge-readiness` before PR or merge.
 
-Use `micro_patch` only for explicit local style/copy changes. If actual diff exceeds route guard, stop and reroute. Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
+Use `micro_patch` for explicit local style/copy/docs changes that fit one modified file and zero added files. Use `tiny_patch` for low-risk local bug, UI, docs, or test edits that fit three modified files and one added file. These routes do not require task plans, test plans, pattern reuse plans, context packs, subagent audits, or evidence manifests unless they reroute. If actual diff exceeds route guard, stop and reroute. Do not use multiple write agents on overlapping production code. Do not skip quality gates for speed.
 
 ## Engineering standards
 
 For coding work that changes production or test code:
 
-- run `engineering-standards-governor` before final `quality-gate`
+- run `engineering-standards-governor` before final `quality-gate`, except for `micro_patch`; `tiny_patch` uses diff-scoped engineering standards
 - keep source files and functions within documented project thresholds unless an ADR/PDR approves a temporary exception
 - scan for mock leakage so production code does not import mocks, fixtures, test data, or test-only libraries
-- require `TEST_PLAN.md` to cover normal, boundary, error, regression, integration/contract, frontend interaction, and explicit not-tested rationale rows when relevant
-- require a `PATTERN_REUSE_PLAN.md` before creating new components, services, hooks, schemas, fixtures, or helpers
+- require `TEST_PLAN.md` to cover normal, boundary, error, regression, integration/contract, frontend interaction, and explicit not-tested rationale rows when relevant, except when the route artifact policy explicitly allows inline evidence
+- require a `PATTERN_REUSE_PLAN.md` before creating new components, services, hooks, schemas, fixtures, or helpers; fast routes must reroute before creating these patterns
 
 Do not leave partial mock implementations in production paths. If a mock is used for an external dependency, record the real contract and the integration, contract, or smoke test that protects it.
 
@@ -102,7 +103,7 @@ When a task is non-trivial, the main coding agent must automatically:
 5. Use `gpt-5.4` with medium/high reasoning for implementation, risk review, architecture review, security-sensitive work, and final quality review.
 6. Explicitly spawn the selected subagents, wait for all read-only subagents, consolidate their findings, and only then write code.
 
-Do not spawn subagents for `micro_patch` unless route-guard fails, confidence is low, or the target unexpectedly touches a shared/global component.
+Do not spawn subagents for `micro_patch` or high-confidence `tiny_patch` unless route-guard fails, confidence is low, or the target unexpectedly touches a shared/global component.
 
 ## Context navigation policy
 

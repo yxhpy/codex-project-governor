@@ -5,8 +5,8 @@
 ## 基本原则
 
 - 先读项目规则，再改代码。
-- 先做迭代计划，再实现非平凡改动。
-- 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`，但必须用 `route-guard` 验证实际 diff 没有越界。
+- 先做迭代计划，再实现非平凡改动；`micro_patch` / `tiny_patch` 这类快路径按 `artifact_policy` 允许不创建计划文件。
+- 先做任务路由；如果是明确的局部小改，可以走 `micro_patch`；如果是低风险局部 bug/UI/docs/test 小改，可以走 `tiny_patch`；两者都必须用 `route-guard` 验证实际 diff 没有越界。
 - 面向 GPT-5.5 的实现、研究、升级或清理请求，可以先用 `gpt55-auto-orchestrator` 自动选择工作流、模型、上下文预算、subagent 和质量门。
 - 已初始化项目优先用 `context-indexer` 查询任务相关章节，先读 `DOCS_MANIFEST.json`、`SESSION_BRIEF.md` 和 `recommended_sections`，避免每个会话都读取所有初始化文档。
 - 需要查“为什么当时这样做”或历史决策时，用 `context-indexer --memory-search` 查治理记忆、决策、任务和状态文件，不要拼复杂 shell，也不要默认翻原始聊天记录。
@@ -160,7 +160,7 @@ python3 skills/memory-compact/scripts/record_session_learning.py --project . --i
 
 ## 5. 使用 Harness v6.2.0、GPT-5.5 自动编排和上下文索引
 
-v6.2.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
+v6.2.0 起，Project Governor 作为 Harness 工作：`task-router` 是 route、risk、confidence、guardrail、route doc pack、artifact policy 和 evidence requirement 的唯一真源；`gpt55-auto-orchestrator` 在这个结果上做运行时规划；`context-indexer` 会生成 `DOCS_MANIFEST.json` 并返回章节级 line range；UI 工作额外经过 DESIGN.md gate，历史问题、失败命令和过期记忆候选可通过 `context-indexer --memory-search` 查询；插件升级会暴露 `AGENTS.md` 规则模板漂移；本地 marketplace 安装可用 Git helper 更新插件 checkout。它不会为微补丁强制使用重模型，也不会跳过 `route-guard`、session learning 和质量门。
 
 ```text
 Use @project-governor gpt55-auto-orchestrator.

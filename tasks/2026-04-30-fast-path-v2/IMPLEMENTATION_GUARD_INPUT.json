@@ -1,0 +1,29 @@
+{
+  "rewrite_pct_by_file": {
+    "skills/task-router/scripts/classify_task.py": 0.12,
+    "skills/task-router/scripts/task_router_policy.py": 0.15,
+    "skills/gpt55-auto-orchestrator/scripts/select_runtime_plan.py": 0.05,
+    "templates/AGENTS.md": 0.08
+  },
+  "dependency_changes": [],
+  "new_files": [
+    "tasks/2026-04-30-fast-path-v2/ITERATION_PLAN.slots.json",
+    "tasks/2026-04-30-fast-path-v2/ITERATION_PLAN.md",
+    "tasks/2026-04-30-fast-path-v2/IMPLEMENTATION_GUARD_INPUT.json",
+    "tasks/2026-04-30-fast-path-v2/STYLE_DRIFT_INPUT.json",
+    "tasks/2026-04-30-fast-path-v2/QUALITY_GATE_INPUT.json"
+  ],
+  "justified_new_files": [
+    "tasks/2026-04-30-fast-path-v2/ITERATION_PLAN.slots.json",
+    "tasks/2026-04-30-fast-path-v2/ITERATION_PLAN.md",
+    "tasks/2026-04-30-fast-path-v2/IMPLEMENTATION_GUARD_INPUT.json",
+    "tasks/2026-04-30-fast-path-v2/STYLE_DRIFT_INPUT.json",
+    "tasks/2026-04-30-fast-path-v2/QUALITY_GATE_INPUT.json"
+  ],
+  "public_contract_changes": [
+    "task-router and gpt55 runtime plan add optional artifact_policy output"
+  ],
+  "approved_contract_changes": [
+    "task-router and gpt55 runtime plan add optional artifact_policy output"
+  ]
+}

@@ -43,11 +43,19 @@ DOC_TARGET_RE = re.compile(r"\b(readme|changelog|license|contributing|agents\.md
 DOCS_ONLY_BLOCKING_SIGNALS = {"risk_domain", "refactor_signal", "upgrade_signal", "research_signal", "clean_signal", "ui_signal", "test_signal"}
 PRODUCTION_CHANGE_RE = re.compile(
     r"\b(add|create|implement|build|change|update)\s+(?:an?\s+|the\s+)?"
-    r"(?!tests?\b)(helper|utility|service|component|endpoint|feature|parser|export|api|hook|schema|workflow|command|script)\b",
+    r"(?!tests?\b)(helper|utility|service|component|widget|endpoint|feature|parser|export|api|hook|schema|workflow|command|script)\b",
     re.IGNORECASE,
 )
+LOCAL_TARGET_HINT_RE = re.compile(
+    r"\b(?:in|on|for|inside|under)\s+(?:the\s+)?[\w./ -]{1,80}?"
+    r"(?:page|screen|component|button|modal|card|form|label|copy|text|title|heading|view|widget)\b"
+    r"|(?:页面|按钮|标题|文案|标签|组件|弹窗|卡片|表单|视图)",
+    re.IGNORECASE,
+)
+BROAD_TARGET_RE = re.compile(r"\b(all|every|global|shared|common|entire|whole)\b|所有|全部|全局|共享|通用", re.IGNORECASE)
 DOC_PACKS = {
     "micro_patch": {"primary_roles": ["agent_instructions"], "max_initial_docs": 1, "max_sections": 3, "max_total_chars_first": 12_000, "memory_search": False},
+    "tiny_patch": {"primary_roles": ["agent_instructions", "code", "test"], "max_initial_docs": 2, "max_sections": 5, "max_total_chars_first": 30_000, "memory_search": False},
     "docs_only": {"primary_roles": ["doc", "agent_instructions", "governance_history"], "max_initial_docs": 3, "max_sections": 8, "max_total_chars_first": 40_000, "memory_search": False},
     "test_only": {"primary_roles": ["test", "code", "conventions"], "max_initial_docs": 2, "max_sections": 8, "max_total_chars_first": 50_000, "memory_search": True},
     "standard_feature": {"primary_roles": ["agent_instructions", "conventions", "test", "code", "quality"], "max_initial_docs": 4, "max_sections": 10, "max_total_chars_first": 80_000, "memory_search": True},

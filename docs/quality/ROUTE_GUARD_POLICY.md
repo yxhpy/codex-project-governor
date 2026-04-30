@@ -19,6 +19,21 @@ Default `micro_patch` budget:
 - shared component changes: not allowed
 - new components/hooks/services/schemas: not allowed
 
+## Tiny Patch Requirements
+
+Default `tiny_patch` budget:
+
+- max modified files: 3
+- max added files: 1
+- dependencies: not allowed
+- API changes: not allowed
+- schema changes: not allowed
+- global style/token changes: not allowed
+- shared component changes: not allowed
+- new components/hooks/services/schemas/widgets/features: not allowed
+
+`tiny_patch` is for local bug, UI, docs, or test edits where the target area is clear enough but the patch may be slightly larger than a one-file micro patch.
+
 ## Negative Constraints
 
 User constraints such as "do not change API" or "不要新增文件" must be converted into hard route guard requirements.

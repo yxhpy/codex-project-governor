@@ -1,5 +1,5 @@
 {
-  "current_latest": "6.2.4",
+  "current_latest": "6.2.5",
   "versions": [
     {
       "version": "0.4.1",
@@ -567,6 +567,34 @@
           "user_value": "Release sessions keep using the selected GitHub CLI/API publishing path across new sessions.",
           "requires_project_migration": true,
           "migration_id": "required_project_runtime_templates"
+        }
+      ]
+    },
+    {
+      "version": "6.2.5",
+      "title": "Fast Path v2",
+      "features": [
+        {
+          "id": "tiny_patch_route",
+          "name": "tiny_patch route",
+          "summary": "Classifies low-risk local fixes that are bigger than a micro patch but still do not need full planning, context packs, subagents, or evidence manifests.",
+          "user_value": "Small local bug fixes move faster without losing route guard and quality checks.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "artifact_policy_output",
+          "name": "Artifact policy output",
+          "summary": "Adds an explicit artifact_policy object to task-router and GPT runtime planning outputs.",
+          "user_value": "Agents know whether a task needs no artifacts, inline evidence, or full file-backed governance before spending tokens.",
+          "requires_project_migration": false
+        },
+        {
+          "id": "fast_path_artifact_policy_templates",
+          "name": "Fast Path v2 template policy",
+          "summary": "Updates AGENTS and quality policy templates to allow no-artifact and inline-evidence paths for low-risk routes while preserving stronger gates for non-trivial work.",
+          "user_value": "Initialized projects can reduce plan/document churn for small tasks without lowering quality for larger changes.",
+          "requires_project_migration": true,
+          "migration_id": "migration_6_2_5_fast_path_v2"
         }
       ]
     }

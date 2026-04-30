@@ -344,6 +344,42 @@
           "reason": "Surface cross-agent Project Governor wording so Claude Code can import AGENTS.md through CLAUDE.md without duplicating rules."
         }
       ]
+    },
+    {
+      "id": "migration_6_2_5_fast_path_v2",
+      "from": "6.2.4",
+      "to": "6.2.5",
+      "title": "Fast Path v2 artifact policy templates",
+      "operations": [
+        {
+          "op": "merge_markdown_section",
+          "path": "AGENTS.md",
+          "source": "templates/AGENTS.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Surface no-artifact and inline-evidence policy for low-risk routes without overwriting project-specific rules."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/ACCELERATION_POLICY.md",
+          "source": "templates/docs/quality/ACCELERATION_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Document Fast Path v2 routing and artifact policy for initialized projects."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/QUALITY_GATE_POLICY.md",
+          "source": "templates/docs/quality/QUALITY_GATE_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Document that low-risk artifact reduction still keeps the relevant quality gate checks."
+        },
+        {
+          "op": "merge_markdown_section",
+          "path": "docs/quality/ROUTE_GUARD_POLICY.md",
+          "source": "templates/docs/quality/ROUTE_GUARD_POLICY.md",
+          "upgrade_policy": "three_way_merge",
+          "reason": "Document tiny_patch and artifact-policy route guard expectations."
+        }
+      ]
     }
   ]
 }

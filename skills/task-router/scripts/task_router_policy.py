@@ -7,7 +7,7 @@ from task_router_config import DOC_PACKS
 
 STRICT_SUBAGENT_ROUTES = {"standard_feature", "risky_feature", "refactor", "dependency_upgrade", "upgrade_or_migration", "research"}
 CONDITIONAL_SUBAGENT_ROUTES = STRICT_SUBAGENT_ROUTES | {"ui_change", "bugfix"}
-NO_SUBAGENT_IF_CONFIDENT = {"docs_only", "test_only", "clean_reinstall_or_refresh"}
+NO_SUBAGENT_IF_CONFIDENT = {"tiny_patch", "docs_only", "test_only", "clean_reinstall_or_refresh"}
 NEGATIVE_GUARD_OVERRIDES = {
     "do_not_change_api": {"allow_api_changes": False},
     "do_not_change_schema": {"allow_schema_changes": False},
@@ -23,6 +23,19 @@ def route_budget(route: str, lane: str) -> dict[str, Any]:
         return {
             "max_files_changed": 1,
             "max_new_files": 0,
+            "allow_dependencies": False,
+            "allow_public_contract_changes": False,
+            "allow_schema_changes": False,
+            "allow_refactor": False,
+            "allow_global_style_changes": False,
+            "allow_shared_component_changes": False,
+            "allow_new_components": False,
+            "requires_adr_or_pdr": False,
+        }
+    if route == "tiny_patch":
+        return {
+            "max_files_changed": 3,
+            "max_new_files": 1,
             "allow_dependencies": False,
             "allow_public_contract_changes": False,
             "allow_schema_changes": False,
@@ -114,8 +127,12 @@ def route_doc_pack(route: str, quality: str) -> dict[str, Any]:
 
 WORKFLOWS: dict[str, tuple[list[str], list[str]]] = {
     "micro_patch": (
-        ["direct-edit", "route-guard", "quality-gate", "evidence-manifest-lite"],
-        ["context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "test-first-synthesizer", "subagent-activation", "subagent-audit"],
+        ["direct-edit", "route-guard", "quality-gate"],
+        ["session-lifecycle", "context-indexer", "context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "test-first-synthesizer", "subagent-activation", "subagent-audit", "evidence-manifest", "merge-readiness"],
+    ),
+    "tiny_patch": (
+        ["direct-edit", "route-guard", "engineering-standards-governor", "quality-gate", "merge-readiness"],
+        ["session-lifecycle", "context-pack-builder", "pattern-reuse-engine", "parallel-feature-builder", "test-first-synthesizer", "subagent-activation", "subagent-audit", "evidence-manifest"],
     ),
     "clean_reinstall_or_refresh": (["clean-reinstall-manager", "context-indexer", "harness-doctor", "quality-gate"], ["parallel-feature-builder"]),
     "research": (["session-lifecycle", "research-radar", "context-indexer", "version-researcher", "evidence-manifest"], []),
@@ -159,7 +176,36 @@ def subagent_mode(route: str, quality: str, confidence: float, shared_or_global:
 
 
 def evidence_required_for(route: str, quality: str) -> bool:
-    return route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"} or quality == "strict"
+    return route not in {"micro_patch", "tiny_patch", "docs_only", "clean_reinstall_or_refresh"} or quality == "strict"
+
+
+def artifact_policy(route: str, quality: str) -> dict[str, Any]:
+    if route == "micro_patch":
+        return {
+            "mode": "none",
+            "task_plan_required": False,
+            "test_plan_required": False,
+            "pattern_reuse_plan_required": False,
+            "evidence_manifest_required": quality == "strict",
+            "final_response_evidence": "brief",
+        }
+    if route in {"tiny_patch", "docs_only", "test_only"}:
+        return {
+            "mode": "inline",
+            "task_plan_required": False,
+            "test_plan_required": False,
+            "pattern_reuse_plan_required": False,
+            "evidence_manifest_required": quality == "strict",
+            "final_response_evidence": "commands_and_diff_summary",
+        }
+    return {
+        "mode": "files",
+        "task_plan_required": True,
+        "test_plan_required": route not in {"docs_only"},
+        "pattern_reuse_plan_required": route in {"standard_feature", "risky_feature", "refactor", "ui_change", "test_only"},
+        "evidence_manifest_required": True,
+        "final_response_evidence": "artifact_paths_and_commands",
+    }
 
 
 def escalations_for(evidence_required: bool, quality: str) -> list[str]:

@@ -105,7 +105,7 @@ def normalized_route(route: str) -> str:
 def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]) -> dict[str, Any]:
     primary = "gpt-5.5" if "gpt-5.5" in available else "gpt-5.4"
     scout = "gpt-5.4-mini" if "gpt-5.4-mini" in available else primary
-    if route in {"micro_patch", "docs_only"}:
+    if route in {"micro_patch", "tiny_patch", "docs_only"}:
         main = scout if prefer_speed else primary
         return {
             "main_model": main,
@@ -140,6 +140,8 @@ def choose_models(route: str, gate: str, prefer_speed: bool, available: set[str]
 def choose_context_budget(route: str, gate: str, confidence: float) -> dict[str, Any]:
     if route == "micro_patch":
         return {"max_files": 3, "max_docs": 1, "max_sections": 3, "max_total_chars": 20_000, "read_all_initialization_docs": False}
+    if route == "tiny_patch":
+        return {"max_files": 6, "max_docs": 2, "max_sections": 5, "max_total_chars": 40_000, "read_all_initialization_docs": False}
     if route in {"research", "upgrade_or_migration"}:
         return {"max_files": 36, "max_docs": 12, "max_sections": 18, "max_total_chars": 220_000, "read_all_initialization_docs": False}
     if gate == "strict":
@@ -181,7 +183,7 @@ def insert_before(seq: list[str], item: str, before: str) -> None:
 
 
 def session_required(route: str) -> bool:
-    return route not in {"micro_patch", "docs_only", "clean_reinstall_or_refresh"}
+    return route not in {"micro_patch", "tiny_patch", "docs_only", "clean_reinstall_or_refresh"}
 
 
 def skill_sequence_from(classification: dict[str, Any], route: str) -> list[str]:
@@ -199,7 +201,7 @@ def skill_sequence_from(classification: dict[str, Any], route: str) -> list[str]
 
 def skipped_skills(classification: dict[str, Any], route: str) -> list[str]:
     skipped = list(classification.get("skipped_workflow") or [])
-    if route == "micro_patch":
+    if route in {"micro_patch", "tiny_patch"}:
         skipped.extend(["session-lifecycle", "evidence-manifest", "harness-doctor"])
     return sorted(set(skipped))
 
@@ -247,13 +249,13 @@ def context_retrieval_policy(route: str, route_doc_pack: dict[str, Any]) -> dict
             "include_only_when_requested": True,
         },
         "compression": route_doc_pack.get("compression", default_compression) if isinstance(route_doc_pack, dict) else {},
-        "startup_memory_search": route not in {"micro_patch", "docs_only"},
+        "startup_memory_search": route not in {"micro_patch", "tiny_patch", "docs_only"},
         "read_all_initialization_docs": False,
     }
 
 
 def state_policy(route: str) -> dict[str, Any]:
-    session_required = route not in {"micro_patch", "docs_only"}
+    session_required = route not in {"micro_patch", "tiny_patch", "docs_only"}
     return {
         "state_dir": ".project-governor/state",
         "session_start": session_required,
@@ -266,7 +268,7 @@ def state_policy(route: str) -> dict[str, Any]:
 
 
 def memory_policy(route: str) -> dict[str, Any]:
-    memory_required = route not in {"micro_patch", "docs_only"}
+    memory_required = route not in {"micro_patch", "tiny_patch", "docs_only"}
     return {
         "startup_memory_search_required": memory_required,
         "startup_memory_search_command": "python3 skills/context-indexer/scripts/query_context_index.py --project . --request <task-request> --memory-search --auto-build --format text",
@@ -345,7 +347,7 @@ def quality_rules(route: str, evidence_required: bool, execution_policy_required
         "record_failed_commands_before_final": True,
         "classify_stale_memory_before_final": True,
         "require_evidence_manifest": evidence_required,
-        "standard_feature_requires_test_first": True,
+        "standard_feature_requires_test_first": route == "standard_feature",
         "enforce_context_budget_gate": True,
         "prefer_section_ranges_before_full_docs": True,
     }
@@ -379,6 +381,7 @@ def plan(payload: dict[str, Any]) -> dict[str, Any]:
         "risk_score": classification.get("risk_score", 0.0),
         "intent": classification.get("intent", "unknown"),
         "evidence_required": evidence_required,
+        "artifact_policy": classification.get("artifact_policy", {}),
         "reasons": classification.get("reasons", []),
         "classification": classification,
         "model_plan": model_plan,

@@ -44,11 +44,17 @@ Use `micro_patch` only when all are true:
 - the target is not a shared/global component unless the user explicitly intends global impact
 - no new component, hook, service, schema, or style system is required
 
-`micro_patch` skips context packs, pattern reuse, feature-builder, test-first synthesis, and subagent audit. It still requires direct edit, route guard, and a light quality gate.
+`micro_patch` skips task artifact creation, context packs, pattern reuse, feature-builder, test-first synthesis, subagent audit, evidence manifests, and merge readiness. It still requires direct edit, route guard, and a light quality gate.
+
+## Tiny Patch Route
+
+Use `tiny_patch` for low-risk local bug, UI, docs, or test changes when the target area is clear enough but the patch may touch up to three files or add one local test file. Do not use it for new components/widgets/features, dependencies, public contracts, schema/data changes, shared/global components, refactors, migrations, auth, payment, security, or low-confidence work.
+
+`tiny_patch` skips task artifact creation, context packs, pattern reuse, feature-builder, test-first synthesis, subagent audit, and evidence manifests. It still requires direct edit, route guard, diff-scoped engineering standards, a light quality gate, and inline final-response evidence.
 
 ## Subagent Mode
 
-- `none`: `micro_patch` with high confidence. Do not spawn subagents unless route-guard fails.
+- `none`: `micro_patch` or high-confidence `tiny_patch`. Do not spawn subagents unless route-guard fails.
 - `optional`: small UI, bugfix, test-only, or docs-only work where confidence is lower or target impact is uncertain.
 - `required`: standard features, risky features, refactors, migrations, dependency upgrades, PR governance, initialization, and broad research.
 
@@ -58,8 +64,8 @@ Phrases such as "do not change API", "don't touch schema", "不要改接口", "�
 
 ## Automatic Escalation
 
-Escalate from `micro_patch` when the target is shared/global, when more files are needed, when a new file/dependency/API/schema/style-system change is needed, or when the actual diff exceeds route guard requirements.
+Escalate from `micro_patch` when the target is shared/global, when more files are needed, when a new file/dependency/API/schema/style-system change is needed, or when the actual diff exceeds route guard requirements. Escalate from `tiny_patch` when a new component/widget/feature, dependency, public contract, schema/data change, shared/global component, refactor, migration, auth, payment, or security work is needed.
 
 ## Output
 
-Return route, lane, quality level, subagent mode, risk signals, negative constraints, required skills, skipped workflow, change budget, route doc pack, route guard requirements, and escalation triggers.
+Return route, lane, quality level, subagent mode, risk signals, negative constraints, required skills, skipped workflow, change budget, route doc pack, route guard requirements, artifact policy, and escalation triggers.

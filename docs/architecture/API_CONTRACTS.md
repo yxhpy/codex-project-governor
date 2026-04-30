@@ -599,6 +599,7 @@ Output includes:
 - `change_budget`
 - `route_doc_pack`
 - `route_guard_requirements`
+- `artifact_policy`
 - `evidence_required`
 - `escalate_if`
 - `escalation_triggers`
@@ -607,6 +608,12 @@ Output includes:
 `route_doc_pack` includes primary context roles, read order, context budget gate, stale/superseded doc filtering, compression policy, and full-document escalation conditions. Existing consumers may ignore it.
 
 Coding workflows may include `engineering-standards-governor` in `required_skills` and `required_workflow` before `quality-gate`.
+
+`artifact_policy` is additive and tells agents whether governance evidence should be file-backed or inline:
+
+- `mode: none` for `micro_patch`; no task plan, test plan, pattern reuse plan, evidence manifest, session lifecycle, or merge-readiness artifact is required.
+- `mode: inline` for `tiny_patch`, `docs_only`, and `test_only`; final response evidence may summarize commands and diff facts without creating task artifacts.
+- `mode: files` for standard and strict routes; use file-backed plans, tests, reuse/evidence artifacts, and merge-readiness according to route requirements.
 
 ### `skills/route-guard/scripts/check_route_guard.py`
 
@@ -936,6 +943,7 @@ Output:
 - `classification`
 - `risk_score`
 - `evidence_required`
+- `artifact_policy`
 - `reasons`
 - `model_plan`
 - `context_budget`
@@ -949,7 +957,7 @@ Output:
 - `skipped_skills`
 - `quality_rules`
 
-`context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available. `execution_policy` includes `required`, `context`, `policy_path`, and quality-gate input hints when the request implies a command-policy context such as `release_publish`. `quality_rules.run_engineering_standards` indicates whether the runtime plan expects the engineering standards scanner before quality gate; `quality_rules.run_execution_policy` indicates whether recorded commands must be checked against `.project-governor/runtime/EXECUTION_POLICY.json`.
+`artifact_policy` is copied from the task-router classification so runtimes can avoid creating task artifacts for fast routes. `context_retrieval` includes `docs_manifest`, `query_granularity=section`, route read order, stale-doc filtering, and compression policy. `context_budget` includes section and first-pass character budgets when available. `execution_policy` includes `required`, `context`, `policy_path`, and quality-gate input hints when the request implies a command-policy context such as `release_publish`. `quality_rules.run_engineering_standards` indicates whether the runtime plan expects the engineering standards scanner before quality gate; `quality_rules.run_execution_policy` indicates whether recorded commands must be checked against `.project-governor/runtime/EXECUTION_POLICY.json`.
 
 ### `skills/context-indexer/scripts/build_context_index.py`
 

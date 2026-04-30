@@ -34,7 +34,7 @@ class ExecutionPolicyTest(unittest.TestCase):
             CHECKER,
             {
                 "execution_context": "release_publish",
-                "commands": ["git push origin main", "git push origin v6.2.4"],
+                "commands": ["git push origin main", "git push origin v6.2.5"],
             },
             check=False,
         )
@@ -49,8 +49,8 @@ class ExecutionPolicyTest(unittest.TestCase):
             {
                 "execution_context": "release_publish",
                 "commands": [
-                    "gh api repos/:owner/:repo/git/refs -f ref=refs/tags/v6.2.4 -f sha=abc123",
-                    "gh release create v6.2.4 --notes-file releases/6.2.4.md",
+                    "gh api repos/:owner/:repo/git/refs -f ref=refs/tags/v6.2.5 -f sha=abc123",
+                    "gh release create v6.2.5 --notes-file releases/6.2.5.md",
                 ],
             },
         )

@@ -1,0 +1,132 @@
+{
+  "level": "standard",
+  "route": "standard_feature",
+  "evidence_required": true,
+  "require_commands": true,
+  "change_budget": {
+    "max_files_changed": 24,
+    "max_new_files": 5,
+    "allow_dependencies": false,
+    "allow_public_contract_changes": true,
+    "allow_schema_changes": false
+  },
+  "actual": {
+    "files_changed": 21,
+    "new_files": 5,
+    "dependencies_added": 0,
+    "public_contract_changes": 1,
+    "schema_changes": 0
+  },
+  "commands": [
+    {
+      "command": "python3 tests/test_smart_routing_guard.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/test_gpt55_auto_orchestration.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m compileall tools skills tests",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tests/selftest.py",
+      "status": "passed"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -p 'test_*.py'",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/engineering-standards-governor/scripts/check_engineering_standards.py --project . --diff-base HEAD --format json",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/implementation-guard/scripts/check_iteration_compliance.py tasks/2026-04-30-fast-path-v2/IMPLEMENTATION_GUARD_INPUT.json",
+      "status": "passed"
+    },
+    {
+      "command": "python3 skills/style-drift-check/scripts/check_style_drift.py tasks/2026-04-30-fast-path-v2/STYLE_DRIFT_INPUT.json",
+      "status": "passed"
+    }
+  ],
+  "checks": [
+    {
+      "name": "implementation_guard",
+      "status": "pass",
+      "severity": "warning",
+      "message": "Task-local generated evidence files exceed the generic new-file warning threshold; all are justified in the iteration plan."
+    },
+    {
+      "name": "style_drift",
+      "status": "pass",
+      "severity": "blocking",
+      "message": "No UI components, raw colors, or styling systems added."
+    }
+  ],
+  "engineering_standards": {
+    "status": "pass",
+    "summary": {
+      "blocker_count": 0,
+      "warning_count": 0
+    }
+  },
+  "evidence": {
+    "acceptance_criteria": [
+      {
+        "criterion": "Small UI copy/style requests can avoid heavy task artifacts when route guard remains strict.",
+        "proof": "tests/test_smart_routing_guard.py covers dashboard button copy as micro_patch with artifact_policy.mode=none."
+      },
+      {
+        "criterion": "Slightly larger low-risk local edits have a fast path without context packs or evidence manifests.",
+        "proof": "tests/test_smart_routing_guard.py and tests/test_gpt55_auto_orchestration.py cover tiny_patch with artifact_policy.mode=inline."
+      },
+      {
+        "criterion": "New components/widgets do not slip into the fast path.",
+        "proof": "tests/test_smart_routing_guard.py covers task-router-input.json staying on ui_change with file-backed artifacts."
+      },
+      {
+        "criterion": "Public output-shape change is documented.",
+        "proof": "docs/architecture/API_CONTRACTS.md documents artifact_policy for task-router and gpt55 runtime plans."
+      }
+    ],
+    "tests": [
+      {
+        "command": "python3 tests/test_smart_routing_guard.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/test_gpt55_auto_orchestration.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 tests/selftest.py",
+        "status": "passed"
+      },
+      {
+        "command": "python3 -m unittest discover -s tests -p 'test_*.py'",
+        "status": "passed"
+      }
+    ],
+    "docs_refresh": {
+      "needed": true,
+      "files_updated": [
+        "docs/architecture/API_CONTRACTS.md",
+        "docs/quality/ACCELERATION_POLICY.md",
+        "docs/quality/QUALITY_GATE_POLICY.md",
+        "docs/quality/ROUTE_GUARD_POLICY.md",
+        "docs/zh-CN/USAGE.md",
+        "templates/AGENTS.md",
+        "templates/docs/quality/ACCELERATION_POLICY.md",
+        "templates/docs/quality/QUALITY_GATE_POLICY.md",
+        "templates/docs/quality/ROUTE_GUARD_POLICY.md",
+        "skills/task-router/SKILL.md"
+      ]
+    }
+  }
+}

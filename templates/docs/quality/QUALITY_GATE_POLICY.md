@@ -2,7 +2,13 @@
 
 Use `light`, `standard`, or `strict` gates. Speed never justifies bypassing route guard, tests, weakening assertions, skipping docs, or exceeding change budget silently.
 
-For coding work, include `engineering-standards-governor` before final `quality-gate` unless the route is docs-only or the quality report explains why no source files were relevant.
+Fast-route artifact policy:
+
+- `micro_patch`: no task plan, test plan, pattern reuse plan, evidence manifest, session lifecycle, or merge-readiness artifact is required. Require direct edit, route guard, and a light quality gate.
+- `tiny_patch`: no task plan, test plan, pattern reuse plan, evidence manifest, session lifecycle, context pack, or subagent audit is required. Require direct edit, route guard, diff-scoped engineering standards when code changed, a light quality gate, merge-readiness, and inline final-response evidence.
+- `standard` and `strict`: use file-backed plans, test planning, reuse/evidence artifacts, and merge-readiness according to route requirements.
+
+For coding work, include `engineering-standards-governor` before final `quality-gate` unless the route is `micro_patch`, docs-only, or the quality report explains why no source files were relevant. `tiny_patch` uses diff-scoped engineering standards.
 
 Standard and strict gates must treat engineering-standards blockers as quality-gate blockers. In strict mode, unresolved engineering-standards warnings also block until accepted with evidence.
 
